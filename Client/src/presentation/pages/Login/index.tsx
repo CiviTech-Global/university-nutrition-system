@@ -18,27 +18,21 @@ import {
   Visibility,
   VisibilityOff,
   Person,
-  Email,
   Lock,
   Language,
 } from "@mui/icons-material";
 import { translations } from "../../locales";
 import type { Language as LanguageType } from "../../locales";
-import { isUsernameTaken, isEmailTaken } from "../../utils/userUtils";
+import { authenticateUser, setCurrentUser } from "../../utils/userUtils";
 
-const Register = () => {
+const Login = () => {
   const [language, setLanguage] = useState<LanguageType>("en");
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
     username: "",
     password: "",
-    rePassword: "",
   });
 
   const [showPassword, setShowPassword] = useState(false);
-  const [showRePassword, setShowRePassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState<{
@@ -77,36 +71,12 @@ const Register = () => {
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.firstName.trim()) {
-      newErrors.firstName = t.firstNameRequired;
-    }
-
-    if (!formData.lastName.trim()) {
-      newErrors.lastName = t.lastNameRequired;
-    }
-
-    if (!formData.email.trim()) {
-      newErrors.email = t.emailRequired;
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = t.emailInvalid;
-    }
-
     if (!formData.username.trim()) {
       newErrors.username = t.usernameRequired;
-    } else if (formData.username.length < 3) {
-      newErrors.username = t.usernameMinLength;
     }
 
     if (!formData.password) {
       newErrors.password = t.passwordRequired;
-    } else if (formData.password.length < 6) {
-      newErrors.password = t.passwordMinLength;
-    }
-
-    if (!formData.rePassword) {
-      newErrors.rePassword = t.confirmPasswordRequired;
-    } else if (formData.password !== formData.rePassword) {
-      newErrors.rePassword = t.passwordsDoNotMatch;
     }
 
     setErrors(newErrors);
@@ -121,72 +91,41 @@ const Register = () => {
       setIsSubmitting(true);
 
       try {
-        // Check for duplicate username
-        if (isUsernameTaken(formData.username)) {
-          setErrors((prev) => ({
-            ...prev,
-            username: t.usernameTaken,
-          }));
-          setIsSubmitting(false);
-          return;
+        // Authenticate user
+        const user = authenticateUser(formData.username, formData.password);
+
+        if (user) {
+          // Set current user
+          setCurrentUser(user);
+
+          // Show success message
+          setSubmitMessage({
+            type: "success",
+            text: t.loginSuccess,
+          });
+
+          // Reset form
+          setFormData({
+            username: "",
+            password: "",
+          });
+          setErrors({});
+
+          // Redirect to dashboard after 2 seconds
+          setTimeout(() => {
+            // In a real app, you would use React Router navigation here
+            window.location.href = "/dashboard";
+          }, 2000);
+        } else {
+          setSubmitMessage({
+            type: "error",
+            text: t.invalidCredentials,
+          });
         }
-
-        // Check for duplicate email
-        if (isEmailTaken(formData.email)) {
-          setErrors((prev) => ({
-            ...prev,
-            email: t.emailRegistered,
-          }));
-          setIsSubmitting(false);
-          return;
-        }
-
-        // Create user object
-        const newUser = {
-          id: Date.now().toString(),
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          email: formData.email,
-          username: formData.username,
-          password: formData.password, // In a real app, this should be hashed
-          createdAt: new Date().toISOString(),
-          language: language,
-        };
-
-        // Get existing users
-        const existingUsers = JSON.parse(localStorage.getItem("users") || "[]");
-
-        // Add new user
-        const updatedUsers = [...existingUsers, newUser];
-
-        // Save to localStorage
-        localStorage.setItem("users", JSON.stringify(updatedUsers));
-
-        // Show success message
-        setSubmitMessage({
-          type: "success",
-          text: t.accountCreated,
-        });
-
-        // Reset form
-        setFormData({
-          firstName: "",
-          lastName: "",
-          email: "",
-          username: "",
-          password: "",
-          rePassword: "",
-        });
-        setErrors({});
-
-        // Clear success message after 3 seconds
-        setTimeout(() => {
-          setSubmitMessage(null);
-        }, 3000);
       } catch (error) {
         setSubmitMessage({
           type: "error",
-          text: t.errorCreatingAccount,
+          text: t.loginError,
         });
       } finally {
         setIsSubmitting(false);
@@ -239,7 +178,7 @@ const Register = () => {
                       : "var(--font-english)",
                 }}
               >
-                {t.title}
+                {t.loginTitle}
               </Typography>
               <Typography
                 variant="h6"
@@ -252,106 +191,9 @@ const Register = () => {
                       : "var(--font-english)",
                 }}
               >
-                {t.subtitle}
+                {t.loginSubtitle}
               </Typography>
             </Box>
-
-            {/* Name Fields */}
-            <Stack direction="row" spacing={2}>
-              <TextField
-                fullWidth
-                label={t.firstName}
-                value={formData.firstName}
-                onChange={handleChange("firstName")}
-                error={!!errors.firstName}
-                helperText={errors.firstName}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Person color="action" />
-                    </InputAdornment>
-                  ),
-                }}
-                sx={{
-                  direction: language === "fa" ? "rtl" : "ltr",
-                  "& .MuiInputLabel-root": {
-                    fontFamily:
-                      language === "fa"
-                        ? "var(--font-persian)"
-                        : "var(--font-english)",
-                  },
-                  "& .MuiInputBase-input": {
-                    fontFamily:
-                      language === "fa"
-                        ? "var(--font-persian)"
-                        : "var(--font-english)",
-                  },
-                }}
-              />
-              <TextField
-                fullWidth
-                label={t.lastName}
-                value={formData.lastName}
-                onChange={handleChange("lastName")}
-                error={!!errors.lastName}
-                helperText={errors.lastName}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Person color="action" />
-                    </InputAdornment>
-                  ),
-                }}
-                sx={{
-                  direction: language === "fa" ? "rtl" : "ltr",
-                  "& .MuiInputLabel-root": {
-                    fontFamily:
-                      language === "fa"
-                        ? "var(--font-persian)"
-                        : "var(--font-english)",
-                  },
-                  "& .MuiInputBase-input": {
-                    fontFamily:
-                      language === "fa"
-                        ? "var(--font-persian)"
-                        : "var(--font-english)",
-                  },
-                }}
-              />
-            </Stack>
-
-            {/* Email */}
-            <TextField
-              fullWidth
-              label={t.email}
-              type="email"
-              value={formData.email}
-              onChange={handleChange("email")}
-              error={!!errors.email}
-              helperText={errors.email}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Email color="action" />
-                  </InputAdornment>
-                ),
-              }}
-              sx={{
-                direction: language === "fa" ? "rtl" : "ltr",
-                "& .MuiInputLabel-root": {
-                  fontFamily:
-                    language === "fa"
-                      ? "var(--font-persian)"
-                      : "var(--font-english)",
-                },
-                "& .MuiInputBase-input": {
-                  fontFamily:
-                    language === "fa"
-                      ? "var(--font-persian)"
-                      : "var(--font-english)",
-                },
-              }}
-            />
 
             {/* Username */}
             <TextField
@@ -428,49 +270,6 @@ const Register = () => {
               }}
             />
 
-            {/* Re-enter Password */}
-            <TextField
-              fullWidth
-              label={t.confirmPassword}
-              type={showRePassword ? "text" : "password"}
-              value={formData.rePassword}
-              onChange={handleChange("rePassword")}
-              error={!!errors.rePassword}
-              helperText={errors.rePassword}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Lock color="action" />
-                  </InputAdornment>
-                ),
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton
-                      onClick={() => setShowRePassword(!showRePassword)}
-                      edge="end"
-                    >
-                      {showRePassword ? <VisibilityOff /> : <Visibility />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
-              sx={{
-                direction: language === "fa" ? "rtl" : "ltr",
-                "& .MuiInputLabel-root": {
-                  fontFamily:
-                    language === "fa"
-                      ? "var(--font-persian)"
-                      : "var(--font-english)",
-                },
-                "& .MuiInputBase-input": {
-                  fontFamily:
-                    language === "fa"
-                      ? "var(--font-persian)"
-                      : "var(--font-english)",
-                },
-              }}
-            />
-
             {/* Success/Error Message */}
             {submitMessage && (
               <Alert
@@ -505,14 +304,34 @@ const Register = () => {
               {isSubmitting ? (
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                   <CircularProgress size={20} color="inherit" />
-                  {t.creatingAccount}
+                  {t.loggingIn}
                 </Box>
               ) : (
-                t.createAccount
+                t.loginButton
               )}
             </Button>
 
-            {/* Login Link */}
+            {/* Forgot Password Link */}
+            <Box textAlign="center">
+              <Typography
+                variant="body2"
+                color="primary"
+                onClick={() => (window.location.href = "/forgot-password")}
+                sx={{
+                  cursor: "pointer",
+                  textDecoration: "underline",
+                  fontFamily:
+                    language === "fa"
+                      ? "var(--font-persian)"
+                      : "var(--font-english)",
+                  direction: language === "fa" ? "rtl" : "ltr",
+                }}
+              >
+                {t.forgotPassword}
+              </Typography>
+            </Box>
+
+            {/* Register Link */}
             <Box textAlign="center">
               <Typography
                 variant="body2"
@@ -525,12 +344,12 @@ const Register = () => {
                       : "var(--font-english)",
                 }}
               >
-                {t.alreadyHaveAccount}{" "}
+                {t.dontHaveAccount}{" "}
                 <Typography
                   component="span"
                   variant="body2"
                   color="primary"
-                  onClick={() => (window.location.href = "/login")}
+                  onClick={() => (window.location.href = "/register")}
                   sx={{
                     cursor: "pointer",
                     textDecoration: "underline",
@@ -540,7 +359,7 @@ const Register = () => {
                         : "var(--font-english)",
                   }}
                 >
-                  {t.signInHere}
+                  {t.registerHere}
                 </Typography>
               </Typography>
             </Box>
@@ -551,4 +370,4 @@ const Register = () => {
   );
 };
 
-export default Register;
+export default Login;

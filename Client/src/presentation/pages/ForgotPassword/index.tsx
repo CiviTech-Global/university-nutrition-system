@@ -15,30 +15,27 @@ import {
   CircularProgress,
 } from "@mui/material";
 import {
+  Email,
+  Language,
+  ArrowBack,
+  Lock,
   Visibility,
   VisibilityOff,
-  Person,
-  Email,
-  Lock,
-  Language,
 } from "@mui/icons-material";
 import { translations } from "../../locales";
 import type { Language as LanguageType } from "../../locales";
-import { isUsernameTaken, isEmailTaken } from "../../utils/userUtils";
+import { getUserByEmail } from "../../utils/userUtils";
 
-const Register = () => {
+const ForgotPassword = () => {
   const [language, setLanguage] = useState<LanguageType>("en");
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
     email: "",
-    username: "",
-    password: "",
-    rePassword: "",
+    newPassword: "",
+    confirmPassword: "",
   });
 
   const [showPassword, setShowPassword] = useState(false);
-  const [showRePassword, setShowRePassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState<{
@@ -77,36 +74,22 @@ const Register = () => {
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.firstName.trim()) {
-      newErrors.firstName = t.firstNameRequired;
-    }
-
-    if (!formData.lastName.trim()) {
-      newErrors.lastName = t.lastNameRequired;
-    }
-
     if (!formData.email.trim()) {
       newErrors.email = t.emailRequired;
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = t.emailInvalid;
     }
 
-    if (!formData.username.trim()) {
-      newErrors.username = t.usernameRequired;
-    } else if (formData.username.length < 3) {
-      newErrors.username = t.usernameMinLength;
+    if (!formData.newPassword) {
+      newErrors.newPassword = t.passwordRequired;
+    } else if (formData.newPassword.length < 6) {
+      newErrors.newPassword = t.passwordMinLength;
     }
 
-    if (!formData.password) {
-      newErrors.password = t.passwordRequired;
-    } else if (formData.password.length < 6) {
-      newErrors.password = t.passwordMinLength;
-    }
-
-    if (!formData.rePassword) {
-      newErrors.rePassword = t.confirmPasswordRequired;
-    } else if (formData.password !== formData.rePassword) {
-      newErrors.rePassword = t.passwordsDoNotMatch;
+    if (!formData.confirmPassword) {
+      newErrors.confirmPassword = t.confirmPasswordRequired;
+    } else if (formData.newPassword !== formData.confirmPassword) {
+      newErrors.confirmPassword = t.passwordsDoNotMatch;
     }
 
     setErrors(newErrors);
@@ -121,77 +104,57 @@ const Register = () => {
       setIsSubmitting(true);
 
       try {
-        // Check for duplicate username
-        if (isUsernameTaken(formData.username)) {
-          setErrors((prev) => ({
-            ...prev,
-            username: t.usernameTaken,
-          }));
-          setIsSubmitting(false);
-          return;
+        // Check if email exists in our system
+        const user = getUserByEmail(formData.email);
+
+        if (user) {
+          // Update user's password in localStorage
+          const allUsers = JSON.parse(localStorage.getItem("users") || "[]");
+          const updatedUsers = allUsers.map((u: any) =>
+            u.email === formData.email
+              ? { ...u, password: formData.newPassword }
+              : u
+          );
+          localStorage.setItem("users", JSON.stringify(updatedUsers));
+
+          // Show success message
+          setSubmitMessage({
+            type: "success",
+            text: t.passwordResetSuccess,
+          });
+
+          // Reset form
+          setFormData({
+            email: "",
+            newPassword: "",
+            confirmPassword: "",
+          });
+          setErrors({});
+
+          // Clear success message after 3 seconds
+          setTimeout(() => {
+            setSubmitMessage(null);
+          }, 3000);
+        } else {
+          setSubmitMessage({
+            type: "error",
+            text: t.emailNotFound,
+          });
         }
-
-        // Check for duplicate email
-        if (isEmailTaken(formData.email)) {
-          setErrors((prev) => ({
-            ...prev,
-            email: t.emailRegistered,
-          }));
-          setIsSubmitting(false);
-          return;
-        }
-
-        // Create user object
-        const newUser = {
-          id: Date.now().toString(),
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          email: formData.email,
-          username: formData.username,
-          password: formData.password, // In a real app, this should be hashed
-          createdAt: new Date().toISOString(),
-          language: language,
-        };
-
-        // Get existing users
-        const existingUsers = JSON.parse(localStorage.getItem("users") || "[]");
-
-        // Add new user
-        const updatedUsers = [...existingUsers, newUser];
-
-        // Save to localStorage
-        localStorage.setItem("users", JSON.stringify(updatedUsers));
-
-        // Show success message
-        setSubmitMessage({
-          type: "success",
-          text: t.accountCreated,
-        });
-
-        // Reset form
-        setFormData({
-          firstName: "",
-          lastName: "",
-          email: "",
-          username: "",
-          password: "",
-          rePassword: "",
-        });
-        setErrors({});
-
-        // Clear success message after 3 seconds
-        setTimeout(() => {
-          setSubmitMessage(null);
-        }, 3000);
       } catch (error) {
         setSubmitMessage({
           type: "error",
-          text: t.errorCreatingAccount,
+          text: t.forgotPasswordError,
         });
       } finally {
         setIsSubmitting(false);
       }
     }
+  };
+
+  const handleBackToLogin = () => {
+    // In a real app, you would use React Router navigation here
+    window.location.href = "/login";
   };
 
   return (
@@ -239,7 +202,7 @@ const Register = () => {
                       : "var(--font-english)",
                 }}
               >
-                {t.title}
+                {t.forgotPasswordTitle}
               </Typography>
               <Typography
                 variant="h6"
@@ -252,73 +215,9 @@ const Register = () => {
                       : "var(--font-english)",
                 }}
               >
-                {t.subtitle}
+                {t.forgotPasswordSubtitle}
               </Typography>
             </Box>
-
-            {/* Name Fields */}
-            <Stack direction="row" spacing={2}>
-              <TextField
-                fullWidth
-                label={t.firstName}
-                value={formData.firstName}
-                onChange={handleChange("firstName")}
-                error={!!errors.firstName}
-                helperText={errors.firstName}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Person color="action" />
-                    </InputAdornment>
-                  ),
-                }}
-                sx={{
-                  direction: language === "fa" ? "rtl" : "ltr",
-                  "& .MuiInputLabel-root": {
-                    fontFamily:
-                      language === "fa"
-                        ? "var(--font-persian)"
-                        : "var(--font-english)",
-                  },
-                  "& .MuiInputBase-input": {
-                    fontFamily:
-                      language === "fa"
-                        ? "var(--font-persian)"
-                        : "var(--font-english)",
-                  },
-                }}
-              />
-              <TextField
-                fullWidth
-                label={t.lastName}
-                value={formData.lastName}
-                onChange={handleChange("lastName")}
-                error={!!errors.lastName}
-                helperText={errors.lastName}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Person color="action" />
-                    </InputAdornment>
-                  ),
-                }}
-                sx={{
-                  direction: language === "fa" ? "rtl" : "ltr",
-                  "& .MuiInputLabel-root": {
-                    fontFamily:
-                      language === "fa"
-                        ? "var(--font-persian)"
-                        : "var(--font-english)",
-                  },
-                  "& .MuiInputBase-input": {
-                    fontFamily:
-                      language === "fa"
-                        ? "var(--font-persian)"
-                        : "var(--font-english)",
-                  },
-                }}
-              />
-            </Stack>
 
             {/* Email */}
             <TextField
@@ -353,47 +252,15 @@ const Register = () => {
               }}
             />
 
-            {/* Username */}
+            {/* New Password */}
             <TextField
               fullWidth
-              label={t.username}
-              value={formData.username}
-              onChange={handleChange("username")}
-              error={!!errors.username}
-              helperText={errors.username}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Person color="action" />
-                  </InputAdornment>
-                ),
-              }}
-              sx={{
-                direction: language === "fa" ? "rtl" : "ltr",
-                "& .MuiInputLabel-root": {
-                  fontFamily:
-                    language === "fa"
-                      ? "var(--font-persian)"
-                      : "var(--font-english)",
-                },
-                "& .MuiInputBase-input": {
-                  fontFamily:
-                    language === "fa"
-                      ? "var(--font-persian)"
-                      : "var(--font-english)",
-                },
-              }}
-            />
-
-            {/* Password */}
-            <TextField
-              fullWidth
-              label={t.password}
+              label={t.newPassword}
               type={showPassword ? "text" : "password"}
-              value={formData.password}
-              onChange={handleChange("password")}
-              error={!!errors.password}
-              helperText={errors.password}
+              value={formData.newPassword}
+              onChange={handleChange("newPassword")}
+              error={!!errors.newPassword}
+              helperText={errors.newPassword}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -428,15 +295,15 @@ const Register = () => {
               }}
             />
 
-            {/* Re-enter Password */}
+            {/* Confirm New Password */}
             <TextField
               fullWidth
               label={t.confirmPassword}
-              type={showRePassword ? "text" : "password"}
-              value={formData.rePassword}
-              onChange={handleChange("rePassword")}
-              error={!!errors.rePassword}
-              helperText={errors.rePassword}
+              type={showConfirmPassword ? "text" : "password"}
+              value={formData.confirmPassword}
+              onChange={handleChange("confirmPassword")}
+              error={!!errors.confirmPassword}
+              helperText={errors.confirmPassword}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -446,10 +313,12 @@ const Register = () => {
                 endAdornment: (
                   <InputAdornment position="end">
                     <IconButton
-                      onClick={() => setShowRePassword(!showRePassword)}
+                      onClick={() =>
+                        setShowConfirmPassword(!showConfirmPassword)
+                      }
                       edge="end"
                     >
-                      {showRePassword ? <VisibilityOff /> : <Visibility />}
+                      {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
                     </IconButton>
                   </InputAdornment>
                 ),
@@ -505,44 +374,28 @@ const Register = () => {
               {isSubmitting ? (
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                   <CircularProgress size={20} color="inherit" />
-                  {t.creatingAccount}
+                  {t.resettingPassword}
                 </Box>
               ) : (
-                t.createAccount
+                t.resetPasswordButton
               )}
             </Button>
 
-            {/* Login Link */}
+            {/* Back to Login Link */}
             <Box textAlign="center">
-              <Typography
-                variant="body2"
-                color="text.secondary"
+              <Button
+                startIcon={<ArrowBack />}
+                onClick={handleBackToLogin}
                 sx={{
-                  direction: language === "fa" ? "rtl" : "ltr",
                   fontFamily:
                     language === "fa"
                       ? "var(--font-persian)"
                       : "var(--font-english)",
+                  direction: language === "fa" ? "rtl" : "ltr",
                 }}
               >
-                {t.alreadyHaveAccount}{" "}
-                <Typography
-                  component="span"
-                  variant="body2"
-                  color="primary"
-                  onClick={() => (window.location.href = "/login")}
-                  sx={{
-                    cursor: "pointer",
-                    textDecoration: "underline",
-                    fontFamily:
-                      language === "fa"
-                        ? "var(--font-persian)"
-                        : "var(--font-english)",
-                  }}
-                >
-                  {t.signInHere}
-                </Typography>
-              </Typography>
+                {t.backToLogin}
+              </Button>
             </Box>
           </Stack>
         </Box>
@@ -551,4 +404,4 @@ const Register = () => {
   );
 };
 
-export default Register;
+export default ForgotPassword;

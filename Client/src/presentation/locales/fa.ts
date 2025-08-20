@@ -21,4 +21,44 @@ export const fa = {
   passwordMinLength: "رمز عبور باید حداقل 6 کاراکتر باشد",
   confirmPasswordRequired: "لطفاً رمز عبور خود را تأیید کنید",
   passwordsDoNotMatch: "رمزهای عبور مطابقت ندارند",
+  // Additional validation messages
+  usernameTaken: "این نام کاربری قبلاً استفاده شده است",
+  emailRegistered: "این ایمیل قبلاً ثبت شده است",
+  accountCreated: "حساب کاربری با موفقیت ایجاد شد!",
+  creatingAccount: "در حال ایجاد...",
+  errorCreatingAccount: "خطا در ایجاد حساب کاربری",
+  // Login translations
+  loginTitle: "خوش آمدید",
+  loginSubtitle: "به حساب کاربری خود وارد شوید",
+  loginButton: "ورود",
+  loggingIn: "در حال ورود...",
+  forgotPassword: "رمز عبور را فراموش کرده‌اید؟",
+  dontHaveAccount: "حساب کاربری ندارید؟",
+  registerHere: "اینجا ثبت نام کنید",
+  // Login validation
+  invalidCredentials: "نام کاربری یا رمز عبور اشتباه است",
+  loginSuccess: "ورود موفقیت‌آمیز بود!",
+  loginError: "خطا در ورود",
+  // Forgot Password translations
+  forgotPasswordTitle: "بازیابی رمز عبور",
+  forgotPasswordSubtitle:
+    "ایمیل و رمز عبور جدید خود را وارد کنید تا حساب کاربری خود را بازنشانی کنید",
+  resetPasswordButton: "تغییر رمز عبور",
+  sendingResetLink: "در حال ارسال...",
+  backToLogin: "بازگشت به صفحه ورود",
+  // Forgot Password validation
+  emailSent: "ایمیل بازیابی رمز عبور با موفقیت ارسال شد!",
+  emailNotFound: "ایمیل در سیستم یافت نشد",
+  forgotPasswordError: "خطا در ارسال ایمیل بازیابی",
+  passwordResetSuccess: "رمز عبور با موفقیت تغییر یافت!",
+  newPassword: "رمز عبور جدید",
+  resettingPassword: "در حال تغییر...",
+  // Dashboard translations
+  welcomeMessage: "خوش آمدید",
+  userInformation: "اطلاعات کاربری",
+  memberSince: "تاریخ عضویت",
+  dashboardContent: "محتوای داشبورد",
+  dashboardDescription:
+    "اینجا محتوای اصلی داشبورد سیستم تغذیه دانشگاهی قرار خواهد گرفت.",
+  logout: "خروج",
 };

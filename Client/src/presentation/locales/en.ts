@@ -21,4 +21,44 @@ export const en = {
   passwordMinLength: "Password must be at least 6 characters",
   confirmPasswordRequired: "Please confirm your password",
   passwordsDoNotMatch: "Passwords do not match",
+  // Additional validation messages
+  usernameTaken: "Username is already taken",
+  emailRegistered: "Email is already registered",
+  accountCreated: "Account created successfully!",
+  creatingAccount: "Creating...",
+  errorCreatingAccount: "Error creating account",
+  // Login translations
+  loginTitle: "Welcome Back",
+  loginSubtitle: "Sign in to your account",
+  loginButton: "Sign In",
+  loggingIn: "Signing in...",
+  forgotPassword: "Forgot Password?",
+  dontHaveAccount: "Don't have an account?",
+  registerHere: "Register here",
+  // Login validation
+  invalidCredentials: "Invalid username or password",
+  loginSuccess: "Login successful!",
+  loginError: "Error signing in",
+  // Forgot Password translations
+  forgotPasswordTitle: "Reset Your Password",
+  forgotPasswordSubtitle:
+    "Enter your email and new password to reset your account",
+  resetPasswordButton: "Reset Password",
+  sendingResetLink: "Sending...",
+  backToLogin: "Back to Login",
+  // Forgot Password validation
+  emailSent: "Password reset email sent successfully!",
+  emailNotFound: "Email not found in our records",
+  forgotPasswordError: "Error sending reset email",
+  passwordResetSuccess: "Password reset successfully!",
+  newPassword: "New Password",
+  resettingPassword: "Resetting...",
+  // Dashboard translations
+  welcomeMessage: "Welcome",
+  userInformation: "User Information",
+  memberSince: "Member since",
+  dashboardContent: "Dashboard Content",
+  dashboardDescription:
+    "This is where the main dashboard content for the University Nutrition System will be displayed.",
+  logout: "Logout",
 };
