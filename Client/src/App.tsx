@@ -3,6 +3,9 @@ import Register from "./presentation/pages/Register";
 import Login from "./presentation/pages/Login";
 import ForgotPassword from "./presentation/pages/ForgotPassword";
 import Dashboard from "./presentation/pages/Dashboard";
+import Credit from "./presentation/pages/Credit";
+import Profile from "./presentation/pages/Profile";
+import Layout from "./presentation/components/Layout";
 
 function App() {
   return (
@@ -11,7 +14,30 @@ function App() {
       <Route path="/register" element={<Register />} />
       <Route path="/login" element={<Login />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/dashboard" element={<Dashboard />} />
+      <Route
+        path="/dashboard"
+        element={
+          <Layout>
+            <Dashboard />
+          </Layout>
+        }
+      />
+      <Route
+        path="/credit"
+        element={
+          <Layout>
+            <Credit />
+          </Layout>
+        }
+      />
+      <Route
+        path="/profile"
+        element={
+          <Layout>
+            <Profile />
+          </Layout>
+        }
+      />
     </Routes>
   );
 }

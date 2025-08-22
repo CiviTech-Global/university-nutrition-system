@@ -61,4 +61,25 @@ export const fa = {
   dashboardDescription:
     "اینجا محتوای اصلی داشبورد سیستم تغذیه دانشگاهی قرار خواهد گرفت.",
   logout: "خروج",
+  dashboard: "داشبورد",
+  mealsThisWeek: "وعده‌های غذایی این هفته",
+  availableCredit: "اعتبار موجود",
+  newNotifications: "اعلان‌های جدید",
+  attendanceRate: "نرخ حضور",
+  // Credit translations
+  credit: "اعتبار",
+  addCredit: "افزودن اعتبار",
+  currentBalance: "موجودی فعلی",
+  recentTransactions: "تراکنش‌های اخیر",
+  creditAdded: "اعتبار اضافه شد",
+  mealPurchase: "خرید وعده غذایی",
+  debit: "برداشت",
+  amount: "مبلغ",
+  cancel: "لغو",
+  add: "افزودن",
+  // Profile translations
+  profile: "پروفایل",
+  edit: "ویرایش",
+  save: "ذخیره",
+  personalInformation: "اطلاعات شخصی",
 };

@@ -61,4 +61,25 @@ export const en = {
   dashboardDescription:
     "This is where the main dashboard content for the University Nutrition System will be displayed.",
   logout: "Logout",
+  dashboard: "Dashboard",
+  mealsThisWeek: "Meals This Week",
+  availableCredit: "Available Credit",
+  newNotifications: "New Notifications",
+  attendanceRate: "Attendance Rate",
+  // Credit translations
+  credit: "Credit",
+  addCredit: "Add Credit",
+  currentBalance: "Current Balance",
+  recentTransactions: "Recent Transactions",
+  creditAdded: "Credit Added",
+  mealPurchase: "Meal Purchase",
+  debit: "Debit",
+  amount: "Amount",
+  cancel: "Cancel",
+  add: "Add",
+  // Profile translations
+  profile: "Profile",
+  edit: "Edit",
+  save: "Save",
+  personalInformation: "Personal Information",
 };
