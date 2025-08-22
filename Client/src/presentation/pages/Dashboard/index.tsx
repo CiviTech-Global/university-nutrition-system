@@ -1,51 +1,293 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Box,
-  Container,
   Typography,
   Paper,
   Stack,
   Card,
   CardContent,
   Alert,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Button,
+  IconButton,
+  Chip,
+  Pagination,
+  FormControl,
+  Select,
+  MenuItem,
+  Tooltip,
+  Snackbar,
 } from "@mui/material";
 import {
   Restaurant as RestaurantIcon,
   TrendingUp as TrendingUpIcon,
   Notifications as NotificationsIcon,
   Schedule as ScheduleIcon,
+  NavigateBefore as NavigateBeforeIcon,
+  NavigateNext as NavigateNextIcon,
+  Save as SaveIcon,
+  Refresh as RefreshIcon,
+  Warning as WarningIcon,
 } from "@mui/icons-material";
-import { translations } from "../../locales";
-import type { Language as LanguageType } from "../../locales";
+import type { SelectChangeEvent } from "@mui/material";
 import { getCurrentUser } from "../../utils/userUtils";
+import { useLanguage } from "../../components/Layout";
+import {
+  formatCurrency,
+  formatDate,
+  formatTime,
+  toPersianNumber,
+  createLanguageStyles,
+} from "../../utils/languageUtils";
+
+interface FoodItem {
+  name: string;
+  price: number;
+}
+
+interface DashboardStats {
+  totalReservations: number;
+  currentWeekReservations: number;
+  userCredit: number;
+  notifications: number;
+  attendanceRate: number;
+}
 
 const Dashboard = () => {
-  const [language, setLanguage] = useState<LanguageType>("en");
+  const { language, t, isRTL } = useLanguage();
   const [user, setUser] = useState<any>(null);
+  const [currentWeek, setCurrentWeek] = useState(0);
+  const [currentDateTime, setCurrentDateTime] = useState(new Date());
+  const [reservations, setReservations] = useState<
+    Record<string, Record<string, string>>
+  >({});
+  const [showSaveSuccess, setShowSaveSuccess] = useState(false);
+  const [showSaveError, setShowSaveError] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const t = translations[language];
+  // Update current date and time every second
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentDateTime(new Date());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     const currentUser = getCurrentUser();
     if (currentUser) {
       setUser(currentUser);
-      setLanguage(currentUser.language);
+      loadReservations(currentUser.id);
     } else {
-      // Redirect to login if no user is logged in
       window.location.href = "/login";
     }
+    setIsLoading(false);
   }, []);
+
+  // Load reservations from localStorage
+  const loadReservations = (userId: string) => {
+    try {
+      const savedReservations = localStorage.getItem(`reservations_${userId}`);
+      if (savedReservations) {
+        setReservations(JSON.parse(savedReservations));
+      }
+    } catch (error) {
+      console.error("Error loading reservations:", error);
+    }
+  };
+
+  // Save reservations to localStorage
+  const saveReservations = async () => {
+    if (!user) return;
+
+    setIsSaving(true);
+    try {
+      localStorage.setItem(
+        `reservations_${user.id}`,
+        JSON.stringify(reservations)
+      );
+      setShowSaveSuccess(true);
+    } catch (error) {
+      console.error("Error saving reservations:", error);
+      setShowSaveError(true);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Get week dates
+  const getWeekDates = (weekOffset: number) => {
+    const today = new Date();
+    const startOfWeek = new Date(today);
+    startOfWeek.setDate(today.getDate() - today.getDay() + weekOffset * 7);
+
+    const weekDates = [];
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(startOfWeek);
+      date.setDate(startOfWeek.getDate() + i);
+      weekDates.push(date);
+    }
+    return weekDates;
+  };
+
+  const weekDates = getWeekDates(currentWeek);
+
+  // Calculate dashboard statistics
+  const dashboardStats: DashboardStats = useMemo(() => {
+    const totalReservations = Object.values(reservations).reduce(
+      (acc, dayReservations) => {
+        return (
+          acc +
+          Object.values(dayReservations).filter((meal) => meal !== "").length
+        );
+      },
+      0
+    );
+
+    const currentWeekReservations = weekDates.reduce((acc, date) => {
+      const dayReservations = reservations[date.toISOString()] || {};
+      return (
+        acc +
+        Object.values(dayReservations).filter((meal) => meal !== "").length
+      );
+    }, 0);
+
+    const userCredit = user?.credit || 1250;
+    const notifications = Math.floor(Math.random() * 5) + 1;
+    const attendanceRate = Math.floor(Math.random() * 20) + 80;
+
+    return {
+      totalReservations,
+      currentWeekReservations,
+      userCredit,
+      notifications,
+      attendanceRate,
+    };
+  }, [reservations, user, weekDates]);
+
+  // Persian food options with prices
+  const persianFoods: Record<string, FoodItem[]> = {
+    breakfast: [
+      { name: "نان و پنیر و چای", price: 15 },
+      { name: "شیر و عسل", price: 20 },
+      { name: "کره و مربا", price: 18 },
+      { name: "تخم مرغ آب پز", price: 25 },
+      { name: "حلیم", price: 30 },
+    ],
+    lunch: [
+      { name: "چلو کباب", price: 45 },
+      { name: "قورمه سبزی", price: 40 },
+      { name: "فesenجان", price: 42 },
+      { name: "کباب کوبیده", price: 48 },
+      { name: "برنج و خورشت", price: 35 },
+      { name: "آش رشته", price: 28 },
+      { name: "دلمه", price: 32 },
+    ],
+    dinner: [
+      { name: "کباب برگ", price: 50 },
+      { name: "خورشت قیمه", price: 38 },
+      { name: "برنج و ماهی", price: 45 },
+      { name: "آش جو", price: 25 },
+      { name: "سوپ", price: 22 },
+      { name: "سالاد", price: 18 },
+    ],
+  };
+
+  const handleReservation = (date: string, meal: string, food: string) => {
+    setReservations((prev) => ({
+      ...prev,
+      [date]: {
+        ...prev[date],
+        [meal]: food,
+      },
+    }));
+  };
+
+  const handleWeekChange = (
+    event: React.ChangeEvent<unknown>,
+    value: number
+  ) => {
+    setCurrentWeek(value - 1);
+  };
+
+  const handlePreviousWeek = () => {
+    if (currentWeek > -2) {
+      setCurrentWeek(currentWeek - 1);
+    }
+  };
+
+  const handleNextWeek = () => {
+    if (currentWeek < 2) {
+      setCurrentWeek(currentWeek + 1);
+    }
+  };
+
+  const formatDateDisplay = (date: Date) => {
+    return formatDate(date, language, {
+      weekday: "long",
+      month: "short",
+      day: "numeric",
+    });
+  };
+
+  const isToday = (date: Date) => {
+    const today = new Date();
+    return date.toDateString() === today.toDateString();
+  };
+
+  const isPastDate = (date: Date) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    date.setHours(0, 0, 0, 0);
+    return date < today;
+  };
+
+  const getFoodPrice = (meal: string, foodName: string) => {
+    const mealFoods = persianFoods[meal];
+    const food = mealFoods.find((f) => f.name === foodName);
+    return food?.price || 0;
+  };
+
+  const calculateTotalCost = () => {
+    return Object.values(reservations).reduce((total, dayReservations) => {
+      return (
+        total +
+        Object.entries(dayReservations).reduce((dayTotal, [meal, food]) => {
+          return dayTotal + getFoodPrice(meal, food);
+        }, 0)
+      );
+    }, 0);
+  };
+
+  if (isLoading) {
+    return (
+      <Box
+        sx={{ py: 4, width: "100%", display: "flex", justifyContent: "center" }}
+      >
+        <Alert severity="info">{t.loading}</Alert>
+      </Box>
+    );
+  }
 
   if (!user) {
     return (
-      <Container maxWidth="sm" sx={{ py: 4 }}>
-        <Alert severity="info">Loading...</Alert>
-      </Container>
+      <Box
+        sx={{ py: 4, width: "100%", display: "flex", justifyContent: "center" }}
+      >
+        <Alert severity="error">{t.userNotFound}</Alert>
+      </Box>
     );
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <Box sx={{ py: 4, width: "100%" }}>
       <Stack spacing={3}>
         {/* Header */}
         <Typography
@@ -53,9 +295,9 @@ const Dashboard = () => {
           component="h1"
           color="primary"
           sx={{
-            direction: language === "fa" ? "rtl" : "ltr",
-            fontFamily:
-              language === "fa" ? "var(--font-persian)" : "var(--font-english)",
+            direction: isRTL ? "rtl" : "ltr",
+            fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+            textAlign: isRTL ? "right" : "left",
           }}
         >
           {t.dashboard}
@@ -65,9 +307,9 @@ const Dashboard = () => {
         <Typography
           variant="h5"
           sx={{
-            direction: language === "fa" ? "rtl" : "ltr",
-            fontFamily:
-              language === "fa" ? "var(--font-persian)" : "var(--font-english)",
+            direction: isRTL ? "rtl" : "ltr",
+            fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+            textAlign: isRTL ? "right" : "left",
           }}
         >
           {`${t.welcomeMessage}, ${user.firstName} ${user.lastName}!`}
@@ -94,24 +336,24 @@ const Dashboard = () => {
                     variant="h4"
                     color="primary"
                     sx={{
-                      direction: language === "fa" ? "rtl" : "ltr",
-                      fontFamily:
-                        language === "fa"
-                          ? "var(--font-persian)"
-                          : "var(--font-english)",
+                      direction: isRTL ? "rtl" : "ltr",
+                      fontFamily: isRTL
+                        ? "var(--font-persian)"
+                        : "var(--font-english)",
+                      textAlign: isRTL ? "right" : "left",
                     }}
                   >
-                    12
+                    {dashboardStats.currentWeekReservations}
                   </Typography>
                   <Typography
                     variant="body2"
                     color="text.secondary"
                     sx={{
-                      direction: language === "fa" ? "rtl" : "ltr",
-                      fontFamily:
-                        language === "fa"
-                          ? "var(--font-persian)"
-                          : "var(--font-english)",
+                      direction: isRTL ? "rtl" : "ltr",
+                      fontFamily: isRTL
+                        ? "var(--font-persian)"
+                        : "var(--font-english)",
+                      textAlign: isRTL ? "right" : "left",
                     }}
                   >
                     {t.mealsThisWeek}
@@ -130,24 +372,24 @@ const Dashboard = () => {
                     variant="h4"
                     color="success.main"
                     sx={{
-                      direction: language === "fa" ? "rtl" : "ltr",
-                      fontFamily:
-                        language === "fa"
-                          ? "var(--font-persian)"
-                          : "var(--font-english)",
+                      direction: isRTL ? "rtl" : "ltr",
+                      fontFamily: isRTL
+                        ? "var(--font-persian)"
+                        : "var(--font-english)",
+                      textAlign: isRTL ? "right" : "left",
                     }}
                   >
-                    $1,250
+                    {formatCurrency(dashboardStats.userCredit, language)}
                   </Typography>
                   <Typography
                     variant="body2"
                     color="text.secondary"
                     sx={{
-                      direction: language === "fa" ? "rtl" : "ltr",
-                      fontFamily:
-                        language === "fa"
-                          ? "var(--font-persian)"
-                          : "var(--font-english)",
+                      direction: isRTL ? "rtl" : "ltr",
+                      fontFamily: isRTL
+                        ? "var(--font-persian)"
+                        : "var(--font-english)",
+                      textAlign: isRTL ? "right" : "left",
                     }}
                   >
                     {t.availableCredit}
@@ -166,24 +408,24 @@ const Dashboard = () => {
                     variant="h4"
                     color="warning.main"
                     sx={{
-                      direction: language === "fa" ? "rtl" : "ltr",
-                      fontFamily:
-                        language === "fa"
-                          ? "var(--font-persian)"
-                          : "var(--font-english)",
+                      direction: isRTL ? "rtl" : "ltr",
+                      fontFamily: isRTL
+                        ? "var(--font-persian)"
+                        : "var(--font-english)",
+                      textAlign: isRTL ? "right" : "left",
                     }}
                   >
-                    3
+                    {dashboardStats.notifications}
                   </Typography>
                   <Typography
                     variant="body2"
                     color="text.secondary"
                     sx={{
-                      direction: language === "fa" ? "rtl" : "ltr",
-                      fontFamily:
-                        language === "fa"
-                          ? "var(--font-persian)"
-                          : "var(--font-english)",
+                      direction: isRTL ? "rtl" : "ltr",
+                      fontFamily: isRTL
+                        ? "var(--font-persian)"
+                        : "var(--font-english)",
+                      textAlign: isRTL ? "right" : "left",
                     }}
                   >
                     {t.newNotifications}
@@ -202,24 +444,24 @@ const Dashboard = () => {
                     variant="h4"
                     color="info.main"
                     sx={{
-                      direction: language === "fa" ? "rtl" : "ltr",
-                      fontFamily:
-                        language === "fa"
-                          ? "var(--font-persian)"
-                          : "var(--font-english)",
+                      direction: isRTL ? "rtl" : "ltr",
+                      fontFamily: isRTL
+                        ? "var(--font-persian)"
+                        : "var(--font-english)",
+                      textAlign: isRTL ? "right" : "left",
                     }}
                   >
-                    85%
+                    {dashboardStats.attendanceRate}%
                   </Typography>
                   <Typography
                     variant="body2"
                     color="text.secondary"
                     sx={{
-                      direction: language === "fa" ? "rtl" : "ltr",
-                      fontFamily:
-                        language === "fa"
-                          ? "var(--font-persian)"
-                          : "var(--font-english)",
+                      direction: isRTL ? "rtl" : "ltr",
+                      fontFamily: isRTL
+                        ? "var(--font-persian)"
+                        : "var(--font-english)",
+                      textAlign: isRTL ? "right" : "left",
                     }}
                   >
                     {t.attendanceRate}
@@ -230,35 +472,308 @@ const Dashboard = () => {
           </Card>
         </Box>
 
-        {/* Dashboard Content */}
-        <Paper elevation={3} sx={{ p: 4, borderRadius: 2 }}>
+        {/* Current Date and Time */}
+        <Paper
+          elevation={3}
+          sx={{ p: 3, borderRadius: 2, backgroundColor: "info.50" }}
+        >
           <Typography
-            variant="h5"
+            variant="h6"
             sx={{
-              direction: language === "fa" ? "rtl" : "ltr",
-              fontFamily:
-                language === "fa"
-                  ? "var(--font-persian)"
-                  : "var(--font-english)",
-              mb: 2,
+              direction: isRTL ? "rtl" : "ltr",
+              fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+              textAlign: "center",
             }}
           >
-            {t.dashboardContent}
+            {formatDate(currentDateTime, language, {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+              weekday: "long",
+            })}
           </Typography>
           <Typography
+            variant="h4"
             sx={{
-              direction: language === "fa" ? "rtl" : "ltr",
-              fontFamily:
-                language === "fa"
-                  ? "var(--font-persian)"
-                  : "var(--font-english)",
+              direction: isRTL ? "rtl" : "ltr",
+              fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+              textAlign: "center",
+              color: "primary.main",
             }}
           >
-            {t.dashboardDescription}
+            {formatTime(currentDateTime, language)}
           </Typography>
         </Paper>
+
+        {/* Meal Reservation Table */}
+        <Paper elevation={3} sx={{ p: 4, borderRadius: 2 }}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              mb: 3,
+              flexDirection: isRTL ? "row-reverse" : "row",
+            }}
+          >
+            <Typography
+              variant="h5"
+              sx={{
+                direction: isRTL ? "rtl" : "ltr",
+                fontFamily: isRTL
+                  ? "var(--font-persian)"
+                  : "var(--font-english)",
+                textAlign: isRTL ? "right" : "left",
+              }}
+            >
+              {t.mealReservation}
+            </Typography>
+            <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+              <Tooltip title={t.previousWeek}>
+                <IconButton
+                  onClick={handlePreviousWeek}
+                  disabled={currentWeek <= -2}
+                  color="primary"
+                >
+                  <NavigateBeforeIcon />
+                </IconButton>
+              </Tooltip>
+              <Pagination
+                count={5}
+                page={currentWeek + 3}
+                onChange={handleWeekChange}
+                color="primary"
+                size="large"
+              />
+              <Tooltip title={t.nextWeek}>
+                <IconButton
+                  onClick={handleNextWeek}
+                  disabled={currentWeek >= 2}
+                  color="primary"
+                >
+                  <NavigateNextIcon />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title={t.saveReservations}>
+                <Button
+                  variant="contained"
+                  startIcon={isSaving ? <RefreshIcon /> : <SaveIcon />}
+                  onClick={saveReservations}
+                  disabled={isSaving}
+                  sx={{
+                    fontFamily: isRTL
+                      ? "var(--font-persian)"
+                      : "var(--font-english)",
+                    direction: isRTL ? "rtl" : "ltr",
+                  }}
+                >
+                  {isSaving ? t.saving : t.save}
+                </Button>
+              </Tooltip>
+            </Box>
+          </Box>
+
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell
+                    sx={{
+                      direction: isRTL ? "rtl" : "ltr",
+                      fontFamily: isRTL
+                        ? "var(--font-persian)"
+                        : "var(--font-english)",
+                      fontWeight: "bold",
+                      textAlign: isRTL ? "right" : "left",
+                    }}
+                  >
+                    {t.day}
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      direction: isRTL ? "rtl" : "ltr",
+                      fontFamily: isRTL
+                        ? "var(--font-persian)"
+                        : "var(--font-english)",
+                      fontWeight: "bold",
+                      textAlign: isRTL ? "right" : "left",
+                    }}
+                  >
+                    {t.breakfast}
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      direction: isRTL ? "rtl" : "ltr",
+                      fontFamily: isRTL
+                        ? "var(--font-persian)"
+                        : "var(--font-english)",
+                      fontWeight: "bold",
+                      textAlign: isRTL ? "right" : "left",
+                    }}
+                  >
+                    {t.lunch}
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      direction: isRTL ? "rtl" : "ltr",
+                      fontFamily: isRTL
+                        ? "var(--font-persian)"
+                        : "var(--font-english)",
+                      fontWeight: "bold",
+                      textAlign: isRTL ? "right" : "left",
+                    }}
+                  >
+                    {t.dinner}
+                  </TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {weekDates.map((date) => (
+                  <TableRow
+                    key={date.toISOString()}
+                    sx={{
+                      backgroundColor: isToday(date) ? "primary.50" : "inherit",
+                    }}
+                  >
+                    <TableCell
+                      sx={{
+                        direction: isRTL ? "rtl" : "ltr",
+                        fontFamily: isRTL
+                          ? "var(--font-persian)"
+                          : "var(--font-english)",
+                        fontWeight: isToday(date) ? "bold" : "normal",
+                        textAlign: isRTL ? "right" : "left",
+                      }}
+                    >
+                      <Box>
+                        <Typography variant="body1">
+                          {formatDateDisplay(date)}
+                        </Typography>
+                        {isToday(date) && (
+                          <Chip
+                            label={t.today}
+                            color="primary"
+                            size="small"
+                            sx={{
+                              fontFamily: isRTL
+                                ? "var(--font-persian)"
+                                : "var(--font-english)",
+                              direction: isRTL ? "rtl" : "ltr",
+                            }}
+                          />
+                        )}
+                        {isPastDate(date) && (
+                          <Chip
+                            icon={<WarningIcon />}
+                            label={t.past}
+                            color="error"
+                            size="small"
+                            sx={{
+                              fontFamily: isRTL
+                                ? "var(--font-persian)"
+                                : "var(--font-english)",
+                              direction: isRTL ? "rtl" : "ltr",
+                            }}
+                          />
+                        )}
+                      </Box>
+                    </TableCell>
+                    {["breakfast", "lunch", "dinner"].map((meal) => (
+                      <TableCell key={meal}>
+                        <FormControl fullWidth size="small">
+                          <Select
+                            value={
+                              reservations[date.toISOString()]?.[meal] || ""
+                            }
+                            onChange={(e: SelectChangeEvent) =>
+                              handleReservation(
+                                date.toISOString(),
+                                meal,
+                                e.target.value
+                              )
+                            }
+                            displayEmpty
+                            disabled={isPastDate(date)}
+                            sx={{
+                              direction: isRTL ? "rtl" : "ltr",
+                              fontFamily: isRTL
+                                ? "var(--font-persian)"
+                                : "var(--font-english)",
+                              textAlign: isRTL ? "right" : "left",
+                            }}
+                          >
+                            <MenuItem value="">
+                              <em>{t.selectMeal}</em>
+                            </MenuItem>
+                            {persianFoods[meal].map((food) => (
+                              <MenuItem key={food.name} value={food.name}>
+                                <Box
+                                  sx={{
+                                    display: "flex",
+                                    justifyContent: "space-between",
+                                    width: "100%",
+                                    direction: isRTL ? "rtl" : "ltr",
+                                  }}
+                                >
+                                  <span>{food.name}</span>
+                                  <Chip
+                                    label={`$${food.price}`}
+                                    size="small"
+                                    color="primary"
+                                    variant="outlined"
+                                  />
+                                </Box>
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+
+          {/* Total Cost Summary */}
+          <Box
+            sx={{ mt: 3, p: 2, backgroundColor: "grey.50", borderRadius: 1 }}
+          >
+            <Typography
+              variant="h6"
+              sx={{
+                direction: isRTL ? "rtl" : "ltr",
+                fontFamily: isRTL
+                  ? "var(--font-persian)"
+                  : "var(--font-english)",
+                textAlign: isRTL ? "right" : "left",
+              }}
+            >
+              {t.totalCost}: {formatCurrency(calculateTotalCost(), language)}
+            </Typography>
+          </Box>
+        </Paper>
       </Stack>
-    </Container>
+
+      {/* Success Snackbar */}
+      <Snackbar
+        open={showSaveSuccess}
+        autoHideDuration={3000}
+        onClose={() => setShowSaveSuccess(false)}
+        message={t.reservationsSaved}
+      />
+
+      {/* Error Snackbar */}
+      <Snackbar
+        open={showSaveError}
+        autoHideDuration={3000}
+        onClose={() => setShowSaveError(false)}
+      >
+        <Alert onClose={() => setShowSaveError(false)} severity="error">
+          {t.errorSavingReservations}
+        </Alert>
+      </Snackbar>
+    </Box>
   );
 };
 

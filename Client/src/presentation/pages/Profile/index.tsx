@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import {
   Box,
-  Container,
   Typography,
   Paper,
   Stack,
@@ -85,14 +84,16 @@ const Profile = () => {
 
   if (!user) {
     return (
-      <Container maxWidth="sm" sx={{ py: 4 }}>
+      <Box
+        sx={{ py: 4, width: "100%", display: "flex", justifyContent: "center" }}
+      >
         <Alert severity="info">Loading...</Alert>
-      </Container>
+      </Box>
     );
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <Box sx={{ py: 4, width: "100%" }}>
       <Stack spacing={3}>
         {/* Header */}
         <Box
@@ -385,7 +386,7 @@ const Profile = () => {
           </Grid>
         </Grid>
       </Stack>
-    </Container>
+    </Box>
   );
 };
 

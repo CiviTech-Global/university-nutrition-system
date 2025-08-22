@@ -1,0 +1,462 @@
+/* Persian Language and RTL Support */
+
+/* Global RTL Direction Support */
+[dir="rtl"] {
+  direction: rtl;
+  text-align: right;
+}
+
+[dir="rtl"] * {
+  direction: inherit;
+}
+
+/* Fix for blank white area in RTL */
+[dir="rtl"] body {
+  direction: rtl;
+  text-align: right;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+[dir="rtl"] #root {
+  direction: rtl;
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* Ensure full width layout in RTL */
+[dir="rtl"] .MuiBox-root {
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Persian Font Variables */
+:root {
+  --font-persian: "Vazir", "Tahoma", "Arial", sans-serif;
+  --font-english: "Roboto", "Arial", sans-serif;
+}
+
+/* Persian Typography */
+.persian-text {
+  font-family: var(--font-persian);
+  direction: rtl;
+  text-align: right;
+  line-height: 1.8;
+}
+
+.english-text {
+  font-family: var(--font-english);
+  direction: ltr;
+  text-align: left;
+  line-height: 1.5;
+}
+
+/* RTL Layout Adjustments */
+[dir="rtl"] .MuiDrawer-paper {
+  direction: rtl;
+}
+
+[dir="rtl"] .MuiAppBar-root {
+  direction: rtl;
+}
+
+[dir="rtl"] .MuiToolbar-root {
+  direction: rtl;
+}
+
+/* RTL Table Adjustments */
+[dir="rtl"] .MuiTable-root {
+  direction: rtl;
+}
+
+[dir="rtl"] .MuiTableCell-root {
+  text-align: right;
+}
+
+[dir="rtl"] .MuiTableHead-root .MuiTableCell-root {
+  text-align: right;
+}
+
+/* RTL Form Controls */
+[dir="rtl"] .MuiInputBase-root {
+  direction: rtl;
+  text-align: right;
+}
+
+[dir="rtl"] .MuiInputLabel-root {
+  direction: rtl;
+  text-align: right;
+}
+
+[dir="rtl"] .MuiSelect-select {
+  direction: rtl;
+  text-align: right;
+}
+
+[dir="rtl"] .MuiMenuItem-root {
+  direction: rtl;
+  text-align: right;
+}
+
+/* RTL Button Adjustments */
+[dir="rtl"] .MuiButton-startIcon {
+  margin-right: 0;
+  margin-left: 8px;
+}
+
+[dir="rtl"] .MuiButton-endIcon {
+  margin-left: 0;
+  margin-right: 8px;
+}
+
+/* RTL Card Adjustments */
+[dir="rtl"] .MuiCardContent-root {
+  direction: rtl;
+}
+
+[dir="rtl"] .MuiTypography-root {
+  direction: rtl;
+  text-align: right;
+}
+
+/* RTL Dialog Adjustments */
+[dir="rtl"] .MuiDialogTitle-root {
+  direction: rtl;
+  text-align: right;
+}
+
+[dir="rtl"] .MuiDialogContent-root {
+  direction: rtl;
+}
+
+[dir="rtl"] .MuiDialogActions-root {
+  direction: rtl;
+  justify-content: flex-start;
+}
+
+/* RTL List Adjustments */
+[dir="rtl"] .MuiList-root {
+  direction: rtl;
+}
+
+[dir="rtl"] .MuiListItem-root {
+  direction: rtl;
+}
+
+[dir="rtl"] .MuiListItemIcon-root {
+  margin-right: 0;
+  margin-left: 16px;
+}
+
+[dir="rtl"] .MuiListItemText-root {
+  direction: rtl;
+  text-align: right;
+}
+
+/* RTL Chip Adjustments */
+[dir="rtl"] .MuiChip-root {
+  direction: rtl;
+}
+
+[dir="rtl"] .MuiChip-label {
+  direction: rtl;
+  text-align: right;
+}
+
+/* RTL Pagination Adjustments */
+[dir="rtl"] .MuiPagination-root {
+  direction: rtl;
+}
+
+[dir="rtl"] .MuiPaginationItem-root {
+  direction: rtl;
+}
+
+/* RTL Snackbar Adjustments */
+[dir="rtl"] .MuiSnackbar-root {
+  direction: rtl;
+}
+
+[dir="rtl"] .MuiAlert-root {
+  direction: rtl;
+  text-align: right;
+}
+
+/* RTL Tooltip Adjustments */
+[dir="rtl"] .MuiTooltip-tooltip {
+  direction: rtl;
+  text-align: right;
+}
+
+/* RTL Menu Adjustments */
+[dir="rtl"] .MuiMenu-paper {
+  direction: rtl;
+}
+
+[dir="rtl"] .MuiMenu-list {
+  direction: rtl;
+}
+
+/* RTL Grid Adjustments */
+[dir="rtl"] .MuiGrid-root {
+  direction: rtl;
+}
+
+/* RTL Stack Adjustments */
+[dir="rtl"] .MuiStack-root {
+  direction: rtl;
+}
+
+/* RTL Box Adjustments */
+[dir="rtl"] .MuiBox-root {
+  direction: rtl;
+}
+
+/* Persian Number Input */
+[dir="rtl"] input[type="number"] {
+  direction: rtl;
+  text-align: right;
+  font-family: var(--font-persian);
+}
+
+/* Persian Date Input */
+[dir="rtl"] input[type="date"] {
+  direction: rtl;
+  text-align: right;
+  font-family: var(--font-persian);
+}
+
+/* Persian Time Input */
+[dir="rtl"] input[type="time"] {
+  direction: rtl;
+  text-align: right;
+  font-family: var(--font-persian);
+}
+
+/* Persian Textarea */
+[dir="rtl"] textarea {
+  direction: rtl;
+  text-align: right;
+  font-family: var(--font-persian);
+}
+
+/* Persian Select */
+[dir="rtl"] select {
+  direction: rtl;
+  text-align: right;
+  font-family: var(--font-persian);
+}
+
+/* RTL Icon Adjustments */
+[dir="rtl"] .MuiSvgIcon-root {
+  direction: rtl;
+}
+
+/* RTL Avatar Adjustments */
+[dir="rtl"] .MuiAvatar-root {
+  direction: rtl;
+}
+
+/* RTL Divider Adjustments */
+[dir="rtl"] .MuiDivider-root {
+  direction: rtl;
+}
+
+/* RTL Paper Adjustments */
+[dir="rtl"] .MuiPaper-root {
+  direction: rtl;
+}
+
+/* RTL Container Adjustments */
+[dir="rtl"] .MuiContainer-root {
+  direction: rtl;
+}
+
+/* RTL Typography Specific Adjustments */
+[dir="rtl"] .MuiTypography-h1,
+[dir="rtl"] .MuiTypography-h2,
+[dir="rtl"] .MuiTypography-h3,
+[dir="rtl"] .MuiTypography-h4,
+[dir="rtl"] .MuiTypography-h5,
+[dir="rtl"] .MuiTypography-h6 {
+  direction: rtl;
+  text-align: right;
+  font-family: var(--font-persian);
+}
+
+[dir="rtl"] .MuiTypography-body1,
+[dir="rtl"] .MuiTypography-body2 {
+  direction: rtl;
+  text-align: right;
+  font-family: var(--font-persian);
+}
+
+[dir="rtl"] .MuiTypography-caption {
+  direction: rtl;
+  text-align: right;
+  font-family: var(--font-persian);
+}
+
+/* Persian-specific spacing adjustments */
+[dir="rtl"] .persian-spacing {
+  letter-spacing: 0.5px;
+  word-spacing: 2px;
+}
+
+/* Persian number formatting */
+.persian-numbers {
+  font-family: var(--font-persian);
+  direction: rtl;
+}
+
+/* Persian currency formatting */
+.persian-currency {
+  font-family: var(--font-persian);
+  direction: rtl;
+  text-align: right;
+}
+
+/* Persian date formatting */
+.persian-date {
+  font-family: var(--font-persian);
+  direction: rtl;
+  text-align: right;
+}
+
+/* Persian time formatting */
+.persian-time {
+  font-family: var(--font-persian);
+  direction: rtl;
+  text-align: right;
+}
+
+/* RTL responsive adjustments */
+@media (max-width: 600px) {
+  [dir="rtl"] .MuiDrawer-paper {
+    width: 100%;
+  }
+
+  [dir="rtl"] .MuiAppBar-root {
+    width: 100%;
+  }
+}
+
+/* Additional RTL layout fixes */
+[dir="rtl"] .MuiStack-root {
+  width: 100%;
+}
+
+[dir="rtl"] .MuiPaper-root {
+  width: 100%;
+  max-width: 100%;
+}
+
+[dir="rtl"] .MuiCard-root {
+  width: 100%;
+}
+
+[dir="rtl"] .MuiGrid-root {
+  width: 100%;
+}
+
+/* Fix for main content area in RTL */
+[dir="rtl"] .MuiBox-root[component="main"] {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Persian-specific animations */
+@keyframes persian-fade-in {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.persian-fade-in {
+  animation: persian-fade-in 0.3s ease-in-out;
+}
+
+/* RTL-specific animations */
+@keyframes rtl-slide-in {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+[dir="rtl"] .rtl-slide-in {
+  animation: rtl-slide-in 0.3s ease-in-out;
+}
+
+/* Persian-specific focus styles */
+[dir="rtl"] .MuiInputBase-root:focus-within {
+  border-color: #1976d2;
+  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
+}
+
+/* Persian-specific hover styles */
+[dir="rtl"] .MuiButton-root:hover {
+  background-color: rgba(25, 118, 210, 0.04);
+}
+
+/* Persian-specific active styles */
+[dir="rtl"] .MuiButton-root:active {
+  background-color: rgba(25, 118, 210, 0.12);
+}
+
+/* Persian-specific disabled styles */
+[dir="rtl"] .MuiButton-root:disabled {
+  color: rgba(0, 0, 0, 0.26);
+  background-color: rgba(0, 0, 0, 0.12);
+}
+
+/* Persian-specific selection styles */
+[dir="rtl"] ::selection {
+  background-color: rgba(25, 118, 210, 0.3);
+  color: #000;
+}
+
+[dir="rtl"] ::-moz-selection {
+  background-color: rgba(25, 118, 210, 0.3);
+  color: #000;
+}
+
+/* Persian-specific scrollbar styles */
+[dir="rtl"] ::-webkit-scrollbar {
+  width: 8px;
+}
+
+[dir="rtl"] ::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+[dir="rtl"] ::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+[dir="rtl"] ::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Persian-specific print styles */
+@media print {
+  [dir="rtl"] {
+    direction: rtl;
+    text-align: right;
+  }
+
+  [dir="rtl"] .MuiTypography-root {
+    font-family: var(--font-persian);
+    direction: rtl;
+    text-align: right;
+  }
+}
