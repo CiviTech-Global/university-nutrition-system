@@ -143,4 +143,10 @@ export const en = {
   reportIssue: "Report Issue",
   termsOfService: "Terms of Service",
   privacyPolicy: "Privacy Policy",
+  // Sidebar translations
+  expand: "Expand",
+  collapse: "Collapse",
+  mainMenu: "Main Menu",
+  tools: "Tools",
+  language: "Language",
 };

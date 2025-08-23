@@ -143,4 +143,10 @@ export const fa = {
   reportIssue: "گزارش مشکل",
   termsOfService: "شرایط استفاده",
   privacyPolicy: "سیاست حریم خصوصی",
+  // Sidebar translations
+  expand: "گسترش",
+  collapse: "جمع‌شدن",
+  mainMenu: "منوی اصلی",
+  tools: "ابزارها",
+  language: "زبان",
 };
