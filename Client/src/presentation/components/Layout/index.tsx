@@ -1,10 +1,8 @@
 import { useState, useEffect, createContext, useContext } from "react";
 import {
   Box,
-  Drawer,
   List,
   Typography,
-  Divider,
   IconButton,
   ListItem,
   ListItemButton,
@@ -20,8 +18,7 @@ import {
   Chip,
   Tooltip,
   Badge,
-  Paper,
-  alpha,
+  Stack,
 } from "@mui/material";
 import {
   Dashboard as DashboardIcon,
@@ -33,19 +30,12 @@ import {
   ChevronRight as ChevronRightIcon,
   Settings,
   Notifications,
-  Home,
-  Restaurant,
-  AccountBalance,
-  ExpandMore,
-  ExpandLess,
 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { translations } from "../../locales";
 import type { Language as LanguageType } from "../../locales";
 import { getCurrentUser, logoutUser } from "../../utils/userUtils";
-
-const drawerWidth = 280;
-const collapsedDrawerWidth = 80;
+import "./index.css";
 
 // Language Context
 interface LanguageContextType {
@@ -75,15 +65,11 @@ const Layout = ({ children }: LayoutProps) => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [language, setLanguageState] = useState<LanguageType>("en");
   const [user, setUser] = useState<any>(null);
-  const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
 
   const isRTL = language === "fa";
   const t = translations[language];
-  const currentDrawerWidth = sidebarCollapsed
-    ? collapsedDrawerWidth
-    : drawerWidth;
 
   // Create theme based on language
   const theme = createTheme({
@@ -114,16 +100,6 @@ const Layout = ({ children }: LayoutProps) => {
             direction: isRTL ? "rtl" : "ltr",
             fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
             backgroundColor: "#f8fafc",
-          },
-        },
-      },
-      MuiDrawer: {
-        styleOverrides: {
-          paper: {
-            background: "linear-gradient(180deg, #1e293b 0%, #334155 100%)",
-            color: "#ffffff",
-            borderRight: "none",
-            boxShadow: "4px 0 20px rgba(0, 0, 0, 0.1)",
           },
         },
       },
@@ -167,10 +143,6 @@ const Layout = ({ children }: LayoutProps) => {
     window.location.href = "/login";
   };
 
-  const toggleSection = (section: string) => {
-    setExpandedSection(expandedSection === section ? null : section);
-  };
-
   const mainMenuItems = [
     {
       text: t.dashboard,
@@ -208,7 +180,17 @@ const Layout = ({ children }: LayoutProps) => {
   ];
 
   const drawer = (
-    <Box sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
+    <Box
+      sx={{
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        background: "linear-gradient(180deg, #1e293b 0%, #334155 100%)",
+        color: "#ffffff",
+        boxShadow: "4px 0 20px rgba(0, 0, 0, 0.1)",
+        overflow: "hidden",
+      }}
+    >
       {/* Header */}
       <Box
         sx={{
@@ -218,7 +200,7 @@ const Layout = ({ children }: LayoutProps) => {
           mb: 2,
         }}
       >
-        <Box
+        <Stack
           sx={{
             display: "flex",
             alignItems: "center",
@@ -256,7 +238,7 @@ const Layout = ({ children }: LayoutProps) => {
               {isRTL ? <ChevronRightIcon /> : <ChevronLeftIcon />}
             </IconButton>
           </Tooltip>
-        </Box>
+        </Stack>
 
         {/* User Profile Section */}
         {!sidebarCollapsed && (
@@ -620,53 +602,46 @@ const Layout = ({ children }: LayoutProps) => {
     <LanguageContext.Provider value={contextValue}>
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <Box
+        <Stack
+          className="home-layout"
+          flexDirection={isRTL ? "row-reverse" : "row"}
+          gap={3}
           sx={{
-            display: "flex",
-            minHeight: "100vh",
-            flexDirection: isRTL ? "row-reverse" : "row",
+            backgroundColor: "#FCFCFD",
+            direction: isRTL ? "rtl" : "ltr",
+            width: "100%",
           }}
         >
           <Box
-            component="nav"
+            component="aside"
             sx={{
-              width: { sm: currentDrawerWidth },
-              flexShrink: { sm: 0 },
+              position: "sticky",
+              height: "100vh",
+              maxWidth: sidebarCollapsed ? 80 : 280,
+              minWidth: sidebarCollapsed ? 80 : 280,
+              top: 0,
+              left: isRTL ? "auto" : 0,
+              right: isRTL ? 0 : "auto",
+              zIndex: 1,
+              transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
             }}
-            aria-label="mailbox folders"
           >
-            <Drawer
-              variant="permanent"
-              anchor={isRTL ? "right" : "left"}
-              sx={{
-                display: { xs: "none", sm: "block" },
-                "& .MuiDrawer-paper": {
-                  boxSizing: "border-box",
-                  width: currentDrawerWidth,
-                  direction: isRTL ? "rtl" : "ltr",
-                  transition: "width 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                  overflowX: "hidden",
-                },
-              }}
-              open
-            >
-              {drawer}
-            </Drawer>
+            {drawer}
           </Box>
-          <Box
-            component="main"
+          <Stack
+            spacing={3}
             sx={{
-              flexGrow: 1,
-              p: 3,
-              width: { sm: `calc(100vw - ${currentDrawerWidth}px)` },
-              direction: isRTL ? "rtl" : "ltr",
-              minHeight: "100vh",
-              backgroundColor: "background.default",
+              flex: 1,
+              width: "100%",
+              padding: "24px",
+              minHeight: "calc(100vh - 24px * 2)",
+              paddingTop: "35px",
+              overflow: "auto",
             }}
           >
             {children}
-          </Box>
-        </Box>
+          </Stack>
+        </Stack>
       </ThemeProvider>
     </LanguageContext.Provider>
   );
