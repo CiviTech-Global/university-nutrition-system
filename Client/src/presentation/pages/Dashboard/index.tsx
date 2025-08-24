@@ -41,15 +41,18 @@ import {
   formatCurrency,
   formatDate,
   formatTime,
-  toPersianNumber,
-  createLanguageStyles,
   createComponentStyles,
   getTypographyStyles,
 } from "../../utils/languageUtils";
 
 interface FoodItem {
   name: string;
+  nameEn: string;
   price: number;
+  ingredients: string[];
+  ingredientsEn: string[];
+  description: string;
+  descriptionEn: string;
 }
 
 interface DashboardStats {
@@ -175,31 +178,192 @@ const Dashboard = () => {
     };
   }, [reservations, user, weekDates]);
 
-  // Persian food options with prices (in Toman, multiples of 1000)
+  // Persian food options with prices, ingredients, and descriptions (in Toman, multiples of 1000)
   const persianFoods: Record<string, FoodItem[]> = {
     breakfast: [
-      { name: "نان و پنیر و چای", price: 15000 },
-      { name: "شیر و عسل", price: 20000 },
-      { name: "کره و مربا", price: 18000 },
-      { name: "تخم مرغ آب پز", price: 25000 },
-      { name: "حلیم", price: 30000 },
+      {
+        name: "نان و پنیر و چای",
+        nameEn: "Bread, Cheese & Tea",
+        price: 15000,
+        ingredients: ["نان تازه", "پنیر سفید", "چای سیاه", "عسل", "کره"],
+        ingredientsEn: [
+          "Fresh bread",
+          "White cheese",
+          "Black tea",
+          "Honey",
+          "Butter",
+        ],
+        description:
+          "صبحانه سنتی ایرانی با نان تازه، پنیر سفید، چای سیاه و عسل طبیعی",
+        descriptionEn:
+          "Traditional Iranian breakfast with fresh bread, white cheese, black tea, and natural honey",
+      },
+      {
+        name: "شیر و عسل",
+        nameEn: "Milk & Honey",
+        price: 20000,
+        ingredients: ["شیر گرم", "عسل طبیعی", "زعفران", "هل"],
+        ingredientsEn: ["Warm milk", "Natural honey", "Saffron", "Cardamom"],
+        description: "شیر گرم با عسل طبیعی و زعفران، مناسب برای شروع روز",
+        descriptionEn:
+          "Warm milk with natural honey and saffron, perfect for starting the day",
+      },
+      {
+        name: "کره و مربا",
+        nameEn: "Butter & Jam",
+        price: 18000,
+        ingredients: ["نان تست", "کره", "مربای آلبالو", "چای"],
+        ingredientsEn: ["Toast bread", "Butter", "Cherry jam", "Tea"],
+        description: "نان تست با کره و مربای آلبالو خانگی",
+        descriptionEn: "Toast with butter and homemade cherry jam",
+      },
+      {
+        name: "تخم مرغ آب پز",
+        nameEn: "Boiled Eggs",
+        price: 25000,
+        ingredients: ["تخم مرغ", "نمک", "فلفل", "نان"],
+        ingredientsEn: ["Eggs", "Salt", "Pepper", "Bread"],
+        description: "تخم مرغ آب پز با نمک و فلفل، همراه با نان تازه",
+        descriptionEn:
+          "Boiled eggs with salt and pepper, served with fresh bread",
+      },
+      {
+        name: "حلیم",
+        nameEn: "Haleem",
+        price: 30000,
+        ingredients: ["گندم", "گوشت", "دارچین", "شکر", "کره"],
+        ingredientsEn: ["Wheat", "Meat", "Cinnamon", "Sugar", "Butter"],
+        description: "حلیم سنتی با گوشت، گندم، دارچین و کره",
+        descriptionEn:
+          "Traditional haleem with meat, wheat, cinnamon, and butter",
+      },
     ],
     lunch: [
-      { name: "چلو کباب", price: 45000 },
-      { name: "قورمه سبزی", price: 40000 },
-      { name: "فesenجان", price: 42000 },
-      { name: "کباب کوبیده", price: 48000 },
-      { name: "برنج و خورشت", price: 35000 },
-      { name: "آش رشته", price: 28000 },
-      { name: "دلمه", price: 32000 },
+      {
+        name: "چلو کباب",
+        nameEn: "Rice & Kebab",
+        price: 45000,
+        ingredients: ["برنج", "گوشت کباب", "زعفران", "کره", "پیاز"],
+        ingredientsEn: ["Rice", "Kebab meat", "Saffron", "Butter", "Onion"],
+        description: "برنج زعفرانی با کباب گوشت و پیاز تازه",
+        descriptionEn: "Saffron rice with grilled meat kebab and fresh onion",
+      },
+      {
+        name: "قورمه سبزی",
+        nameEn: "Ghormeh Sabzi",
+        price: 40000,
+        ingredients: ["سبزی قورمه", "لوبیا", "گوشت", "لیمو عمانی", "برنج"],
+        ingredientsEn: ["Herbs", "Beans", "Meat", "Dried lime", "Rice"],
+        description: "خورشت سبزی با لوبیا، گوشت و لیمو عمانی",
+        descriptionEn: "Herb stew with beans, meat, and dried lime",
+      },
+      {
+        name: "فesenجان",
+        nameEn: "Fesenjan",
+        price: 42000,
+        ingredients: ["گردو", "انار", "مرغ", "برنج", "زعفران"],
+        ingredientsEn: ["Walnuts", "Pomegranate", "Chicken", "Rice", "Saffron"],
+        description: "خورشت فesenجان با گردو، انار و مرغ",
+        descriptionEn: "Fesenjan stew with walnuts, pomegranate, and chicken",
+      },
+      {
+        name: "کباب کوبیده",
+        nameEn: "Koobideh Kebab",
+        price: 48000,
+        ingredients: ["گوشت چرخ شده", "پیاز", "ادویه", "برنج", "کره"],
+        ingredientsEn: ["Ground meat", "Onion", "Spices", "Rice", "Butter"],
+        description: "کباب کوبیده با گوشت چرخ شده و ادویه مخصوص",
+        descriptionEn: "Koobideh kebab with ground meat and special spices",
+      },
+      {
+        name: "برنج و خورشت",
+        nameEn: "Rice & Stew",
+        price: 35000,
+        ingredients: ["برنج", "خورشت سبزی", "گوشت", "سبزیجات"],
+        ingredientsEn: ["Rice", "Herb stew", "Meat", "Vegetables"],
+        description: "برنج با خورشت سبزی و گوشت تازه",
+        descriptionEn: "Rice with herb stew and fresh meat",
+      },
+      {
+        name: "آش رشته",
+        nameEn: "Ash Reshteh",
+        price: 28000,
+        ingredients: ["رشته", "سبزی", "لوبیا", "کشک", "پیاز داغ"],
+        ingredientsEn: ["Noodles", "Herbs", "Beans", "Kashk", "Fried onion"],
+        description: "آش رشته با سبزی، لوبیا و کشک",
+        descriptionEn: "Ash reshteh with herbs, beans, and kashk",
+      },
+      {
+        name: "دلمه",
+        nameEn: "Dolmeh",
+        price: 32000,
+        ingredients: ["برگ مو", "برنج", "لپه", "ادویه", "گوشت"],
+        ingredientsEn: ["Grape leaves", "Rice", "Split peas", "Spices", "Meat"],
+        description: "دلمه برگ مو با برنج، لپه و گوشت",
+        descriptionEn: "Grape leaf dolmeh with rice, split peas, and meat",
+      },
     ],
     dinner: [
-      { name: "کباب برگ", price: 50000 },
-      { name: "خورشت قیمه", price: 38000 },
-      { name: "برنج و ماهی", price: 45000 },
-      { name: "آش جو", price: 25000 },
-      { name: "سوپ", price: 22000 },
-      { name: "سالاد", price: 18000 },
+      {
+        name: "کباب برگ",
+        nameEn: "Barg Kebab",
+        price: 50000,
+        ingredients: ["گوشت برگ", "ادویه", "برنج", "کره", "زعفران"],
+        ingredientsEn: ["Sliced meat", "Spices", "Rice", "Butter", "Saffron"],
+        description: "کباب برگ با گوشت نازک و ادویه مخصوص",
+        descriptionEn: "Barg kebab with thin sliced meat and special spices",
+      },
+      {
+        name: "خورشت قیمه",
+        nameEn: "Gheimeh Stew",
+        price: 38000,
+        ingredients: ["لپه", "گوشت", "سیب زمینی", "گوجه", "ادویه"],
+        ingredientsEn: ["Split peas", "Meat", "Potato", "Tomato", "Spices"],
+        description: "خورشت قیمه با لپه، گوشت و سیب زمینی",
+        descriptionEn: "Gheimeh stew with split peas, meat, and potato",
+      },
+      {
+        name: "برنج و ماهی",
+        nameEn: "Rice & Fish",
+        price: 45000,
+        ingredients: ["ماهی", "برنج", "سبزیجات", "لیمو", "ادویه"],
+        ingredientsEn: ["Fish", "Rice", "Vegetables", "Lemon", "Spices"],
+        description: "برنج با ماهی تازه و سبزیجات",
+        descriptionEn: "Rice with fresh fish and vegetables",
+      },
+      {
+        name: "آش جو",
+        nameEn: "Barley Soup",
+        price: 25000,
+        ingredients: ["جو", "سبزی", "گوشت", "ادویه", "پیاز"],
+        ingredientsEn: ["Barley", "Herbs", "Meat", "Spices", "Onion"],
+        description: "آش جو با سبزی و گوشت تازه",
+        descriptionEn: "Barley soup with herbs and fresh meat",
+      },
+      {
+        name: "سوپ",
+        nameEn: "Soup",
+        price: 22000,
+        ingredients: ["سبزیجات", "گوشت", "ادویه", "آب مرغ", "نودل"],
+        ingredientsEn: [
+          "Vegetables",
+          "Meat",
+          "Spices",
+          "Chicken broth",
+          "Noodles",
+        ],
+        description: "سوپ سبزیجات با گوشت و نودل",
+        descriptionEn: "Vegetable soup with meat and noodles",
+      },
+      {
+        name: "سالاد",
+        nameEn: "Salad",
+        price: 18000,
+        ingredients: ["کاهو", "گوجه", "خیار", "پیاز", "روغن زیتون"],
+        ingredientsEn: ["Lettuce", "Tomato", "Cucumber", "Onion", "Olive oil"],
+        description: "سالاد تازه با سبزیجات و روغن زیتون",
+        descriptionEn: "Fresh salad with vegetables and olive oil",
+      },
     ],
   };
 
@@ -214,7 +378,7 @@ const Dashboard = () => {
   };
 
   const handleWeekChange = (
-    event: React.ChangeEvent<unknown>,
+    _event: React.ChangeEvent<unknown>,
     value: number
   ) => {
     setCurrentWeek(value - 1);
@@ -603,24 +767,290 @@ const Dashboard = () => {
                               <em>{t.selectMeal}</em>
                             </MenuItem>
                             {persianFoods[meal].map((food) => (
-                              <MenuItem key={food.name} value={food.name}>
-                                <Box
-                                  sx={{
-                                    display: "flex",
-                                    justifyContent: "space-between",
-                                    width: "100%",
-                                    direction: isRTL ? "rtl" : "ltr",
-                                  }}
-                                >
-                                  <span>{food.name}</span>
-                                  <Chip
-                                    label={formatCurrency(food.price, language)}
-                                    size="small"
-                                    color="primary"
-                                    variant="outlined"
-                                  />
-                                </Box>
-                              </MenuItem>
+                              <Tooltip
+                                key={food.name}
+                                title={
+                                  <Box
+                                    sx={{
+                                      p: 2,
+                                      maxWidth: 320,
+                                      background:
+                                        "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                                      borderRadius: 2,
+                                      border: "1px solid rgba(255,255,255,0.2)",
+                                      boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
+                                      backdropFilter: "blur(10px)",
+                                    }}
+                                  >
+                                    {/* Header with Price */}
+                                    <Box
+                                      sx={{
+                                        display: "flex",
+                                        justifyContent: "space-between",
+                                        alignItems: "center",
+                                        mb: 2,
+                                        pb: 1,
+                                        borderBottom:
+                                          "1px solid rgba(255,255,255,0.2)",
+                                      }}
+                                    >
+                                      <Typography
+                                        variant="subtitle1"
+                                        sx={{
+                                          fontWeight: 700,
+                                          color: "white",
+                                          fontSize: "1rem",
+                                          direction: isRTL ? "rtl" : "ltr",
+                                          fontFamily: isRTL
+                                            ? "var(--font-persian)"
+                                            : "var(--font-english)",
+                                        }}
+                                      >
+                                        {language === "fa"
+                                          ? food.name
+                                          : food.nameEn}
+                                      </Typography>
+                                      <Chip
+                                        label={formatCurrency(
+                                          food.price,
+                                          language
+                                        )}
+                                        size="small"
+                                        sx={{
+                                          bgcolor: "rgba(255,255,255,0.2)",
+                                          color: "white",
+                                          fontWeight: 600,
+                                          fontSize: "0.7rem",
+                                          height: 24,
+                                          fontFamily: isRTL
+                                            ? "var(--font-persian)"
+                                            : "var(--font-english)",
+                                        }}
+                                      />
+                                    </Box>
+
+                                    {/* Description */}
+                                    <Typography
+                                      variant="body2"
+                                      sx={{
+                                        mb: 2,
+                                        color: "rgba(255,255,255,0.9)",
+                                        lineHeight: 1.5,
+                                        fontSize: "0.8rem",
+                                        direction: isRTL ? "rtl" : "ltr",
+                                        fontFamily: isRTL
+                                          ? "var(--font-persian)"
+                                          : "var(--font-english)",
+                                      }}
+                                    >
+                                      {language === "fa"
+                                        ? food.description
+                                        : food.descriptionEn}
+                                    </Typography>
+
+                                    {/* Ingredients Section */}
+                                    <Box>
+                                      <Typography
+                                        variant="caption"
+                                        sx={{
+                                          fontWeight: 600,
+                                          color: "rgba(255,255,255,0.8)",
+                                          display: "block",
+                                          mb: 1,
+                                          fontSize: "0.75rem",
+                                          direction: isRTL ? "rtl" : "ltr",
+                                          fontFamily: isRTL
+                                            ? "var(--font-persian)"
+                                            : "var(--font-english)",
+                                        }}
+                                      >
+                                        {language === "fa"
+                                          ? "مواد تشکیل دهنده:"
+                                          : "Ingredients:"}
+                                      </Typography>
+                                      <Box
+                                        sx={{
+                                          display: "flex",
+                                          flexWrap: "wrap",
+                                          gap: 0.5,
+                                        }}
+                                      >
+                                        {(language === "fa"
+                                          ? food.ingredients
+                                          : food.ingredientsEn
+                                        )
+                                          .slice(0, 4)
+                                          .map((ingredient, index) => (
+                                            <Chip
+                                              key={index}
+                                              label={ingredient}
+                                              size="small"
+                                              sx={{
+                                                fontSize: "0.65rem",
+                                                height: 22,
+                                                bgcolor:
+                                                  "rgba(255,255,255,0.15)",
+                                                color: "white",
+                                                border:
+                                                  "1px solid rgba(255,255,255,0.3)",
+                                                borderRadius: 1.5,
+                                                fontFamily: isRTL
+                                                  ? "var(--font-persian)"
+                                                  : "var(--font-english)",
+                                                "&:hover": {
+                                                  bgcolor:
+                                                    "rgba(255,255,255,0.25)",
+                                                },
+                                              }}
+                                            />
+                                          ))}
+                                        {food.ingredients.length > 4 && (
+                                          <Chip
+                                            label={
+                                              language === "fa"
+                                                ? `+${
+                                                    food.ingredients.length - 4
+                                                  } بیشتر`
+                                                : `+${
+                                                    food.ingredients.length - 4
+                                                  } more`
+                                            }
+                                            size="small"
+                                            sx={{
+                                              fontSize: "0.65rem",
+                                              height: 22,
+                                              bgcolor: "rgba(255,255,255,0.1)",
+                                              color: "rgba(255,255,255,0.7)",
+                                              border:
+                                                "1px solid rgba(255,255,255,0.2)",
+                                              borderRadius: 1.5,
+                                              fontFamily: isRTL
+                                                ? "var(--font-persian)"
+                                                : "var(--font-english)",
+                                            }}
+                                          />
+                                        )}
+                                      </Box>
+                                    </Box>
+
+                                    {/* Nutritional Info */}
+                                    <Box
+                                      sx={{
+                                        mt: 2,
+                                        pt: 1,
+                                        borderTop:
+                                          "1px solid rgba(255,255,255,0.2)",
+                                        display: "flex",
+                                        justifyContent: "space-between",
+                                        direction: isRTL ? "rtl" : "ltr",
+                                      }}
+                                    >
+                                      <Box sx={{ textAlign: "center" }}>
+                                        <Typography
+                                          variant="caption"
+                                          sx={{
+                                            display: "block",
+                                            color: "rgba(255,255,255,0.7)",
+                                            fontSize: "0.65rem",
+                                            fontFamily: isRTL
+                                              ? "var(--font-persian)"
+                                              : "var(--font-english)",
+                                          }}
+                                        >
+                                          {language === "fa"
+                                            ? "زمان آماده‌سازی"
+                                            : "Prep Time"}
+                                        </Typography>
+                                        <Typography
+                                          variant="body2"
+                                          sx={{
+                                            color: "white",
+                                            fontWeight: 600,
+                                            fontSize: "0.8rem",
+                                            fontFamily: isRTL
+                                              ? "var(--font-persian)"
+                                              : "var(--font-english)",
+                                          }}
+                                        >
+                                          {Math.floor(food.price / 1000)}{" "}
+                                          {language === "fa" ? "دقیقه" : "min"}
+                                        </Typography>
+                                      </Box>
+                                      <Box sx={{ textAlign: "center" }}>
+                                        <Typography
+                                          variant="caption"
+                                          sx={{
+                                            display: "block",
+                                            color: "rgba(255,255,255,0.7)",
+                                            fontSize: "0.65rem",
+                                            fontFamily: isRTL
+                                              ? "var(--font-persian)"
+                                              : "var(--font-english)",
+                                          }}
+                                        >
+                                          {language === "fa"
+                                            ? "سطح دشواری"
+                                            : "Difficulty"}
+                                        </Typography>
+                                        <Typography
+                                          variant="body2"
+                                          sx={{
+                                            color: "white",
+                                            fontWeight: 600,
+                                            fontSize: "0.8rem",
+                                            fontFamily: isRTL
+                                              ? "var(--font-persian)"
+                                              : "var(--font-english)",
+                                          }}
+                                        >
+                                          {language === "fa"
+                                            ? "متوسط"
+                                            : "Medium"}
+                                        </Typography>
+                                      </Box>
+                                    </Box>
+                                  </Box>
+                                }
+                                arrow
+                                placement="right"
+                                PopperProps={{
+                                  sx: {
+                                    "& .MuiTooltip-arrow": {
+                                      color: "#667eea",
+                                    },
+                                  },
+                                }}
+                                sx={{
+                                  "& .MuiTooltip-tooltip": {
+                                    backgroundColor: "transparent",
+                                    padding: 0,
+                                    maxWidth: "none",
+                                    boxShadow: "none",
+                                  },
+                                }}
+                              >
+                                <MenuItem value={food.name}>
+                                  <Box
+                                    sx={{
+                                      display: "flex",
+                                      justifyContent: "space-between",
+                                      width: "100%",
+                                      direction: isRTL ? "rtl" : "ltr",
+                                    }}
+                                  >
+                                    <span>{food.name}</span>
+                                    <Chip
+                                      label={formatCurrency(
+                                        food.price,
+                                        language
+                                      )}
+                                      size="small"
+                                      color="primary"
+                                      variant="outlined"
+                                    />
+                                  </Box>
+                                </MenuItem>
+                              </Tooltip>
                             ))}
                           </Select>
                         </FormControl>

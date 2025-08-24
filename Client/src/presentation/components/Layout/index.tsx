@@ -24,6 +24,7 @@ import {
   Dashboard as DashboardIcon,
   CreditCard as CreditIcon,
   Person as ProfileIcon,
+  Restaurant as FoodsIcon,
   Language,
   Logout,
   ChevronLeft as ChevronLeftIcon,
@@ -150,6 +151,12 @@ const Layout = ({ children }: LayoutProps) => {
       text: t.dashboard,
       icon: <DashboardIcon />,
       path: "/dashboard",
+      badge: null,
+    },
+    {
+      text: t.foods,
+      icon: <FoodsIcon />,
+      path: "/foods",
       badge: null,
     },
     {
@@ -284,8 +291,28 @@ const Layout = ({ children }: LayoutProps) => {
         )}
       </Box>
 
-      {/* Main Navigation */}
-      <Box sx={{ flex: 1, px: 1 }}>
+      {/* Main Navigation - Scrollable */}
+      <Box
+        sx={{
+          flex: 1,
+          px: 1,
+          overflow: "auto",
+          "&::-webkit-scrollbar": {
+            width: "4px",
+          },
+          "&::-webkit-scrollbar-track": {
+            background: "rgba(255, 255, 255, 0.1)",
+            borderRadius: "0px",
+          },
+          "&::-webkit-scrollbar-thumb": {
+            background: "rgba(255, 255, 255, 0.3)",
+            borderRadius: "0px",
+            "&:hover": {
+              background: "rgba(255, 255, 255, 0.5)",
+            },
+          },
+        }}
+      >
         {/* Main Menu Section */}
         <Box sx={{ mb: 3 }}>
           {!sidebarCollapsed && (

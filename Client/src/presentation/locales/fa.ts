@@ -123,6 +123,7 @@ export const fa = {
   withdrawal: "برداشت",
   // Food and meal related terms
   food: "غذا",
+  foods: "غذاها",
   meal: "وعده غذایی",
   breakfast: "صبحانه",
   lunch: "ناهار",

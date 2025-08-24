@@ -123,6 +123,7 @@ export const en = {
   withdrawal: "Withdrawal",
   // Food and meal related terms
   food: "Food",
+  foods: "Foods",
   meal: "Meal",
   breakfast: "Breakfast",
   lunch: "Lunch",

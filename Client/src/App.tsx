@@ -5,6 +5,7 @@ import ForgotPassword from "./presentation/pages/ForgotPassword";
 import Dashboard from "./presentation/pages/Dashboard";
 import Credit from "./presentation/pages/Credit";
 import Profile from "./presentation/pages/Profile";
+import Foods from "./presentation/pages/Foods";
 import Layout from "./presentation/components/Layout";
 import "./presentation/assets/persian-rtl.css";
 
@@ -36,6 +37,14 @@ function App() {
         element={
           <Layout>
             <Profile />
+          </Layout>
+        }
+      />
+      <Route
+        path="/foods"
+        element={
+          <Layout>
+            <Foods />
           </Layout>
         }
       />
