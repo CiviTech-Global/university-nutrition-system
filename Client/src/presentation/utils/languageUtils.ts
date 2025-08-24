@@ -74,19 +74,22 @@ export const formatCurrency = (
   amount: number,
   language: LanguageType
 ): string => {
-  const formatted = amount.toLocaleString(
-    language === "fa" ? "fa-IR" : "en-US",
-    {
-      style: "currency",
-      currency: "USD",
-    }
-  );
-
   if (language === "fa") {
-    return toPersianNumber(formatted);
+    // For Persian, use Iranian Toman (IRT) with تومان symbol
+    const tomanAmount = amount; // Assuming amount is already in Toman
+    const formatted = tomanAmount.toLocaleString("fa-IR", {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    });
+    return `${toPersianNumber(formatted)} تومان`;
+  } else {
+    // For English, use Toman without currency symbol
+    const formatted = amount.toLocaleString("en-US", {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    });
+    return `${formatted} Toman`;
   }
-
-  return formatted;
 };
 
 // Format date based on language
@@ -318,4 +321,394 @@ export const formatPhoneNumber = (
   }
 
   return phone;
+};
+
+// Enhanced styling utilities for better RTL/LTR support
+export const createEnhancedLanguageStyles = (language: LanguageType) => {
+  const isRTL = language === "fa";
+
+  return {
+    // Typography styles
+    typography: {
+      direction: isRTL ? "rtl" : "ltr",
+      fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+      textAlign: isRTL ? "right" : "left",
+      lineHeight: isRTL ? 1.8 : 1.5,
+      letterSpacing: isRTL ? "0.5px" : "0.2px",
+    },
+
+    // Container styles
+    container: {
+      direction: isRTL ? "rtl" : "ltr",
+      width: "100%",
+      maxWidth: "100%",
+    },
+
+    // Flexbox styles
+    flex: {
+      direction: isRTL ? "rtl" : "ltr",
+      display: "flex",
+    },
+
+    // Stack styles
+    stack: {
+      direction: isRTL ? "rtl" : "ltr",
+      width: "100%",
+    },
+
+    // Grid styles
+    grid: {
+      direction: isRTL ? "rtl" : "ltr",
+      width: "100%",
+    },
+
+    // Card styles
+    card: {
+      direction: isRTL ? "rtl" : "ltr",
+      width: "100%",
+      borderRadius: 0,
+      boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+    },
+
+    // Paper styles
+    paper: {
+      direction: isRTL ? "rtl" : "ltr",
+      width: "100%",
+      borderRadius: 0,
+      padding: 3,
+    },
+
+    // Button styles
+    button: {
+      direction: isRTL ? "rtl" : "ltr",
+      fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+      borderRadius: 0,
+      padding: "8px 16px",
+      textTransform: "none",
+      fontWeight: 600,
+    },
+
+    // Input styles
+    input: {
+      direction: isRTL ? "rtl" : "ltr",
+      fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+      textAlign: isRTL ? "right" : "left",
+      borderRadius: 0,
+    },
+
+    // Table styles
+    table: {
+      direction: isRTL ? "rtl" : "ltr",
+      width: "100%",
+    },
+
+    // Table cell styles
+    tableCell: {
+      direction: isRTL ? "rtl" : "ltr",
+      fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+      textAlign: isRTL ? "right" : "left",
+      padding: "12px 16px",
+    },
+
+    // List styles
+    list: {
+      direction: isRTL ? "rtl" : "ltr",
+      width: "100%",
+    },
+
+    // List item styles
+    listItem: {
+      direction: isRTL ? "rtl" : "ltr",
+      borderRadius: 2,
+      marginBottom: 0.5,
+    },
+
+    // Dialog styles
+    dialog: {
+      direction: isRTL ? "rtl" : "ltr",
+      "& .MuiDialogTitle-root": {
+        direction: isRTL ? "rtl" : "ltr",
+        fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+        textAlign: isRTL ? "right" : "left",
+      },
+      "& .MuiDialogContent-root": {
+        direction: isRTL ? "rtl" : "ltr",
+      },
+      "& .MuiDialogActions-root": {
+        direction: isRTL ? "rtl" : "ltr",
+        justifyContent: isRTL ? "flex-start" : "flex-end",
+      },
+    },
+
+    // Spacing utilities
+    spacing: {
+      xs: isRTL ? { pr: 1 } : { pl: 1 },
+      sm: isRTL ? { pr: 2 } : { pl: 2 },
+      md: isRTL ? { pr: 3 } : { pl: 3 },
+      lg: isRTL ? { pr: 4 } : { pl: 4 },
+      xl: isRTL ? { pr: 5 } : { pl: 5 },
+    },
+
+    // Margin utilities
+    margin: {
+      xs: isRTL ? { mr: 1 } : { ml: 1 },
+      sm: isRTL ? { mr: 2 } : { ml: 2 },
+      md: isRTL ? { mr: 3 } : { ml: 3 },
+      lg: isRTL ? { mr: 4 } : { ml: 4 },
+      xl: isRTL ? { mr: 5 } : { ml: 5 },
+    },
+
+    // Responsive styles
+    responsive: {
+      mobile: {
+        direction: isRTL ? "rtl" : "ltr",
+        width: "100%",
+        padding: 2,
+      },
+      tablet: {
+        direction: isRTL ? "rtl" : "ltr",
+        width: "100%",
+        padding: 3,
+      },
+      desktop: {
+        direction: isRTL ? "rtl" : "ltr",
+        width: "100%",
+        padding: 4,
+      },
+    },
+  };
+};
+
+// Enhanced component-specific styles
+export const createComponentStyles = (language: LanguageType) => {
+  const isRTL = language === "fa";
+  const baseStyles = createEnhancedLanguageStyles(language);
+
+  return {
+    // Dashboard specific styles
+    dashboard: {
+      container: {
+        ...baseStyles.container,
+        padding: { xs: 2, sm: 3, md: 4 },
+        height: "100%",
+      },
+      header: {
+        ...baseStyles.typography,
+        marginBottom: 3,
+        paddingBottom: 2,
+        borderBottom: "1px solid",
+        borderColor: "divider",
+      },
+      statsGrid: {
+        ...baseStyles.grid,
+        display: "grid",
+        gridTemplateColumns: {
+          xs: "1fr",
+          sm: "1fr 1fr",
+          md: "1fr 1fr 1fr 1fr",
+        },
+        gap: 3,
+        marginBottom: 4,
+      },
+      statCard: {
+        ...baseStyles.card,
+        padding: 3,
+        textAlign: "center",
+        transition: "transform 0.2s ease-in-out",
+        "&:hover": {
+          transform: "translateY(-2px)",
+        },
+      },
+      table: {
+        ...baseStyles.table,
+        marginTop: 3,
+      },
+    },
+
+    // Sidebar specific styles
+    sidebar: {
+      container: {
+        ...baseStyles.container,
+        height: "100vh",
+        position: "sticky",
+        top: 0,
+        background: "linear-gradient(180deg, #1e293b 0%, #334155 100%)",
+        color: "white",
+        boxShadow: "4px 0 20px rgba(0, 0, 0, 0.1)",
+        overflow: "hidden",
+      },
+      header: {
+        ...baseStyles.typography,
+        padding: 2,
+        background: "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)",
+        borderRadius: "0 0 16px 16px",
+        marginBottom: 2,
+      },
+      menuItem: {
+        ...baseStyles.listItem,
+        margin: "4px 8px",
+        borderRadius: 0,
+        minHeight: 48,
+        transition: "all 0.2s ease-in-out",
+        "&:hover": {
+          backgroundColor: "rgba(255, 255, 255, 0.1)",
+          transform: "translateX(4px)",
+        },
+        "&.Mui-selected": {
+          backgroundColor: "rgba(59, 130, 246, 0.2)",
+          border: "1px solid rgba(59, 130, 246, 0.3)",
+        },
+      },
+      footer: {
+        ...baseStyles.container,
+        padding: 2,
+        borderTop: "1px solid rgba(255, 255, 255, 0.1)",
+        marginTop: "auto",
+      },
+    },
+
+    // Form specific styles
+    form: {
+      container: {
+        ...baseStyles.container,
+        padding: 3,
+      },
+      field: {
+        ...baseStyles.input,
+        marginBottom: 2,
+        "& .MuiInputLabel-root": {
+          ...baseStyles.typography,
+        },
+        "& .MuiInputBase-input": {
+          ...baseStyles.typography,
+        },
+      },
+      button: {
+        ...baseStyles.button,
+        marginTop: 2,
+      },
+    },
+
+    // Table specific styles
+    table: {
+      container: {
+        ...baseStyles.container,
+        overflow: "auto",
+      },
+      table: {
+        ...baseStyles.table,
+        minWidth: 650,
+      },
+      head: {
+        ...baseStyles.tableCell,
+        fontWeight: 700,
+        backgroundColor: "background.paper",
+      },
+      cell: {
+        ...baseStyles.tableCell,
+      },
+      row: {
+        "&:nth-of-type(odd)": {
+          backgroundColor: "action.hover",
+        },
+        "&:hover": {
+          backgroundColor: "action.selected",
+        },
+      },
+    },
+
+    // Dialog specific styles
+    dialog: {
+      ...baseStyles.dialog,
+      "& .MuiDialog-paper": {
+        borderRadius: 0,
+        padding: 2,
+      },
+    },
+
+    // Card specific styles
+    card: {
+      ...baseStyles.card,
+      padding: 3,
+      transition: "all 0.2s ease-in-out",
+      "&:hover": {
+        boxShadow: "0 4px 16px rgba(0, 0, 0, 0.15)",
+        transform: "translateY(-2px)",
+      },
+    },
+  };
+};
+
+// Utility function to merge styles
+export const mergeStyles = (...styleObjects: any[]) => {
+  return styleObjects.reduce((merged, current) => {
+    return { ...merged, ...current };
+  }, {});
+};
+
+// Responsive spacing utility
+export const getResponsiveSpacing = (
+  language: LanguageType,
+  size: "xs" | "sm" | "md" | "lg" | "xl"
+) => {
+  const isRTL = language === "fa";
+  const spacingMap = {
+    xs: 1,
+    sm: 2,
+    md: 3,
+    lg: 4,
+    xl: 5,
+  };
+
+  return {
+    padding: spacingMap[size],
+    margin: spacingMap[size],
+    [isRTL ? "paddingRight" : "paddingLeft"]: spacingMap[size],
+    [isRTL ? "marginRight" : "marginLeft"]: spacingMap[size],
+  };
+};
+
+// Enhanced typography utility
+export const getTypographyStyles = (
+  language: LanguageType,
+  variant:
+    | "h1"
+    | "h2"
+    | "h3"
+    | "h4"
+    | "h5"
+    | "h6"
+    | "body1"
+    | "body2"
+    | "caption"
+) => {
+  const isRTL = language === "fa";
+
+  const baseStyles = {
+    direction: isRTL ? "rtl" : "ltr",
+    fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+    textAlign: isRTL ? "right" : "left",
+  };
+
+  const variantStyles = {
+    h1: { fontSize: "2.5rem", fontWeight: 700, lineHeight: 1.2 },
+    h2: { fontSize: "2rem", fontWeight: 600, lineHeight: 1.3 },
+    h3: { fontSize: "1.75rem", fontWeight: 600, lineHeight: 1.4 },
+    h4: { fontSize: "1.5rem", fontWeight: 600, lineHeight: 1.4 },
+    h5: { fontSize: "1.25rem", fontWeight: 600, lineHeight: 1.5 },
+    h6: { fontSize: "1.125rem", fontWeight: 600, lineHeight: 1.5 },
+    body1: { fontSize: "1rem", fontWeight: 400, lineHeight: isRTL ? 1.8 : 1.5 },
+    body2: {
+      fontSize: "0.875rem",
+      fontWeight: 400,
+      lineHeight: isRTL ? 1.8 : 1.5,
+    },
+    caption: {
+      fontSize: "0.75rem",
+      fontWeight: 400,
+      lineHeight: isRTL ? 1.8 : 1.5,
+    },
+  };
+
+  return { ...baseStyles, ...variantStyles[variant] };
 };

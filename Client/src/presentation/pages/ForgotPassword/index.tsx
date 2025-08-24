@@ -159,7 +159,7 @@ const ForgotPassword = () => {
 
   return (
     <Container maxWidth="sm" sx={{ py: 4 }}>
-      <Paper elevation={3} sx={{ p: 4, borderRadius: 2 }}>
+      <Paper elevation={3} sx={{ p: 4, borderRadius: 0 }}>
         <Box component="form" onSubmit={handleSubmit}>
           <Stack spacing={3}>
             {/* Header with Language Switcher */}

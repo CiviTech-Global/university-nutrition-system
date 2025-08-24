@@ -440,7 +440,7 @@
 
 [dir="rtl"] ::-webkit-scrollbar-thumb {
   background: #888;
-  border-radius: 4px;
+  border-radius: 0px;
 }
 
 [dir="rtl"] ::-webkit-scrollbar-thumb:hover {

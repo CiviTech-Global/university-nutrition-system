@@ -20,12 +20,12 @@ import {
   Save as SaveIcon,
   Cancel as CancelIcon,
 } from "@mui/icons-material";
-import { translations } from "../../locales";
-import type { Language as LanguageType } from "../../locales";
 import { getCurrentUser } from "../../utils/userUtils";
+import { useLanguage } from "../../components/Layout";
+import { formatDate } from "../../utils/languageUtils";
 
 const Profile = () => {
-  const [language, setLanguage] = useState<LanguageType>("en");
+  const { language, t, isRTL } = useLanguage();
   const [user, setUser] = useState<any>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
@@ -35,13 +35,10 @@ const Profile = () => {
     username: "",
   });
 
-  const t = translations[language];
-
   useEffect(() => {
     const currentUser = getCurrentUser();
     if (currentUser) {
       setUser(currentUser);
-      setLanguage(currentUser.language);
       setFormData({
         firstName: currentUser.firstName || "",
         lastName: currentUser.lastName || "",
@@ -167,7 +164,7 @@ const Profile = () => {
         <Grid container spacing={3}>
           {/* Profile Picture and Basic Info */}
           <Grid item xs={12} md={4}>
-            <Paper elevation={3} sx={{ p: 4, borderRadius: 2 }}>
+            <Paper elevation={3} sx={{ p: 4, borderRadius: 0 }}>
               <Stack spacing={3} alignItems="center">
                 <Avatar
                   sx={{
@@ -233,7 +230,11 @@ const Profile = () => {
                             : "var(--font-english)",
                       }}
                     >
-                      {new Date(user.createdAt).toLocaleDateString()}
+                      {formatDate(new Date(user.createdAt), language, {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })}
                     </Typography>
                   </CardContent>
                 </Card>
@@ -243,7 +244,7 @@ const Profile = () => {
 
           {/* Profile Details */}
           <Grid item xs={12} md={8}>
-            <Paper elevation={3} sx={{ p: 4, borderRadius: 2 }}>
+            <Paper elevation={3} sx={{ p: 4, borderRadius: 0 }}>
               <Stack spacing={3}>
                 <Typography
                   variant="h5"

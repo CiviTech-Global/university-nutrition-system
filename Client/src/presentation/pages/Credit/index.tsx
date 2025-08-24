@@ -56,7 +56,7 @@ const Credit = () => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [showError, setShowError] = useState(false);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [userBalance, setUserBalance] = useState(1250);
+  const [userBalance, setUserBalance] = useState(1250000);
 
   useEffect(() => {
     const currentUser = getCurrentUser();
@@ -84,7 +84,7 @@ const Credit = () => {
           {
             id: "1",
             type: "credit",
-            amount: 500,
+            amount: 500000,
             date: "2024-01-15",
             description: t.creditAdded,
             category: "deposit",
@@ -92,7 +92,7 @@ const Credit = () => {
           {
             id: "2",
             type: "debit",
-            amount: 75,
+            amount: 75000,
             date: "2024-01-14",
             description: t.mealPurchase,
             category: "food",
@@ -100,7 +100,7 @@ const Credit = () => {
           {
             id: "3",
             type: "credit",
-            amount: 300,
+            amount: 300000,
             date: "2024-01-10",
             description: t.creditAdded,
             category: "deposit",
@@ -409,7 +409,7 @@ const Credit = () => {
         </Grid>
 
         {/* Recent Transactions */}
-        <Paper elevation={3} sx={{ p: 4, borderRadius: 2 }}>
+        <Paper elevation={3} sx={{ p: 4, borderRadius: 0 }}>
           <Stack spacing={3}>
             <Box
               sx={{

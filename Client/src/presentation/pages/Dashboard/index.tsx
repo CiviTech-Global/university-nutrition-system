@@ -43,6 +43,8 @@ import {
   formatTime,
   toPersianNumber,
   createLanguageStyles,
+  createComponentStyles,
+  getTypographyStyles,
 } from "../../utils/languageUtils";
 
 interface FoodItem {
@@ -60,6 +62,7 @@ interface DashboardStats {
 
 const Dashboard = () => {
   const { language, t, isRTL } = useLanguage();
+  const componentStyles = createComponentStyles(language);
   const [user, setUser] = useState<any>(null);
   const [currentWeek, setCurrentWeek] = useState(0);
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
@@ -159,7 +162,7 @@ const Dashboard = () => {
       );
     }, 0);
 
-    const userCredit = user?.credit || 1250;
+    const userCredit = user?.credit || 1250000;
     const notifications = Math.floor(Math.random() * 5) + 1;
     const attendanceRate = Math.floor(Math.random() * 20) + 80;
 
@@ -172,31 +175,31 @@ const Dashboard = () => {
     };
   }, [reservations, user, weekDates]);
 
-  // Persian food options with prices
+  // Persian food options with prices (in Toman, multiples of 1000)
   const persianFoods: Record<string, FoodItem[]> = {
     breakfast: [
-      { name: "نان و پنیر و چای", price: 15 },
-      { name: "شیر و عسل", price: 20 },
-      { name: "کره و مربا", price: 18 },
-      { name: "تخم مرغ آب پز", price: 25 },
-      { name: "حلیم", price: 30 },
+      { name: "نان و پنیر و چای", price: 15000 },
+      { name: "شیر و عسل", price: 20000 },
+      { name: "کره و مربا", price: 18000 },
+      { name: "تخم مرغ آب پز", price: 25000 },
+      { name: "حلیم", price: 30000 },
     ],
     lunch: [
-      { name: "چلو کباب", price: 45 },
-      { name: "قورمه سبزی", price: 40 },
-      { name: "فesenجان", price: 42 },
-      { name: "کباب کوبیده", price: 48 },
-      { name: "برنج و خورشت", price: 35 },
-      { name: "آش رشته", price: 28 },
-      { name: "دلمه", price: 32 },
+      { name: "چلو کباب", price: 45000 },
+      { name: "قورمه سبزی", price: 40000 },
+      { name: "فesenجان", price: 42000 },
+      { name: "کباب کوبیده", price: 48000 },
+      { name: "برنج و خورشت", price: 35000 },
+      { name: "آش رشته", price: 28000 },
+      { name: "دلمه", price: 32000 },
     ],
     dinner: [
-      { name: "کباب برگ", price: 50 },
-      { name: "خورشت قیمه", price: 38 },
-      { name: "برنج و ماهی", price: 45 },
-      { name: "آش جو", price: 25 },
-      { name: "سوپ", price: 22 },
-      { name: "سالاد", price: 18 },
+      { name: "کباب برگ", price: 50000 },
+      { name: "خورشت قیمه", price: 38000 },
+      { name: "برنج و ماهی", price: 45000 },
+      { name: "آش جو", price: 25000 },
+      { name: "سوپ", price: 22000 },
+      { name: "سالاد", price: 18000 },
     ],
   };
 
@@ -287,47 +290,31 @@ const Dashboard = () => {
   }
 
   return (
-    <Box sx={{ py: 4, width: "100%" }}>
+    <Box sx={componentStyles.dashboard.container}>
       <Stack spacing={3}>
         {/* Header */}
         <Typography
           variant="h4"
           component="h1"
           color="primary"
-          sx={{
-            direction: isRTL ? "rtl" : "ltr",
-            fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
-            textAlign: isRTL ? "right" : "left",
-          }}
+          sx={getTypographyStyles(language, "h4")}
         >
           {t.dashboard}
         </Typography>
 
         {/* Welcome Message */}
-        <Typography
-          variant="h5"
-          sx={{
-            direction: isRTL ? "rtl" : "ltr",
-            fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
-            textAlign: isRTL ? "right" : "left",
-          }}
-        >
+        <Typography variant="h5" sx={getTypographyStyles(language, "h5")}>
           {`${t.welcomeMessage}, ${user.firstName} ${user.lastName}!`}
         </Typography>
 
         {/* Dashboard Stats */}
-        <Box
-          sx={{
-            display: "grid",
-            gridTemplateColumns: {
-              xs: "1fr",
-              sm: "1fr 1fr",
-              md: "1fr 1fr 1fr 1fr",
-            },
-            gap: 3,
-          }}
-        >
-          <Card sx={{ backgroundColor: "primary.50" }}>
+        <Box sx={componentStyles.dashboard.statsGrid}>
+          <Card
+            sx={{
+              ...componentStyles.dashboard.statCard,
+              backgroundColor: "primary.50",
+            }}
+          >
             <CardContent>
               <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                 <RestaurantIcon color="primary" sx={{ fontSize: 40 }} />
@@ -335,26 +322,14 @@ const Dashboard = () => {
                   <Typography
                     variant="h4"
                     color="primary"
-                    sx={{
-                      direction: isRTL ? "rtl" : "ltr",
-                      fontFamily: isRTL
-                        ? "var(--font-persian)"
-                        : "var(--font-english)",
-                      textAlign: isRTL ? "right" : "left",
-                    }}
+                    sx={getTypographyStyles(language, "h4")}
                   >
                     {dashboardStats.currentWeekReservations}
                   </Typography>
                   <Typography
                     variant="body2"
                     color="text.secondary"
-                    sx={{
-                      direction: isRTL ? "rtl" : "ltr",
-                      fontFamily: isRTL
-                        ? "var(--font-persian)"
-                        : "var(--font-english)",
-                      textAlign: isRTL ? "right" : "left",
-                    }}
+                    sx={getTypographyStyles(language, "body2")}
                   >
                     {t.mealsThisWeek}
                   </Typography>
@@ -363,7 +338,12 @@ const Dashboard = () => {
             </CardContent>
           </Card>
 
-          <Card sx={{ backgroundColor: "success.50" }}>
+          <Card
+            sx={{
+              ...componentStyles.dashboard.statCard,
+              backgroundColor: "success.50",
+            }}
+          >
             <CardContent>
               <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                 <TrendingUpIcon color="success" sx={{ fontSize: 40 }} />
@@ -371,26 +351,14 @@ const Dashboard = () => {
                   <Typography
                     variant="h4"
                     color="success.main"
-                    sx={{
-                      direction: isRTL ? "rtl" : "ltr",
-                      fontFamily: isRTL
-                        ? "var(--font-persian)"
-                        : "var(--font-english)",
-                      textAlign: isRTL ? "right" : "left",
-                    }}
+                    sx={getTypographyStyles(language, "h4")}
                   >
                     {formatCurrency(dashboardStats.userCredit, language)}
                   </Typography>
                   <Typography
                     variant="body2"
                     color="text.secondary"
-                    sx={{
-                      direction: isRTL ? "rtl" : "ltr",
-                      fontFamily: isRTL
-                        ? "var(--font-persian)"
-                        : "var(--font-english)",
-                      textAlign: isRTL ? "right" : "left",
-                    }}
+                    sx={getTypographyStyles(language, "body2")}
                   >
                     {t.availableCredit}
                   </Typography>
@@ -399,7 +367,12 @@ const Dashboard = () => {
             </CardContent>
           </Card>
 
-          <Card sx={{ backgroundColor: "warning.50" }}>
+          <Card
+            sx={{
+              ...componentStyles.dashboard.statCard,
+              backgroundColor: "warning.50",
+            }}
+          >
             <CardContent>
               <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                 <NotificationsIcon color="warning" sx={{ fontSize: 40 }} />
@@ -407,26 +380,14 @@ const Dashboard = () => {
                   <Typography
                     variant="h4"
                     color="warning.main"
-                    sx={{
-                      direction: isRTL ? "rtl" : "ltr",
-                      fontFamily: isRTL
-                        ? "var(--font-persian)"
-                        : "var(--font-english)",
-                      textAlign: isRTL ? "right" : "left",
-                    }}
+                    sx={getTypographyStyles(language, "h4")}
                   >
                     {dashboardStats.notifications}
                   </Typography>
                   <Typography
                     variant="body2"
                     color="text.secondary"
-                    sx={{
-                      direction: isRTL ? "rtl" : "ltr",
-                      fontFamily: isRTL
-                        ? "var(--font-persian)"
-                        : "var(--font-english)",
-                      textAlign: isRTL ? "right" : "left",
-                    }}
+                    sx={getTypographyStyles(language, "body2")}
                   >
                     {t.newNotifications}
                   </Typography>
@@ -435,7 +396,12 @@ const Dashboard = () => {
             </CardContent>
           </Card>
 
-          <Card sx={{ backgroundColor: "info.50" }}>
+          <Card
+            sx={{
+              ...componentStyles.dashboard.statCard,
+              backgroundColor: "info.50",
+            }}
+          >
             <CardContent>
               <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                 <ScheduleIcon color="info" sx={{ fontSize: 40 }} />
@@ -443,26 +409,14 @@ const Dashboard = () => {
                   <Typography
                     variant="h4"
                     color="info.main"
-                    sx={{
-                      direction: isRTL ? "rtl" : "ltr",
-                      fontFamily: isRTL
-                        ? "var(--font-persian)"
-                        : "var(--font-english)",
-                      textAlign: isRTL ? "right" : "left",
-                    }}
+                    sx={getTypographyStyles(language, "h4")}
                   >
                     {dashboardStats.attendanceRate}%
                   </Typography>
                   <Typography
                     variant="body2"
                     color="text.secondary"
-                    sx={{
-                      direction: isRTL ? "rtl" : "ltr",
-                      fontFamily: isRTL
-                        ? "var(--font-persian)"
-                        : "var(--font-english)",
-                      textAlign: isRTL ? "right" : "left",
-                    }}
+                    sx={getTypographyStyles(language, "body2")}
                   >
                     {t.attendanceRate}
                   </Typography>
@@ -475,15 +429,15 @@ const Dashboard = () => {
         {/* Current Date and Time */}
         <Paper
           elevation={3}
-          sx={{ p: 3, borderRadius: 2, backgroundColor: "info.50" }}
+          sx={{
+            ...componentStyles.card,
+            backgroundColor: "info.50",
+            textAlign: "center",
+          }}
         >
           <Typography
             variant="h6"
-            sx={{
-              direction: isRTL ? "rtl" : "ltr",
-              fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
-              textAlign: "center",
-            }}
+            sx={{ ...getTypographyStyles(language, "h6"), textAlign: "center" }}
           >
             {formatDate(currentDateTime, language, {
               year: "numeric",
@@ -495,8 +449,7 @@ const Dashboard = () => {
           <Typography
             variant="h4"
             sx={{
-              direction: isRTL ? "rtl" : "ltr",
-              fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+              ...getTypographyStyles(language, "h4"),
               textAlign: "center",
               color: "primary.main",
             }}
@@ -506,7 +459,7 @@ const Dashboard = () => {
         </Paper>
 
         {/* Meal Reservation Table */}
-        <Paper elevation={3} sx={{ p: 4, borderRadius: 2 }}>
+        <Paper elevation={3} sx={componentStyles.card}>
           <Box
             sx={{
               display: "flex",
@@ -516,16 +469,7 @@ const Dashboard = () => {
               flexDirection: isRTL ? "row-reverse" : "row",
             }}
           >
-            <Typography
-              variant="h5"
-              sx={{
-                direction: isRTL ? "rtl" : "ltr",
-                fontFamily: isRTL
-                  ? "var(--font-persian)"
-                  : "var(--font-english)",
-                textAlign: isRTL ? "right" : "left",
-              }}
-            >
+            <Typography variant="h5" sx={getTypographyStyles(language, "h5")}>
               {t.mealReservation}
             </Typography>
             <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
@@ -573,56 +517,18 @@ const Dashboard = () => {
             </Box>
           </Box>
 
-          <TableContainer>
-            <Table>
+          <TableContainer sx={componentStyles.table.container}>
+            <Table sx={componentStyles.table.table}>
               <TableHead>
                 <TableRow>
-                  <TableCell
-                    sx={{
-                      direction: isRTL ? "rtl" : "ltr",
-                      fontFamily: isRTL
-                        ? "var(--font-persian)"
-                        : "var(--font-english)",
-                      fontWeight: "bold",
-                      textAlign: isRTL ? "right" : "left",
-                    }}
-                  >
-                    {t.day}
-                  </TableCell>
-                  <TableCell
-                    sx={{
-                      direction: isRTL ? "rtl" : "ltr",
-                      fontFamily: isRTL
-                        ? "var(--font-persian)"
-                        : "var(--font-english)",
-                      fontWeight: "bold",
-                      textAlign: isRTL ? "right" : "left",
-                    }}
-                  >
+                  <TableCell sx={componentStyles.table.head}>{t.day}</TableCell>
+                  <TableCell sx={componentStyles.table.head}>
                     {t.breakfast}
                   </TableCell>
-                  <TableCell
-                    sx={{
-                      direction: isRTL ? "rtl" : "ltr",
-                      fontFamily: isRTL
-                        ? "var(--font-persian)"
-                        : "var(--font-english)",
-                      fontWeight: "bold",
-                      textAlign: isRTL ? "right" : "left",
-                    }}
-                  >
+                  <TableCell sx={componentStyles.table.head}>
                     {t.lunch}
                   </TableCell>
-                  <TableCell
-                    sx={{
-                      direction: isRTL ? "rtl" : "ltr",
-                      fontFamily: isRTL
-                        ? "var(--font-persian)"
-                        : "var(--font-english)",
-                      fontWeight: "bold",
-                      textAlign: isRTL ? "right" : "left",
-                    }}
-                  >
+                  <TableCell sx={componentStyles.table.head}>
                     {t.dinner}
                   </TableCell>
                 </TableRow>
@@ -632,17 +538,14 @@ const Dashboard = () => {
                   <TableRow
                     key={date.toISOString()}
                     sx={{
+                      ...componentStyles.table.row,
                       backgroundColor: isToday(date) ? "primary.50" : "inherit",
                     }}
                   >
                     <TableCell
                       sx={{
-                        direction: isRTL ? "rtl" : "ltr",
-                        fontFamily: isRTL
-                          ? "var(--font-persian)"
-                          : "var(--font-english)",
+                        ...componentStyles.table.cell,
                         fontWeight: isToday(date) ? "bold" : "normal",
-                        textAlign: isRTL ? "right" : "left",
                       }}
                     >
                       <Box>
@@ -679,7 +582,7 @@ const Dashboard = () => {
                       </Box>
                     </TableCell>
                     {["breakfast", "lunch", "dinner"].map((meal) => (
-                      <TableCell key={meal}>
+                      <TableCell key={meal} sx={componentStyles.table.cell}>
                         <FormControl fullWidth size="small">
                           <Select
                             value={
@@ -694,13 +597,7 @@ const Dashboard = () => {
                             }
                             displayEmpty
                             disabled={isPastDate(date)}
-                            sx={{
-                              direction: isRTL ? "rtl" : "ltr",
-                              fontFamily: isRTL
-                                ? "var(--font-persian)"
-                                : "var(--font-english)",
-                              textAlign: isRTL ? "right" : "left",
-                            }}
+                            sx={componentStyles.form.field}
                           >
                             <MenuItem value="">
                               <em>{t.selectMeal}</em>
@@ -717,7 +614,7 @@ const Dashboard = () => {
                                 >
                                   <span>{food.name}</span>
                                   <Chip
-                                    label={`$${food.price}`}
+                                    label={formatCurrency(food.price, language)}
                                     size="small"
                                     color="primary"
                                     variant="outlined"
@@ -737,18 +634,9 @@ const Dashboard = () => {
 
           {/* Total Cost Summary */}
           <Box
-            sx={{ mt: 3, p: 2, backgroundColor: "grey.50", borderRadius: 1 }}
+            sx={{ mt: 3, p: 2, backgroundColor: "grey.50", borderRadius: 0 }}
           >
-            <Typography
-              variant="h6"
-              sx={{
-                direction: isRTL ? "rtl" : "ltr",
-                fontFamily: isRTL
-                  ? "var(--font-persian)"
-                  : "var(--font-english)",
-                textAlign: isRTL ? "right" : "left",
-              }}
-            >
+            <Typography variant="h6" sx={getTypographyStyles(language, "h6")}>
               {t.totalCost}: {formatCurrency(calculateTotalCost(), language)}
             </Typography>
           </Box>

@@ -35,6 +35,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { translations } from "../../locales";
 import type { Language as LanguageType } from "../../locales";
 import { getCurrentUser, logoutUser } from "../../utils/userUtils";
+import { createComponentStyles } from "../../utils/languageUtils";
 import "./index.css";
 
 // Language Context
@@ -70,6 +71,7 @@ const Layout = ({ children }: LayoutProps) => {
 
   const isRTL = language === "fa";
   const t = translations[language];
+  const componentStyles = createComponentStyles(language);
 
   // Create theme based on language
   const theme = createTheme({
@@ -196,7 +198,7 @@ const Layout = ({ children }: LayoutProps) => {
         sx={{
           p: 2,
           background: "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)",
-          borderRadius: "0 0 16px 16px",
+          borderRadius: "0 0 0px 0px",
           mb: 2,
         }}
       >
@@ -313,7 +315,7 @@ const Layout = ({ children }: LayoutProps) => {
                   selected={location.pathname === item.path}
                   onClick={() => navigate(item.path)}
                   sx={{
-                    borderRadius: 2,
+                    borderRadius: 0,
                     mx: 1,
                     minHeight: 48,
                     justifyContent: sidebarCollapsed ? "center" : "flex-start",
@@ -420,7 +422,7 @@ const Layout = ({ children }: LayoutProps) => {
                   selected={location.pathname === item.path}
                   onClick={() => navigate(item.path)}
                   sx={{
-                    borderRadius: 2,
+                    borderRadius: 0,
                     mx: 1,
                     minHeight: 48,
                     justifyContent: sidebarCollapsed ? "center" : "flex-start",
@@ -574,7 +576,7 @@ const Layout = ({ children }: LayoutProps) => {
             fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
             fontWeight: 600,
             py: 1.5,
-            borderRadius: 2,
+            borderRadius: 0,
             "&:hover": {
               borderColor: "#dc2626",
               backgroundColor: "rgba(239, 68, 68, 0.1)",
@@ -605,21 +607,20 @@ const Layout = ({ children }: LayoutProps) => {
         <Stack
           className="home-layout"
           flexDirection={isRTL ? "row-reverse" : "row"}
-          gap={3}
           sx={{
             backgroundColor: "#FCFCFD",
             direction: isRTL ? "rtl" : "ltr",
             width: "100%",
+            height: "100vh",
+            overflow: "hidden",
           }}
         >
           <Box
             component="aside"
             sx={{
-              position: "sticky",
-              height: "100vh",
+              ...componentStyles.sidebar.container,
               maxWidth: sidebarCollapsed ? 80 : 280,
               minWidth: sidebarCollapsed ? 80 : 280,
-              top: 0,
               left: isRTL ? "auto" : 0,
               right: isRTL ? 0 : "auto",
               zIndex: 1,
@@ -632,11 +633,9 @@ const Layout = ({ children }: LayoutProps) => {
             spacing={3}
             sx={{
               flex: 1,
-              width: "100%",
-              padding: "24px",
-              minHeight: "calc(100vh - 24px * 2)",
-              paddingTop: "35px",
               overflow: "auto",
+              ...componentStyles.dashboard.container,
+              height: "100vh",
             }}
           >
             {children}
