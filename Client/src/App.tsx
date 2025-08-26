@@ -6,6 +6,7 @@ import Dashboard from "./presentation/pages/Dashboard";
 import Credit from "./presentation/pages/Credit";
 import Profile from "./presentation/pages/Profile";
 import Foods from "./presentation/pages/Foods";
+import TestLanguage from "./presentation/pages/TestLanguage";
 import Layout from "./presentation/components/Layout";
 import "./presentation/assets/persian-rtl.css";
 
@@ -15,7 +16,6 @@ function App() {
       <Route path="/" element={<Register />} />
       <Route path="/register" element={<Register />} />
       <Route path="/login" element={<Login />} />
-      <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route
         path="/dashboard"
         element={
@@ -45,6 +45,22 @@ function App() {
         element={
           <Layout>
             <Foods />
+          </Layout>
+        }
+      />
+      <Route
+        path="/forgot-password"
+        element={
+          <Layout>
+            <ForgotPassword />
+          </Layout>
+        }
+      />
+      <Route
+        path="/test-language"
+        element={
+          <Layout>
+            <TestLanguage />
           </Layout>
         }
       />

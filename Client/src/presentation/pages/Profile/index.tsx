@@ -67,7 +67,26 @@ const Profile = () => {
   };
 
   const handleSave = () => {
-    // TODO: Implement save logic
+    // Update user data in localStorage
+    const updatedUser = {
+      ...user,
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      email: formData.email,
+      username: formData.username,
+    };
+
+    // Update current user
+    setUser(updatedUser);
+    localStorage.setItem("currentUser", JSON.stringify(updatedUser));
+
+    // Update user in users array
+    const allUsers = JSON.parse(localStorage.getItem("users") || "[]");
+    const updatedUsers = allUsers.map((u: any) =>
+      u.id === user.id ? updatedUser : u
+    );
+    localStorage.setItem("users", JSON.stringify(updatedUsers));
+
     setIsEditing(false);
   };
 

@@ -9,25 +9,32 @@ import {
   Stack,
   InputAdornment,
   IconButton,
-  ToggleButton,
-  ToggleButtonGroup,
   Alert,
   CircularProgress,
+  Divider,
 } from "@mui/material";
 import {
   Email,
-  Language,
   ArrowBack,
   Lock,
   Visibility,
   VisibilityOff,
+  LockReset,
 } from "@mui/icons-material";
-import { translations } from "../../locales";
-import type { Language as LanguageType } from "../../locales";
+import { useNavigate } from "react-router-dom";
 import { getUserByEmail } from "../../utils/userUtils";
+import { useLanguage } from "../../components/Layout";
+import {
+  createComponentStyles,
+  getTypographyStyles,
+} from "../../utils/languageUtils";
 
 const ForgotPassword = () => {
-  const [language, setLanguage] = useState<LanguageType>("en");
+  const { language, t, isRTL } = useLanguage();
+  const navigate = useNavigate();
+  const componentStyles = createComponentStyles(language);
+  const typographyStyles = getTypographyStyles(language);
+
   const [formData, setFormData] = useState({
     email: "",
     newPassword: "",
@@ -42,19 +49,6 @@ const ForgotPassword = () => {
     type: "success" | "error";
     text: string;
   } | null>(null);
-
-  const t = translations[language];
-
-  const handleLanguageChange = (
-    _event: React.MouseEvent<HTMLElement>,
-    newLanguage: LanguageType | null
-  ) => {
-    if (newLanguage !== null) {
-      setLanguage(newLanguage);
-      // Clear errors when language changes
-      setErrors({});
-    }
-  };
 
   const handleChange =
     (field: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -153,253 +147,228 @@ const ForgotPassword = () => {
   };
 
   const handleBackToLogin = () => {
-    // In a real app, you would use React Router navigation here
-    window.location.href = "/login";
+    navigate("/login");
   };
 
   return (
-    <Container maxWidth="sm" sx={{ py: 4 }}>
-      <Paper elevation={3} sx={{ p: 4, borderRadius: 0 }}>
-        <Box component="form" onSubmit={handleSubmit}>
-          <Stack spacing={3}>
-            {/* Header with Language Switcher */}
-            <Box textAlign="center">
-              <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
-                <ToggleButtonGroup
-                  value={language}
-                  exclusive
-                  onChange={handleLanguageChange}
-                  size="small"
+    <Container maxWidth="md">
+      <Stack spacing={4}>
+        {/* Header Section */}
+        <Paper
+          elevation={0}
+          sx={{
+            ...componentStyles.card,
+            p: 4,
+            textAlign: "center",
+            background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+            color: "white",
+          }}
+        >
+          <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
+            <LockReset sx={{ fontSize: 48, opacity: 0.9 }} />
+          </Box>
+          <Typography
+            variant="h4"
+            component="h1"
+            gutterBottom
+            sx={{
+              ...typographyStyles.title,
+              color: "white",
+              fontWeight: 700,
+            }}
+          >
+            {t.forgotPasswordTitle}
+          </Typography>
+          <Typography
+            variant="h6"
+            sx={{
+              ...typographyStyles.subtitle,
+              color: "rgba(255, 255, 255, 0.9)",
+              fontWeight: 400,
+            }}
+          >
+            {t.forgotPasswordSubtitle}
+          </Typography>
+        </Paper>
+
+        {/* Main Form Section */}
+        <Paper elevation={0} sx={{ ...componentStyles.card, p: 4 }}>
+          <Box component="form" onSubmit={handleSubmit}>
+            <Stack spacing={3}>
+              {/* Success/Error Message */}
+              {submitMessage && (
+                <Alert
+                  severity={submitMessage.type}
                   sx={{
-                    "& .MuiToggleButton-root": {
-                      px: 2,
-                      py: 0.5,
-                      fontSize: "0.875rem",
-                    },
+                    ...typographyStyles.body,
+                    borderRadius: 0,
                   }}
                 >
-                  <ToggleButton value="en">
-                    <Language sx={{ mr: 0.5, fontSize: "1rem" }} />
-                    EN
-                  </ToggleButton>
-                  <ToggleButton value="fa">
-                    <Language sx={{ mr: 0.5, fontSize: "1rem" }} />
-                    فارسی
-                  </ToggleButton>
-                </ToggleButtonGroup>
-              </Box>
-
-              <Typography
-                variant="h4"
-                component="h1"
-                gutterBottom
-                color="primary"
-                sx={{
-                  direction: language === "fa" ? "rtl" : "ltr",
-                  fontFamily:
-                    language === "fa"
-                      ? "var(--font-persian)"
-                      : "var(--font-english)",
-                }}
-              >
-                {t.forgotPasswordTitle}
-              </Typography>
-              <Typography
-                variant="h6"
-                color="text.secondary"
-                sx={{
-                  direction: language === "fa" ? "rtl" : "ltr",
-                  fontFamily:
-                    language === "fa"
-                      ? "var(--font-persian)"
-                      : "var(--font-english)",
-                }}
-              >
-                {t.forgotPasswordSubtitle}
-              </Typography>
-            </Box>
-
-            {/* Email */}
-            <TextField
-              fullWidth
-              label={t.email}
-              type="email"
-              value={formData.email}
-              onChange={handleChange("email")}
-              error={!!errors.email}
-              helperText={errors.email}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Email color="action" />
-                  </InputAdornment>
-                ),
-              }}
-              sx={{
-                direction: language === "fa" ? "rtl" : "ltr",
-                "& .MuiInputLabel-root": {
-                  fontFamily:
-                    language === "fa"
-                      ? "var(--font-persian)"
-                      : "var(--font-english)",
-                },
-                "& .MuiInputBase-input": {
-                  fontFamily:
-                    language === "fa"
-                      ? "var(--font-persian)"
-                      : "var(--font-english)",
-                },
-              }}
-            />
-
-            {/* New Password */}
-            <TextField
-              fullWidth
-              label={t.newPassword}
-              type={showPassword ? "text" : "password"}
-              value={formData.newPassword}
-              onChange={handleChange("newPassword")}
-              error={!!errors.newPassword}
-              helperText={errors.newPassword}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Lock color="action" />
-                  </InputAdornment>
-                ),
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton
-                      onClick={() => setShowPassword(!showPassword)}
-                      edge="end"
-                    >
-                      {showPassword ? <VisibilityOff /> : <Visibility />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
-              sx={{
-                direction: language === "fa" ? "rtl" : "ltr",
-                "& .MuiInputLabel-root": {
-                  fontFamily:
-                    language === "fa"
-                      ? "var(--font-persian)"
-                      : "var(--font-english)",
-                },
-                "& .MuiInputBase-input": {
-                  fontFamily:
-                    language === "fa"
-                      ? "var(--font-persian)"
-                      : "var(--font-english)",
-                },
-              }}
-            />
-
-            {/* Confirm New Password */}
-            <TextField
-              fullWidth
-              label={t.confirmPassword}
-              type={showConfirmPassword ? "text" : "password"}
-              value={formData.confirmPassword}
-              onChange={handleChange("confirmPassword")}
-              error={!!errors.confirmPassword}
-              helperText={errors.confirmPassword}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Lock color="action" />
-                  </InputAdornment>
-                ),
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton
-                      onClick={() =>
-                        setShowConfirmPassword(!showConfirmPassword)
-                      }
-                      edge="end"
-                    >
-                      {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
-              sx={{
-                direction: language === "fa" ? "rtl" : "ltr",
-                "& .MuiInputLabel-root": {
-                  fontFamily:
-                    language === "fa"
-                      ? "var(--font-persian)"
-                      : "var(--font-english)",
-                },
-                "& .MuiInputBase-input": {
-                  fontFamily:
-                    language === "fa"
-                      ? "var(--font-persian)"
-                      : "var(--font-english)",
-                },
-              }}
-            />
-
-            {/* Success/Error Message */}
-            {submitMessage && (
-              <Alert
-                severity={submitMessage.type}
-                sx={{
-                  fontFamily:
-                    language === "fa"
-                      ? "var(--font-persian)"
-                      : "var(--font-english)",
-                  direction: language === "fa" ? "rtl" : "ltr",
-                }}
-              >
-                {submitMessage.text}
-              </Alert>
-            )}
-
-            {/* Submit Button */}
-            <Button
-              type="submit"
-              variant="contained"
-              size="large"
-              disabled={isSubmitting}
-              sx={{
-                py: 1.5,
-                fontSize: "1.1rem",
-                fontFamily:
-                  language === "fa"
-                    ? "var(--font-persian)"
-                    : "var(--font-english)",
-              }}
-            >
-              {isSubmitting ? (
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <CircularProgress size={20} color="inherit" />
-                  {t.resettingPassword}
-                </Box>
-              ) : (
-                t.resetPasswordButton
+                  {submitMessage.text}
+                </Alert>
               )}
-            </Button>
 
-            {/* Back to Login Link */}
-            <Box textAlign="center">
-              <Button
-                startIcon={<ArrowBack />}
-                onClick={handleBackToLogin}
-                sx={{
-                  fontFamily:
-                    language === "fa"
-                      ? "var(--font-persian)"
-                      : "var(--font-english)",
-                  direction: language === "fa" ? "rtl" : "ltr",
+              {/* Email Field */}
+              <TextField
+                fullWidth
+                label={t.email}
+                type="email"
+                value={formData.email}
+                onChange={handleChange("email")}
+                error={!!errors.email}
+                helperText={errors.email}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Email color="action" />
+                    </InputAdornment>
+                  ),
                 }}
-              >
-                {t.backToLogin}
-              </Button>
-            </Box>
-          </Stack>
-        </Box>
-      </Paper>
+                sx={{
+                  ...componentStyles.form.field,
+                  ...typographyStyles.body,
+                }}
+              />
+
+              <Divider sx={{ my: 2 }} />
+
+              {/* New Password Field */}
+              <TextField
+                fullWidth
+                label={t.newPassword}
+                type={showPassword ? "text" : "password"}
+                value={formData.newPassword}
+                onChange={handleChange("newPassword")}
+                error={!!errors.newPassword}
+                helperText={errors.newPassword}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Lock color="action" />
+                    </InputAdornment>
+                  ),
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => setShowPassword(!showPassword)}
+                        edge="end"
+                      >
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{
+                  ...componentStyles.form.field,
+                  ...typographyStyles.body,
+                }}
+              />
+
+              {/* Confirm New Password Field */}
+              <TextField
+                fullWidth
+                label={t.confirmPassword}
+                type={showConfirmPassword ? "text" : "password"}
+                value={formData.confirmPassword}
+                onChange={handleChange("confirmPassword")}
+                error={!!errors.confirmPassword}
+                helperText={errors.confirmPassword}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Lock color="action" />
+                    </InputAdornment>
+                  ),
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() =>
+                          setShowConfirmPassword(!showConfirmPassword)
+                        }
+                        edge="end"
+                      >
+                        {showConfirmPassword ? (
+                          <VisibilityOff />
+                        ) : (
+                          <Visibility />
+                        )}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{
+                  ...componentStyles.form.field,
+                  ...typographyStyles.body,
+                }}
+              />
+
+              {/* Action Buttons */}
+              <Stack spacing={2} direction={isRTL ? "row-reverse" : "row"}>
+                <Button
+                  variant="outlined"
+                  startIcon={isRTL ? undefined : <ArrowBack />}
+                  endIcon={isRTL ? <ArrowBack /> : undefined}
+                  onClick={handleBackToLogin}
+                  sx={{
+                    ...componentStyles.button,
+                    ...typographyStyles.button,
+                    flex: 1,
+                  }}
+                >
+                  {t.backToLogin}
+                </Button>
+
+                <Button
+                  type="submit"
+                  variant="contained"
+                  disabled={isSubmitting}
+                  sx={{
+                    ...componentStyles.button,
+                    ...typographyStyles.button,
+                    flex: 2,
+                    py: 1.5,
+                    fontSize: "1.1rem",
+                  }}
+                >
+                  {isSubmitting ? (
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <CircularProgress size={20} color="inherit" />
+                      {t.resettingPassword}
+                    </Box>
+                  ) : (
+                    t.resetPasswordButton
+                  )}
+                </Button>
+              </Stack>
+            </Stack>
+          </Box>
+        </Paper>
+
+        {/* Additional Help Section */}
+        <Paper
+          elevation={0}
+          sx={{
+            ...componentStyles.card,
+            p: 3,
+            backgroundColor: "rgba(102, 126, 234, 0.05)",
+            border: "1px solid rgba(102, 126, 234, 0.2)",
+          }}
+        >
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{
+              ...typographyStyles.body,
+              textAlign: "center",
+              lineHeight: 1.6,
+            }}
+          >
+            {language === "fa"
+              ? "پس از تغییر رمز عبور، از رمز جدید برای ورود به سیستم استفاده کنید. در صورت بروز مشکل، با پشتیبانی تماس بگیرید."
+              : "After resetting your password, use the new password to log into the system. If you encounter any issues, please contact support."}
+          </Typography>
+        </Paper>
+      </Stack>
     </Container>
   );
 };

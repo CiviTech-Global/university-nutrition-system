@@ -25,12 +25,15 @@ import {
   CreditCard as CreditIcon,
   Person as ProfileIcon,
   Restaurant as FoodsIcon,
+  LockReset as ForgotPasswordIcon,
+  LocalOffer as SaleDayIcon,
   Language,
   Logout,
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon,
   Settings,
   Notifications,
+  Translate,
 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { translations } from "../../locales";
@@ -160,6 +163,12 @@ const Layout = ({ children }: LayoutProps) => {
       badge: null,
     },
     {
+      text: t.saleDay,
+      icon: <SaleDayIcon />,
+      path: "/sale-day",
+      badge: "HOT",
+    },
+    {
       text: t.credit,
       icon: <CreditIcon />,
       path: "/credit",
@@ -185,6 +194,18 @@ const Layout = ({ children }: LayoutProps) => {
       icon: <Notifications />,
       path: "/notifications",
       badge: "5",
+    },
+    {
+      text: t.forgotPasswordMenu,
+      icon: <ForgotPasswordIcon />,
+      path: "/forgot-password",
+      badge: null,
+    },
+    {
+      text: "Test Language",
+      icon: <Translate />,
+      path: "/test-language",
+      badge: null,
     },
   ];
 

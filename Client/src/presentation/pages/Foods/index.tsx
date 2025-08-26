@@ -19,6 +19,9 @@ import {
   Rating,
   Button,
   Fade,
+  IconButton,
+  Tooltip,
+  Badge,
 } from "@mui/material";
 import {
   Search as SearchIcon,
@@ -28,9 +31,15 @@ import {
   LocalOffer as PriceIcon,
   Favorite as FavoriteIcon,
   FavoriteBorder as FavoriteBorderIcon,
+  FilterList as FilterIcon,
+  Sort as SortIcon,
 } from "@mui/icons-material";
 import { useLanguage } from "../../components/Layout";
-import { formatCurrency } from "../../utils/languageUtils";
+import {
+  formatCurrency,
+  createComponentStyles,
+  getTypographyStyles,
+} from "../../utils/languageUtils";
 
 interface FoodItem {
   id: string;
@@ -47,13 +56,36 @@ interface FoodItem {
   prepTime: number;
   calories: number;
   isPopular?: boolean;
+  isSpicy?: boolean;
+  isVegetarian?: boolean;
 }
 
 const Foods = () => {
   const { language, isRTL } = useLanguage();
+
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [favorites, setFavorites] = useState<string[]>([]);
+  const [sortBy, setSortBy] = useState<string>("name");
+
+  // Import local images using relative paths
+  const foodImages = {
+    cheloKebab: "/src/presentation/assets/images/چلو-کباب-بختیاری-scaled.jpg",
+    cheloJooje: "/src/presentation/assets/images/چلو جوجه کباب.jpeg",
+    cheloJoojeTahchin:
+      "/src/presentation/assets/images/چلو جوجه کباب و ته چین.jpg",
+    ghormehSabzi: "/src/presentation/assets/images/قورمه سبزی.jpg",
+    gheimeh: "/src/presentation/assets/images/قیمه.jpg",
+    gheimehBademjan:
+      "/src/presentation/assets/images/قیمه_بادمجان_غذای_روز_تمامی_گروه_های_سنی_1024x1005.jpg",
+    kookooSibZamini: "/src/presentation/assets/images/کوکو سیب زمینی.jpg",
+    zereshkPolo: "/src/presentation/assets/images/زرشک پلو با مرغ.jpeg",
+    khorakKoobideh: "/src/presentation/assets/images/خوراک کوبیده.jpg",
+    khorakJooje: "/src/presentation/assets/images/خوراک جوجه.jpg",
+    beefStroganoff: "/src/presentation/assets/images/بیف استروگانوف.jpg",
+    sandwich: "/src/presentation/assets/images/sandevich-rost-biff.jpg",
+    defaultFood: "/src/presentation/assets/images/default308785.jpg",
+  };
 
   const allFoods: FoodItem[] = [
     {
@@ -73,101 +105,232 @@ const Foods = () => {
         "صبحانه سنتی ایرانی با نان تازه، پنیر سفید، چای سیاه و عسل طبیعی",
       descriptionEn:
         "Traditional Iranian breakfast with fresh bread, white cheese, black tea, and natural honey",
-      imageUrl:
-        "https://images.unsplash.com/photo-1494859802809-d069c3b71a8a?w=400&h=300&fit=crop",
+      imageUrl: foodImages.defaultFood,
       category: "breakfast",
       rating: 4.5,
       prepTime: 10,
       calories: 320,
       isPopular: true,
-    },
-    {
-      id: "lunch-1",
-      name: "چلو کباب",
-      nameEn: "Rice & Kebab",
-      price: 45000,
-      ingredients: ["برنج", "گوشت کباب", "زعفران", "کره", "پیاز"],
-      ingredientsEn: ["Rice", "Kebab meat", "Saffron", "Butter", "Onion"],
-      description: "برنج زعفرانی با کباب گوشت و پیاز تازه",
-      descriptionEn: "Saffron rice with grilled meat kebab and fresh onion",
-      imageUrl:
-        "https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=300&fit=crop",
-      category: "lunch",
-      rating: 4.8,
-      prepTime: 25,
-      calories: 680,
-      isPopular: true,
-    },
-    {
-      id: "dinner-1",
-      name: "کباب برگ",
-      nameEn: "Barg Kebab",
-      price: 50000,
-      ingredients: ["گوشت برگ", "ادویه", "برنج", "کره", "زعفران"],
-      ingredientsEn: ["Sliced meat", "Spices", "Rice", "Butter", "Saffron"],
-      description: "کباب برگ با گوشت نازک و ادویه مخصوص",
-      descriptionEn: "Barg kebab with thin sliced meat and special spices",
-      imageUrl:
-        "https://images.unsplash.com/photo-1559847844-5315695dadae?w=400&h=300&fit=crop",
-      category: "dinner",
-      rating: 4.7,
-      prepTime: 20,
-      calories: 580,
+      isVegetarian: true,
     },
     {
       id: "breakfast-2",
-      name: "شیر و عسل",
-      nameEn: "Milk & Honey",
-      price: 20000,
-      ingredients: ["شیر گرم", "عسل طبیعی", "زعفران", "هل"],
-      ingredientsEn: ["Warm milk", "Natural honey", "Saffron", "Cardamom"],
-      description: "شیر گرم با عسل طبیعی و زعفران، مناسب برای شروع روز",
+      name: "کوکو سیب زمینی",
+      nameEn: "Potato Kookoo",
+      price: 25000,
+      ingredients: ["سیب زمینی", "تخم مرغ", "پیاز", "ادویه", "روغن"],
+      ingredientsEn: ["Potato", "Eggs", "Onion", "Spices", "Oil"],
+      description: "کوکو سیب زمینی خانگی با تخم مرغ تازه و ادویه مخصوص",
       descriptionEn:
-        "Warm milk with natural honey and saffron, perfect for starting the day",
-      imageUrl:
-        "https://images.unsplash.com/photo-1550583724-b2692b85b150?w=400&h=300&fit=crop",
+        "Homemade potato kookoo with fresh eggs and special spices",
+      imageUrl: foodImages.kookooSibZamini,
       category: "breakfast",
-      rating: 4.2,
-      prepTime: 5,
-      calories: 180,
+      rating: 4.3,
+      prepTime: 15,
+      calories: 280,
+      isVegetarian: true,
+    },
+    {
+      id: "lunch-1",
+      name: "چلو کباب بختیاری",
+      nameEn: "Chelo Kebab Bakhtiari",
+      price: 55000,
+      ingredients: ["برنج زعفرانی", "کباب بختیاری", "کره", "پیاز", "زعفران"],
+      ingredientsEn: [
+        "Saffron rice",
+        "Bakhtiari kebab",
+        "Butter",
+        "Onion",
+        "Saffron",
+      ],
+      description:
+        "چلو کباب بختیاری با گوشت مرغ و گوشت قرمز، سرو شده با برنج زعفرانی",
+      descriptionEn:
+        "Bakhtiari kebab with chicken and red meat, served with saffron rice",
+      imageUrl: foodImages.cheloKebab,
+      category: "lunch",
+      rating: 4.9,
+      prepTime: 30,
+      calories: 750,
+      isPopular: true,
     },
     {
       id: "lunch-2",
+      name: "چلو جوجه کباب",
+      nameEn: "Chelo Jooje Kebab",
+      price: 45000,
+      ingredients: ["برنج", "جوجه کباب", "کره", "زعفران", "ادویه"],
+      ingredientsEn: ["Rice", "Chicken kebab", "Butter", "Saffron", "Spices"],
+      description: "چلو جوجه کباب با گوشت مرغ تازه و برنج زعفرانی",
+      descriptionEn: "Chicken kebab with fresh chicken meat and saffron rice",
+      imageUrl: foodImages.cheloJooje,
+      category: "lunch",
+      rating: 4.7,
+      prepTime: 25,
+      calories: 650,
+      isPopular: true,
+    },
+    {
+      id: "lunch-3",
+      name: "چلو جوجه کباب و ته چین",
+      nameEn: "Chelo Jooje Kebab with Tahchin",
+      price: 60000,
+      ingredients: ["برنج", "جوجه کباب", "ته چین", "زعفران", "کره"],
+      ingredientsEn: ["Rice", "Chicken kebab", "Tahchin", "Saffron", "Butter"],
+      description: "چلو جوجه کباب همراه با ته چین زعفرانی و کره",
+      descriptionEn: "Chicken kebab with saffron tahchin and butter",
+      imageUrl: foodImages.cheloJoojeTahchin,
+      category: "lunch",
+      rating: 4.8,
+      prepTime: 35,
+      calories: 800,
+      isPopular: true,
+    },
+    {
+      id: "lunch-4",
       name: "قورمه سبزی",
       nameEn: "Ghormeh Sabzi",
       price: 40000,
       ingredients: ["سبزی قورمه", "لوبیا", "گوشت", "لیمو عمانی", "برنج"],
       ingredientsEn: ["Herbs", "Beans", "Meat", "Dried lime", "Rice"],
-      description: "خورشت سبزی با لوبیا، گوشت و لیمو عمانی",
-      descriptionEn: "Herb stew with beans, meat, and dried lime",
-      imageUrl:
-        "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&h=300&fit=crop",
+      description: "خورشت سبزی با لوبیا، گوشت و لیمو عمانی، غذای سنتی ایرانی",
+      descriptionEn:
+        "Traditional Iranian herb stew with beans, meat, and dried lime",
+      imageUrl: foodImages.ghormehSabzi,
       category: "lunch",
       rating: 4.6,
-      prepTime: 30,
+      prepTime: 45,
       calories: 520,
       isPopular: true,
     },
     {
+      id: "lunch-5",
+      name: "قیمه",
+      nameEn: "Gheimeh",
+      price: 38000,
+      ingredients: ["لپه", "گوشت", "سیب زمینی", "گوجه", "ادویه"],
+      ingredientsEn: ["Split peas", "Meat", "Potato", "Tomato", "Spices"],
+      description: "خورشت قیمه با لپه، گوشت و سیب زمینی سرخ شده",
+      descriptionEn: "Gheimeh stew with split peas, meat, and fried potato",
+      imageUrl: foodImages.gheimeh,
+      category: "lunch",
+      rating: 4.4,
+      prepTime: 40,
+      calories: 480,
+    },
+    {
+      id: "lunch-6",
+      name: "قیمه بادمجان",
+      nameEn: "Gheimeh Bademjan",
+      price: 42000,
+      ingredients: ["لپه", "گوشت", "بادمجان", "گوجه", "ادویه"],
+      ingredientsEn: ["Split peas", "Meat", "Eggplant", "Tomato", "Spices"],
+      description: "خورشت قیمه بادمجان با بادمجان سرخ شده و گوشت تازه",
+      descriptionEn: "Gheimeh bademjan with fried eggplant and fresh meat",
+      imageUrl: foodImages.gheimehBademjan,
+      category: "lunch",
+      rating: 4.5,
+      prepTime: 50,
+      calories: 520,
+    },
+    {
+      id: "lunch-7",
+      name: "زرشک پلو با مرغ",
+      nameEn: "Zereshk Polo with Chicken",
+      price: 48000,
+      ingredients: ["برنج", "مرغ", "زرشک", "زعفران", "کره"],
+      ingredientsEn: ["Rice", "Chicken", "Barberries", "Saffron", "Butter"],
+      description: "زرشک پلو با مرغ و زعفران، طعمی منحصر به فرد و دلپذیر",
+      descriptionEn:
+        "Barberry rice with chicken and saffron, unique and delightful taste",
+      imageUrl: foodImages.zereshkPolo,
+      category: "lunch",
+      rating: 4.7,
+      prepTime: 30,
+      calories: 680,
+      isPopular: true,
+    },
+    {
+      id: "lunch-8",
+      name: "خوراک کوبیده",
+      nameEn: "Koobideh Kebab",
+      price: 52000,
+      ingredients: ["گوشت چرخ شده", "پیاز", "ادویه", "برنج", "کره"],
+      ingredientsEn: ["Ground meat", "Onion", "Spices", "Rice", "Butter"],
+      description: "خوراک کوبیده با گوشت چرخ شده و ادویه مخصوص",
+      descriptionEn: "Koobideh kebab with ground meat and special spices",
+      imageUrl: foodImages.khorakKoobideh,
+      category: "lunch",
+      rating: 4.6,
+      prepTime: 25,
+      calories: 720,
+    },
+    {
+      id: "lunch-9",
+      name: "خوراک جوجه",
+      nameEn: "Chicken Kebab",
+      price: 45000,
+      ingredients: ["مرغ", "ادویه", "برنج", "کره", "زعفران"],
+      ingredientsEn: ["Chicken", "Spices", "Rice", "Butter", "Saffron"],
+      description: "خوراک جوجه با گوشت مرغ تازه و برنج زعفرانی",
+      descriptionEn: "Chicken kebab with fresh chicken meat and saffron rice",
+      imageUrl: foodImages.khorakJooje,
+      category: "lunch",
+      rating: 4.5,
+      prepTime: 20,
+      calories: 580,
+    },
+    {
+      id: "lunch-10",
+      name: "بیف استروگانوف",
+      nameEn: "Beef Stroganoff",
+      price: 58000,
+      ingredients: ["گوشت گاو", "قارچ", "خامه", "پیاز", "ادویه"],
+      ingredientsEn: ["Beef", "Mushrooms", "Cream", "Onion", "Spices"],
+      description: "بیف استروگانوف با گوشت گاو، قارچ و سس خامه",
+      descriptionEn: "Beef stroganoff with beef, mushrooms, and cream sauce",
+      imageUrl: foodImages.beefStroganoff,
+      category: "lunch",
+      rating: 4.8,
+      prepTime: 35,
+      calories: 850,
+      isPopular: true,
+    },
+    {
+      id: "dinner-1",
+      name: "ساندویچ رست بیف",
+      nameEn: "Roast Beef Sandwich",
+      price: 35000,
+      ingredients: ["نان", "گوشت رست", "سبزیجات", "سس", "پنیر"],
+      ingredientsEn: ["Bread", "Roast beef", "Vegetables", "Sauce", "Cheese"],
+      description: "ساندویچ رست بیف با گوشت تازه و سبزیجات",
+      descriptionEn: "Roast beef sandwich with fresh meat and vegetables",
+      imageUrl: foodImages.sandwich,
+      category: "dinner",
+      rating: 4.3,
+      prepTime: 10,
+      calories: 420,
+    },
+    {
       id: "dinner-2",
-      name: "سالاد",
+      name: "سالاد تازه",
       nameEn: "Fresh Salad",
       price: 18000,
       ingredients: ["کاهو", "گوجه", "خیار", "پیاز", "روغن زیتون"],
       ingredientsEn: ["Lettuce", "Tomato", "Cucumber", "Onion", "Olive oil"],
-      description: "سالاد تازه با سبزیجات و روغن زیتون",
-      descriptionEn: "Fresh salad with vegetables and olive oil",
-      imageUrl:
-        "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400&h=300&fit=crop",
+      description: "سالاد تازه با سبزیجات و روغن زیتون طبیعی",
+      descriptionEn: "Fresh salad with vegetables and natural olive oil",
+      imageUrl: foodImages.defaultFood,
       category: "dinner",
       rating: 4.1,
       prepTime: 8,
       calories: 120,
+      isVegetarian: true,
     },
   ];
 
-  const filteredFoods = useMemo(() => {
-    return allFoods.filter((food) => {
+  const filteredAndSortedFoods = useMemo(() => {
+    let filtered = allFoods.filter((food) => {
       const matchesSearch =
         food.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         food.nameEn.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -180,7 +343,30 @@ const Foods = () => {
 
       return matchesSearch && matchesCategory;
     });
-  }, [allFoods, searchTerm, selectedCategory]);
+
+    // Sort foods
+    switch (sortBy) {
+      case "price-low":
+        filtered.sort((a, b) => a.price - b.price);
+        break;
+      case "price-high":
+        filtered.sort((a, b) => b.price - a.price);
+        break;
+      case "rating":
+        filtered.sort((a, b) => b.rating - a.rating);
+        break;
+      case "prep-time":
+        filtered.sort((a, b) => a.prepTime - b.prepTime);
+        break;
+      case "calories":
+        filtered.sort((a, b) => a.calories - b.calories);
+        break;
+      default:
+        filtered.sort((a, b) => a.name.localeCompare(b.name));
+    }
+
+    return filtered;
+  }, [allFoods, searchTerm, selectedCategory, sortBy]);
 
   const handleFavoriteToggle = (foodId: string) => {
     setFavorites((prev) =>
@@ -200,6 +386,25 @@ const Foods = () => {
         return language === "fa" ? "شام" : "Dinner";
       default:
         return language === "fa" ? "همه" : "All";
+    }
+  };
+
+  const getSortLabel = (sort: string) => {
+    switch (sort) {
+      case "name":
+        return language === "fa" ? "نام" : "Name";
+      case "price-low":
+        return language === "fa" ? "قیمت (کم به زیاد)" : "Price (Low to High)";
+      case "price-high":
+        return language === "fa" ? "قیمت (زیاد به کم)" : "Price (High to Low)";
+      case "rating":
+        return language === "fa" ? "امتیاز" : "Rating";
+      case "prep-time":
+        return language === "fa" ? "زمان آماده‌سازی" : "Prep Time";
+      case "calories":
+        return language === "fa" ? "کالری" : "Calories";
+      default:
+        return language === "fa" ? "نام" : "Name";
     }
   };
 
@@ -239,7 +444,7 @@ const Foods = () => {
             fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
           }}
         >
-          {language === "fa" ? "منوی غذاهای ما" : "Our Food Menu"}
+          {language === "fa" ? "منوی غذاهای ایرانی" : "Iranian Food Menu"}
         </Typography>
         <Typography
           variant="h6"
@@ -251,8 +456,8 @@ const Foods = () => {
           }}
         >
           {language === "fa"
-            ? "طعم‌های اصیل ایرانی با بهترین مواد اولیه"
-            : "Authentic Iranian flavors with the finest ingredients"}
+            ? "طعم‌های اصیل ایرانی با بهترین مواد اولیه و دستور پخت سنتی"
+            : "Authentic Iranian flavors with the finest ingredients and traditional recipes"}
         </Typography>
       </Paper>
 
@@ -324,6 +529,43 @@ const Foods = () => {
                 <MenuItem value="dinner">{getCategoryLabel("dinner")}</MenuItem>
               </Select>
             </FormControl>
+
+            <FormControl sx={{ minWidth: 200 }}>
+              <InputLabel
+                sx={{
+                  direction: isRTL ? "rtl" : "ltr",
+                  fontFamily: isRTL
+                    ? "var(--font-persian)"
+                    : "var(--font-english)",
+                }}
+              >
+                {language === "fa" ? "مرتب‌سازی" : "Sort By"}
+              </InputLabel>
+              <Select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                sx={{
+                  borderRadius: 3,
+                  direction: isRTL ? "rtl" : "ltr",
+                  fontFamily: isRTL
+                    ? "var(--font-persian)"
+                    : "var(--font-english)",
+                }}
+              >
+                <MenuItem value="name">{getSortLabel("name")}</MenuItem>
+                <MenuItem value="price-low">
+                  {getSortLabel("price-low")}
+                </MenuItem>
+                <MenuItem value="price-high">
+                  {getSortLabel("price-high")}
+                </MenuItem>
+                <MenuItem value="rating">{getSortLabel("rating")}</MenuItem>
+                <MenuItem value="prep-time">
+                  {getSortLabel("prep-time")}
+                </MenuItem>
+                <MenuItem value="calories">{getSortLabel("calories")}</MenuItem>
+              </Select>
+            </FormControl>
           </Box>
 
           {/* Results Summary */}
@@ -345,20 +587,41 @@ const Foods = () => {
               }}
             >
               {language === "fa"
-                ? `${filteredFoods.length} غذا یافت شد`
-                : `${filteredFoods.length} foods found`}
+                ? `${filteredAndSortedFoods.length} غذا یافت شد`
+                : `${filteredAndSortedFoods.length} foods found`}
             </Typography>
-            {filteredFoods.filter((f) => f.isPopular).length > 0 && (
+            {filteredAndSortedFoods.filter((f) => f.isPopular).length > 0 && (
               <Chip
                 icon={<StarIcon />}
                 label={
                   language === "fa"
-                    ? `${filteredFoods.filter((f) => f.isPopular).length} محبوب`
+                    ? `${
+                        filteredAndSortedFoods.filter((f) => f.isPopular).length
+                      } محبوب`
                     : `${
-                        filteredFoods.filter((f) => f.isPopular).length
+                        filteredAndSortedFoods.filter((f) => f.isPopular).length
                       } popular`
                 }
                 color="primary"
+                variant="outlined"
+                size="small"
+              />
+            )}
+            {filteredAndSortedFoods.filter((f) => f.isVegetarian).length >
+              0 && (
+              <Chip
+                label={
+                  language === "fa"
+                    ? `${
+                        filteredAndSortedFoods.filter((f) => f.isVegetarian)
+                          .length
+                      } گیاهی`
+                    : `${
+                        filteredAndSortedFoods.filter((f) => f.isVegetarian)
+                          .length
+                      } vegetarian`
+                }
+                color="success"
                 variant="outlined"
                 size="small"
               />
@@ -369,7 +632,7 @@ const Foods = () => {
 
       {/* Food Grid */}
       <Grid container spacing={3}>
-        {filteredFoods.map((food, index) => (
+        {filteredAndSortedFoods.map((food, index) => (
           <Grid item xs={12} sm={6} md={4} lg={3} key={food.id}>
             <Fade in={true} timeout={300 + index * 100}>
               <Card
@@ -416,6 +679,33 @@ const Foods = () => {
                   </Box>
                 )}
 
+                {/* Vegetarian Badge */}
+                {food.isVegetarian && (
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      top: food.isPopular ? 50 : 12,
+                      right: isRTL ? "auto" : 12,
+                      left: isRTL ? 12 : "auto",
+                      zIndex: 1,
+                    }}
+                  >
+                    <Chip
+                      label={language === "fa" ? "گیاهی" : "Vegetarian"}
+                      color="success"
+                      size="small"
+                      sx={{
+                        fontWeight: 600,
+                        color: "white",
+                        bgcolor: "#4caf50",
+                        fontFamily: isRTL
+                          ? "var(--font-persian)"
+                          : "var(--font-english)",
+                      }}
+                    />
+                  </Box>
+                )}
+
                 {/* Favorite Button */}
                 <Box
                   sx={{
@@ -426,13 +716,9 @@ const Foods = () => {
                     zIndex: 1,
                   }}
                 >
-                  <Button
+                  <IconButton
                     onClick={() => handleFavoriteToggle(food.id)}
                     sx={{
-                      minWidth: 40,
-                      width: 40,
-                      height: 40,
-                      borderRadius: "50%",
                       bgcolor: "rgba(255,255,255,0.9)",
                       color: favorites.includes(food.id) ? "#e91e63" : "#666",
                       "&:hover": {
@@ -446,7 +732,7 @@ const Foods = () => {
                     ) : (
                       <FavoriteBorderIcon />
                     )}
-                  </Button>
+                  </IconButton>
                 </Box>
 
                 <CardMedia
@@ -661,7 +947,7 @@ const Foods = () => {
       </Grid>
 
       {/* No Results */}
-      {filteredFoods.length === 0 && (
+      {filteredAndSortedFoods.length === 0 && (
         <Paper
           elevation={0}
           sx={{
