@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Box,
   Typography,
@@ -22,6 +22,23 @@ import {
   IconButton,
   Tooltip,
   Badge,
+  Drawer,
+  Divider,
+  Slider,
+  Switch,
+  FormControlLabel,
+  SpeedDial,
+  SpeedDialAction,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Skeleton,
+  Collapse,
+  Alert,
+  Snackbar,
+  ToggleButton,
+  ToggleButtonGroup,
 } from "@mui/material";
 import {
   Search as SearchIcon,
@@ -33,6 +50,22 @@ import {
   FavoriteBorder as FavoriteBorderIcon,
   FilterList as FilterIcon,
   Sort as SortIcon,
+  Share as ShareIcon,
+  ShoppingCart as ShoppingCartIcon,
+  Close as CloseIcon,
+  ExpandMore as ExpandMoreIcon,
+  ExpandLess as ExpandLessIcon,
+  ViewList as ViewListIcon,
+  ViewModule as ViewModuleIcon,
+  Menu as MenuIcon,
+  TuneRounded as TuneIcon,
+  RestaurantMenu as MenuItemIcon,
+  LocalDining as DiningIcon,
+  Eco as EcoIcon,
+  Whatshot as WhatshotIcon,
+  Schedule as ScheduleIcon,
+  MonetizationOn as MoneyIcon,
+  Refresh as RefreshIcon,
 } from "@mui/icons-material";
 import { useLanguage } from "../../components/Layout";
 import {
@@ -40,12 +73,15 @@ import {
   createComponentStyles,
   getTypographyStyles,
 } from "../../utils/languageUtils";
+import { getCurrentUser } from "../../utils/userUtils";
 
 interface FoodItem {
   id: string;
   name: string;
   nameEn: string;
   price: number;
+  originalPrice?: number;
+  discount?: number;
   ingredients: string[];
   ingredientsEn: string[];
   description: string;
@@ -58,26 +94,94 @@ interface FoodItem {
   isPopular?: boolean;
   isSpicy?: boolean;
   isVegetarian?: boolean;
+  isAvailable?: boolean;
+  nutritionFacts?: {
+    protein: number;
+    carbs: number;
+    fat: number;
+    fiber: number;
+  };
+  allergens?: string[];
+  allergensEn?: string[];
 }
 
 const Foods = () => {
-  const { language, isRTL } = useLanguage();
-
+  const { language, t, isRTL } = useLanguage();
+  const componentStyles = createComponentStyles(language);
+  
+  // State management
+  const [user, setUser] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [favorites, setFavorites] = useState<string[]>([]);
+  const [cart, setCart] = useState<Record<string, number>>({});
   const [sortBy, setSortBy] = useState<string>("name");
+  const [priceRange, setPriceRange] = useState<number[]>([0, 100000]);
+  const [calorieRange, setCalorieRange] = useState<number[]>([0, 1000]);
+  const [ratingFilter, setRatingFilter] = useState<number>(0);
+  const [showOnlyVegetarian, setShowOnlyVegetarian] = useState(false);
+  const [showOnlyPopular, setShowOnlyPopular] = useState(false);
+  const [showOnlyAvailable, setShowOnlyAvailable] = useState(false);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
+  const [selectedFood, setSelectedFood] = useState<FoodItem | null>(null);
+  const [foodDetailOpen, setFoodDetailOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+
+  // Load user and data on mount
+  useEffect(() => {
+    const currentUser = getCurrentUser();
+    if (currentUser) {
+      setUser(currentUser);
+      loadUserPreferences(currentUser.id);
+    } else {
+      window.location.href = "/login";
+    }
+    
+    // Simulate loading delay
+    setTimeout(() => setIsLoading(false), 1000);
+  }, []);
+
+  const loadUserPreferences = (userId: string) => {
+    try {
+      const savedFavorites = localStorage.getItem(`favorites_${userId}`);
+      const savedCart = localStorage.getItem(`cart_${userId}`);
+      
+      if (savedFavorites) {
+        setFavorites(JSON.parse(savedFavorites));
+      }
+      if (savedCart) {
+        setCart(JSON.parse(savedCart));
+      }
+    } catch (error) {
+      console.error("Error loading user preferences:", error);
+    }
+  };
+
+  const saveUserPreferences = () => {
+    if (!user) return;
+    try {
+      localStorage.setItem(`favorites_${user.id}`, JSON.stringify(favorites));
+      localStorage.setItem(`cart_${user.id}`, JSON.stringify(cart));
+    } catch (error) {
+      console.error("Error saving user preferences:", error);
+    }
+  };
+
+  useEffect(() => {
+    saveUserPreferences();
+  }, [favorites, cart, user]);
 
   // Import local images using relative paths
   const foodImages = {
     cheloKebab: "/src/presentation/assets/images/چلو-کباب-بختیاری-scaled.jpg",
     cheloJooje: "/src/presentation/assets/images/چلو جوجه کباب.jpeg",
-    cheloJoojeTahchin:
-      "/src/presentation/assets/images/چلو جوجه کباب و ته چین.jpg",
+    cheloJoojeTahchin: "/src/presentation/assets/images/چلو جوجه کباب و ته چین.jpg",
     ghormehSabzi: "/src/presentation/assets/images/قورمه سبزی.jpg",
     gheimeh: "/src/presentation/assets/images/قیمه.jpg",
-    gheimehBademjan:
-      "/src/presentation/assets/images/قیمه_بادمجان_غذای_روز_تمامی_گروه_های_سنی_1024x1005.jpg",
+    gheimehBademjan: "/src/presentation/assets/images/قیمه_بادمجان_غذای_روز_تمامی_گروه_های_سنی_1024x1005.jpg",
     kookooSibZamini: "/src/presentation/assets/images/کوکو سیب زمینی.jpg",
     zereshkPolo: "/src/presentation/assets/images/زرشک پلو با مرغ.jpeg",
     khorakKoobideh: "/src/presentation/assets/images/خوراک کوبیده.jpg",
@@ -94,17 +198,9 @@ const Foods = () => {
       nameEn: "Bread, Cheese & Tea",
       price: 15000,
       ingredients: ["نان تازه", "پنیر سفید", "چای سیاه", "عسل", "کره"],
-      ingredientsEn: [
-        "Fresh bread",
-        "White cheese",
-        "Black tea",
-        "Honey",
-        "Butter",
-      ],
-      description:
-        "صبحانه سنتی ایرانی با نان تازه، پنیر سفید، چای سیاه و عسل طبیعی",
-      descriptionEn:
-        "Traditional Iranian breakfast with fresh bread, white cheese, black tea, and natural honey",
+      ingredientsEn: ["Fresh bread", "White cheese", "Black tea", "Honey", "Butter"],
+      description: "صبحانه سنتی ایرانی با نان تازه، پنیر سفید، چای سیاه و عسل طبیعی",
+      descriptionEn: "Traditional Iranian breakfast with fresh bread, white cheese, black tea, and natural honey",
       imageUrl: foodImages.defaultFood,
       category: "breakfast",
       rating: 4.5,
@@ -112,6 +208,10 @@ const Foods = () => {
       calories: 320,
       isPopular: true,
       isVegetarian: true,
+      isAvailable: true,
+      nutritionFacts: { protein: 12, carbs: 45, fat: 8, fiber: 3 },
+      allergens: ["لبنیات", "گلوتن"],
+      allergensEn: ["Dairy", "Gluten"],
     },
     {
       id: "breakfast-2",
@@ -121,38 +221,37 @@ const Foods = () => {
       ingredients: ["سیب زمینی", "تخم مرغ", "پیاز", "ادویه", "روغن"],
       ingredientsEn: ["Potato", "Eggs", "Onion", "Spices", "Oil"],
       description: "کوکو سیب زمینی خانگی با تخم مرغ تازه و ادویه مخصوص",
-      descriptionEn:
-        "Homemade potato kookoo with fresh eggs and special spices",
+      descriptionEn: "Homemade potato kookoo with fresh eggs and special spices",
       imageUrl: foodImages.kookooSibZamini,
       category: "breakfast",
       rating: 4.3,
       prepTime: 15,
       calories: 280,
       isVegetarian: true,
+      isAvailable: true,
+      nutritionFacts: { protein: 14, carbs: 25, fat: 12, fiber: 4 },
+      allergens: ["تخم مرغ"],
+      allergensEn: ["Eggs"],
     },
     {
       id: "lunch-1",
       name: "چلو کباب بختیاری",
       nameEn: "Chelo Kebab Bakhtiari",
       price: 55000,
+      originalPrice: 62000,
+      discount: 11,
       ingredients: ["برنج زعفرانی", "کباب بختیاری", "کره", "پیاز", "زعفران"],
-      ingredientsEn: [
-        "Saffron rice",
-        "Bakhtiari kebab",
-        "Butter",
-        "Onion",
-        "Saffron",
-      ],
-      description:
-        "چلو کباب بختیاری با گوشت مرغ و گوشت قرمز، سرو شده با برنج زعفرانی",
-      descriptionEn:
-        "Bakhtiari kebab with chicken and red meat, served with saffron rice",
+      ingredientsEn: ["Saffron rice", "Bakhtiari kebab", "Butter", "Onion", "Saffron"],
+      description: "چلو کباب بختیاری با گوشت مرغ و گوشت قرمز، سرو شده با برنج زعفرانی",
+      descriptionEn: "Bakhtiari kebab with chicken and red meat, served with saffron rice",
       imageUrl: foodImages.cheloKebab,
       category: "lunch",
       rating: 4.9,
       prepTime: 30,
       calories: 750,
       isPopular: true,
+      isAvailable: true,
+      nutritionFacts: { protein: 45, carbs: 60, fat: 22, fiber: 2 },
     },
     {
       id: "lunch-2",
@@ -169,6 +268,8 @@ const Foods = () => {
       prepTime: 25,
       calories: 650,
       isPopular: true,
+      isAvailable: true,
+      nutritionFacts: { protein: 40, carbs: 55, fat: 18, fiber: 2 },
     },
     {
       id: "lunch-3",
@@ -185,23 +286,28 @@ const Foods = () => {
       prepTime: 35,
       calories: 800,
       isPopular: true,
+      isAvailable: false,
+      nutritionFacts: { protein: 42, carbs: 70, fat: 25, fiber: 3 },
     },
     {
       id: "lunch-4",
       name: "قورمه سبزی",
       nameEn: "Ghormeh Sabzi",
       price: 40000,
+      originalPrice: 45000,
+      discount: 11,
       ingredients: ["سبزی قورمه", "لوبیا", "گوشت", "لیمو عمانی", "برنج"],
       ingredientsEn: ["Herbs", "Beans", "Meat", "Dried lime", "Rice"],
       description: "خورشت سبزی با لوبیا، گوشت و لیمو عمانی، غذای سنتی ایرانی",
-      descriptionEn:
-        "Traditional Iranian herb stew with beans, meat, and dried lime",
+      descriptionEn: "Traditional Iranian herb stew with beans, meat, and dried lime",
       imageUrl: foodImages.ghormehSabzi,
       category: "lunch",
       rating: 4.6,
       prepTime: 45,
       calories: 520,
       isPopular: true,
+      isAvailable: true,
+      nutritionFacts: { protein: 28, carbs: 45, fat: 15, fiber: 8 },
     },
     {
       id: "lunch-5",
@@ -217,6 +323,8 @@ const Foods = () => {
       rating: 4.4,
       prepTime: 40,
       calories: 480,
+      isAvailable: true,
+      nutritionFacts: { protein: 25, carbs: 40, fat: 16, fiber: 6 },
     },
     {
       id: "lunch-6",
@@ -232,23 +340,28 @@ const Foods = () => {
       rating: 4.5,
       prepTime: 50,
       calories: 520,
+      isAvailable: true,
+      nutritionFacts: { protein: 26, carbs: 38, fat: 18, fiber: 7 },
     },
     {
       id: "lunch-7",
       name: "زرشک پلو با مرغ",
       nameEn: "Zereshk Polo with Chicken",
       price: 48000,
+      originalPrice: 54000,
+      discount: 11,
       ingredients: ["برنج", "مرغ", "زرشک", "زعفران", "کره"],
       ingredientsEn: ["Rice", "Chicken", "Barberries", "Saffron", "Butter"],
       description: "زرشک پلو با مرغ و زعفران، طعمی منحصر به فرد و دلپذیر",
-      descriptionEn:
-        "Barberry rice with chicken and saffron, unique and delightful taste",
+      descriptionEn: "Barberry rice with chicken and saffron, unique and delightful taste",
       imageUrl: foodImages.zereshkPolo,
       category: "lunch",
       rating: 4.7,
       prepTime: 30,
       calories: 680,
       isPopular: true,
+      isAvailable: true,
+      nutritionFacts: { protein: 38, carbs: 58, fat: 20, fiber: 4 },
     },
     {
       id: "lunch-8",
@@ -264,6 +377,8 @@ const Foods = () => {
       rating: 4.6,
       prepTime: 25,
       calories: 720,
+      isAvailable: true,
+      nutritionFacts: { protein: 44, carbs: 52, fat: 24, fiber: 2 },
     },
     {
       id: "lunch-9",
@@ -279,12 +394,16 @@ const Foods = () => {
       rating: 4.5,
       prepTime: 20,
       calories: 580,
+      isAvailable: true,
+      nutritionFacts: { protein: 36, carbs: 48, fat: 16, fiber: 2 },
     },
     {
       id: "lunch-10",
       name: "بیف استروگانوف",
       nameEn: "Beef Stroganoff",
       price: 58000,
+      originalPrice: 65000,
+      discount: 11,
       ingredients: ["گوشت گاو", "قارچ", "خامه", "پیاز", "ادویه"],
       ingredientsEn: ["Beef", "Mushrooms", "Cream", "Onion", "Spices"],
       description: "بیف استروگانوف با گوشت گاو، قارچ و سس خامه",
@@ -295,12 +414,18 @@ const Foods = () => {
       prepTime: 35,
       calories: 850,
       isPopular: true,
+      isAvailable: true,
+      nutritionFacts: { protein: 48, carbs: 35, fat: 35, fiber: 3 },
+      allergens: ["لبنیات"],
+      allergensEn: ["Dairy"],
     },
     {
       id: "dinner-1",
       name: "ساندویچ رست بیف",
       nameEn: "Roast Beef Sandwich",
       price: 35000,
+      originalPrice: 40000,
+      discount: 12,
       ingredients: ["نان", "گوشت رست", "سبزیجات", "سس", "پنیر"],
       ingredientsEn: ["Bread", "Roast beef", "Vegetables", "Sauce", "Cheese"],
       description: "ساندویچ رست بیف با گوشت تازه و سبزیجات",
@@ -310,6 +435,10 @@ const Foods = () => {
       rating: 4.3,
       prepTime: 10,
       calories: 420,
+      isAvailable: true,
+      nutritionFacts: { protein: 28, carbs: 32, fat: 18, fiber: 4 },
+      allergens: ["گلوتن", "لبنیات"],
+      allergensEn: ["Gluten", "Dairy"],
     },
     {
       id: "dinner-2",
@@ -326,22 +455,45 @@ const Foods = () => {
       prepTime: 8,
       calories: 120,
       isVegetarian: true,
+      isAvailable: true,
+      nutritionFacts: { protein: 3, carbs: 12, fat: 8, fiber: 5 },
     },
   ];
 
+  // Enhanced filtering logic
   const filteredAndSortedFoods = useMemo(() => {
     let filtered = allFoods.filter((food) => {
-      const matchesSearch =
+      // Text search
+      const matchesSearch = searchTerm === "" || 
         food.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         food.nameEn.toLowerCase().includes(searchTerm.toLowerCase()) ||
         food.ingredients.some((ingredient) =>
           ingredient.toLowerCase().includes(searchTerm.toLowerCase())
+        ) ||
+        food.ingredientsEn.some((ingredient) =>
+          ingredient.toLowerCase().includes(searchTerm.toLowerCase())
         );
 
-      const matchesCategory =
-        selectedCategory === "all" || food.category === selectedCategory;
+      // Category filter
+      const matchesCategory = selectedCategory === "all" || food.category === selectedCategory;
 
-      return matchesSearch && matchesCategory;
+      // Price range filter
+      const matchesPrice = food.price >= priceRange[0] && food.price <= priceRange[1];
+
+      // Calorie range filter
+      const matchesCalories = food.calories >= calorieRange[0] && food.calories <= calorieRange[1];
+
+      // Rating filter
+      const matchesRating = food.rating >= ratingFilter;
+
+      // Boolean filters
+      const matchesVegetarian = !showOnlyVegetarian || food.isVegetarian;
+      const matchesPopular = !showOnlyPopular || food.isPopular;
+      const matchesAvailable = !showOnlyAvailable || food.isAvailable;
+
+      return matchesSearch && matchesCategory && matchesPrice && 
+             matchesCalories && matchesRating && matchesVegetarian && 
+             matchesPopular && matchesAvailable;
     });
 
     // Sort foods
@@ -361,629 +513,1384 @@ const Foods = () => {
       case "calories":
         filtered.sort((a, b) => a.calories - b.calories);
         break;
+      case "popularity":
+        filtered.sort((a, b) => {
+          if (a.isPopular && !b.isPopular) return -1;
+          if (!a.isPopular && b.isPopular) return 1;
+          return b.rating - a.rating;
+        });
+        break;
       default:
         filtered.sort((a, b) => a.name.localeCompare(b.name));
     }
 
     return filtered;
-  }, [allFoods, searchTerm, selectedCategory, sortBy]);
+  }, [
+    searchTerm, selectedCategory, sortBy, priceRange, calorieRange, 
+    ratingFilter, showOnlyVegetarian, showOnlyPopular, showOnlyAvailable
+  ]);
 
+  // Event handlers
   const handleFavoriteToggle = (foodId: string) => {
     setFavorites((prev) =>
       prev.includes(foodId)
         ? prev.filter((id) => id !== foodId)
         : [...prev, foodId]
     );
+    
+    const message = favorites.includes(foodId) 
+      ? (language === "fa" ? "از علاقه‌مندی‌ها حذف شد" : "Removed from favorites")
+      : (language === "fa" ? "به علاقه‌مندی‌ها اضافه شد" : "Added to favorites");
+    
+    showSuccessNotification(message);
   };
 
+  const handleAddToCart = (foodId: string) => {
+    setCart((prev) => ({
+      ...prev,
+      [foodId]: (prev[foodId] || 0) + 1
+    }));
+    
+    showSuccessNotification(
+      language === "fa" ? "به سبد خرید اضافه شد" : "Added to cart"
+    );
+  };
+
+  const handleRemoveFromCart = (foodId: string) => {
+    setCart((prev) => {
+      const newCart = { ...prev };
+      if (newCart[foodId] > 1) {
+        newCart[foodId]--;
+      } else {
+        delete newCart[foodId];
+      }
+      return newCart;
+    });
+  };
+
+  const showSuccessNotification = (message: string) => {
+    setSuccessMessage(message);
+    setShowSuccessMessage(true);
+  };
+
+  const handleResetFilters = () => {
+    setSearchTerm("");
+    setSelectedCategory("all");
+    setSortBy("name");
+    setPriceRange([0, 100000]);
+    setCalorieRange([0, 1000]);
+    setRatingFilter(0);
+    setShowOnlyVegetarian(false);
+    setShowOnlyPopular(false);
+    setShowOnlyAvailable(false);
+  };
+
+  const handleFoodClick = (food: FoodItem) => {
+    setSelectedFood(food);
+    setFoodDetailOpen(true);
+  };
+
+  // Helper functions
   const getCategoryLabel = (category: string) => {
     switch (category) {
-      case "breakfast":
-        return language === "fa" ? "صبحانه" : "Breakfast";
-      case "lunch":
-        return language === "fa" ? "ناهار" : "Lunch";
-      case "dinner":
-        return language === "fa" ? "شام" : "Dinner";
-      default:
-        return language === "fa" ? "همه" : "All";
+      case "breakfast": return language === "fa" ? "صبحانه" : "Breakfast";
+      case "lunch": return language === "fa" ? "ناهار" : "Lunch";
+      case "dinner": return language === "fa" ? "شام" : "Dinner";
+      default: return language === "fa" ? "همه" : "All";
     }
   };
 
   const getSortLabel = (sort: string) => {
     switch (sort) {
-      case "name":
-        return language === "fa" ? "نام" : "Name";
-      case "price-low":
-        return language === "fa" ? "قیمت (کم به زیاد)" : "Price (Low to High)";
-      case "price-high":
-        return language === "fa" ? "قیمت (زیاد به کم)" : "Price (High to Low)";
-      case "rating":
-        return language === "fa" ? "امتیاز" : "Rating";
-      case "prep-time":
-        return language === "fa" ? "زمان آماده‌سازی" : "Prep Time";
-      case "calories":
-        return language === "fa" ? "کالری" : "Calories";
-      default:
-        return language === "fa" ? "نام" : "Name";
+      case "name": return language === "fa" ? "نام" : "Name";
+      case "price-low": return language === "fa" ? "قیمت (کم به زیاد)" : "Price (Low to High)";
+      case "price-high": return language === "fa" ? "قیمت (زیاد به کم)" : "Price (High to Low)";
+      case "rating": return language === "fa" ? "امتیاز" : "Rating";
+      case "prep-time": return language === "fa" ? "زمان آماده‌سازی" : "Prep Time";
+      case "calories": return language === "fa" ? "کالری" : "Calories";
+      case "popularity": return language === "fa" ? "محبوبیت" : "Popularity";
+      default: return language === "fa" ? "نام" : "Name";
     }
   };
 
+  const getCartTotal = () => {
+    return Object.entries(cart).reduce((total, [foodId, quantity]) => {
+      const food = allFoods.find(f => f.id === foodId);
+      return total + (food?.price || 0) * quantity;
+    }, 0);
+  };
+
+  const getTotalCartItems = () => {
+    return Object.values(cart).reduce((total, quantity) => total + quantity, 0);
+  };
+
+  // Loading skeleton
+  if (isLoading) {
+    return (
+      <Container maxWidth="xl" sx={{ py: 4 }}>
+        <Stack spacing={4}>
+          <Skeleton variant="rectangular" height={200} sx={{ borderRadius: 3 }} />
+          <Skeleton variant="rectangular" height={120} sx={{ borderRadius: 2 }} />
+          <Grid container spacing={3}>
+            {Array.from({ length: 12 }).map((_, index) => (
+              <Grid item xs={12} sm={6} md={4} lg={3} key={index}>
+                <Card sx={{ borderRadius: 3 }}>
+                  <Skeleton variant="rectangular" height={200} />
+                  <CardContent>
+                    <Skeleton variant="text" height={30} />
+                    <Skeleton variant="text" height={20} />
+                    <Skeleton variant="text" height={20} width="60%" />
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+        </Stack>
+      </Container>
+    );
+  }
+
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
-      {/* Hero Section */}
-      <Paper
-        elevation={0}
-        sx={{
-          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-          color: "white",
-          p: { xs: 3, md: 6 },
-          mb: 4,
-          borderRadius: 3,
-          textAlign: "center",
-        }}
-      >
-        <Avatar
+      <Stack spacing={4}>
+        {/* Hero Section */}
+        <Paper
+          elevation={0}
           sx={{
-            bgcolor: "rgba(255,255,255,0.2)",
-            width: 80,
-            height: 80,
-            margin: "0 auto 2rem",
-            fontSize: "2rem",
+            background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+            color: "white",
+            p: { xs: 3, md: 6 },
+            borderRadius: 3,
+            textAlign: "center",
+            position: "relative",
+            overflow: "hidden",
           }}
         >
-          <RestaurantIcon fontSize="large" />
-        </Avatar>
-        <Typography
-          variant="h3"
-          component="h1"
-          gutterBottom
-          sx={{
-            fontWeight: 700,
-            mb: 2,
-            direction: isRTL ? "rtl" : "ltr",
-            fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
-          }}
-        >
-          {language === "fa" ? "منوی غذاهای ایرانی" : "Iranian Food Menu"}
-        </Typography>
-        <Typography
-          variant="h6"
-          sx={{
-            opacity: 0.9,
-            fontWeight: 400,
-            direction: isRTL ? "rtl" : "ltr",
-            fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
-          }}
-        >
-          {language === "fa"
-            ? "طعم‌های اصیل ایرانی با بهترین مواد اولیه و دستور پخت سنتی"
-            : "Authentic Iranian flavors with the finest ingredients and traditional recipes"}
-        </Typography>
-      </Paper>
-
-      {/* Search and Filter Section */}
-      <Paper elevation={1} sx={{ p: 3, mb: 4, borderRadius: 2 }}>
-        <Stack spacing={3}>
+          {/* Animated background elements */}
           <Box
             sx={{
-              display: "flex",
-              gap: 2,
-              flexWrap: "wrap",
-              alignItems: "center",
-              justifyContent: isRTL ? "flex-end" : "flex-start",
-              direction: isRTL ? "rtl" : "ltr",
+              position: "absolute",
+              top: -20,
+              left: -20,
+              width: 80,
+              height: 80,
+              background: "rgba(255,255,255,0.1)",
+              borderRadius: "50%",
+              animation: "pulse 2s infinite",
             }}
-          >
-            <TextField
-              placeholder={
-                language === "fa" ? "جستجو در غذاها..." : "Search foods..."
-              }
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              sx={{
-                minWidth: 280,
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: 3,
-                },
-                "& .MuiInputBase-input": {
-                  direction: isRTL ? "rtl" : "ltr",
-                  fontFamily: isRTL
-                    ? "var(--font-persian)"
-                    : "var(--font-english)",
-                },
-              }}
-              InputProps={{
-                startAdornment: (
-                  <SearchIcon sx={{ mr: 1, color: "text.secondary" }} />
-                ),
-              }}
-            />
-
-            <FormControl sx={{ minWidth: 180 }}>
-              <InputLabel
-                sx={{
-                  direction: isRTL ? "rtl" : "ltr",
-                  fontFamily: isRTL
-                    ? "var(--font-persian)"
-                    : "var(--font-english)",
-                }}
-              >
-                {language === "fa" ? "دسته‌بندی" : "Category"}
-              </InputLabel>
-              <Select
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                sx={{
-                  borderRadius: 3,
-                  direction: isRTL ? "rtl" : "ltr",
-                  fontFamily: isRTL
-                    ? "var(--font-persian)"
-                    : "var(--font-english)",
-                }}
-              >
-                <MenuItem value="all">{getCategoryLabel("all")}</MenuItem>
-                <MenuItem value="breakfast">
-                  {getCategoryLabel("breakfast")}
-                </MenuItem>
-                <MenuItem value="lunch">{getCategoryLabel("lunch")}</MenuItem>
-                <MenuItem value="dinner">{getCategoryLabel("dinner")}</MenuItem>
-              </Select>
-            </FormControl>
-
-            <FormControl sx={{ minWidth: 200 }}>
-              <InputLabel
-                sx={{
-                  direction: isRTL ? "rtl" : "ltr",
-                  fontFamily: isRTL
-                    ? "var(--font-persian)"
-                    : "var(--font-english)",
-                }}
-              >
-                {language === "fa" ? "مرتب‌سازی" : "Sort By"}
-              </InputLabel>
-              <Select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                sx={{
-                  borderRadius: 3,
-                  direction: isRTL ? "rtl" : "ltr",
-                  fontFamily: isRTL
-                    ? "var(--font-persian)"
-                    : "var(--font-english)",
-                }}
-              >
-                <MenuItem value="name">{getSortLabel("name")}</MenuItem>
-                <MenuItem value="price-low">
-                  {getSortLabel("price-low")}
-                </MenuItem>
-                <MenuItem value="price-high">
-                  {getSortLabel("price-high")}
-                </MenuItem>
-                <MenuItem value="rating">{getSortLabel("rating")}</MenuItem>
-                <MenuItem value="prep-time">
-                  {getSortLabel("prep-time")}
-                </MenuItem>
-                <MenuItem value="calories">{getSortLabel("calories")}</MenuItem>
-              </Select>
-            </FormControl>
-          </Box>
-
-          {/* Results Summary */}
+          />
           <Box
             sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: 2,
-              direction: isRTL ? "rtl" : "ltr",
+              position: "absolute",
+              bottom: -30,
+              right: -30,
+              width: 120,
+              height: 120,
+              background: "rgba(255,255,255,0.05)",
+              borderRadius: "50%",
+              animation: "pulse 3s infinite",
+            }}
+          />
+
+          <Avatar
+            sx={{
+              bgcolor: "rgba(255,255,255,0.2)",
+              width: { xs: 60, md: 80 },
+              height: { xs: 60, md: 80 },
+              margin: "0 auto 2rem",
+              fontSize: { xs: "1.5rem", md: "2rem" },
             }}
           >
-            <Typography
-              variant="body1"
-              color="text.secondary"
+            <RestaurantIcon fontSize="large" />
+          </Avatar>
+          
+          <Typography
+            variant="h3"
+            component="h1"
+            gutterBottom
+            sx={{
+              fontWeight: 700,
+              mb: 2,
+              fontSize: { xs: "2rem", md: "3rem" },
+              direction: isRTL ? "rtl" : "ltr",
+              fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+            }}
+          >
+            {language === "fa" ? "منوی غذاهای ایرانی" : "Iranian Food Menu"}
+          </Typography>
+          
+          <Typography
+            variant="h6"
+            sx={{
+              opacity: 0.9,
+              fontWeight: 400,
+              fontSize: { xs: "1rem", md: "1.25rem" },
+              direction: isRTL ? "rtl" : "ltr",
+              fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+            }}
+          >
+            {language === "fa"
+              ? "طعم‌های اصیل ایرانی با بهترین مواد اولیه و دستور پخت سنتی"
+              : "Authentic Iranian flavors with the finest ingredients and traditional recipes"}
+          </Typography>
+
+          {/* Statistics */}
+          <Grid container spacing={2} sx={{ mt: 4, justifyContent: "center" }}>
+            <Grid item xs={6} sm={3}>
+              <Box sx={{ textAlign: "center" }}>
+                <Typography variant="h4" sx={{ fontWeight: 700, mb: 0.5 }}>
+                  {allFoods.length}
+                </Typography>
+                <Typography variant="body2" sx={{ opacity: 0.8 }}>
+                  {language === "fa" ? "غذا" : "Foods"}
+                </Typography>
+              </Box>
+            </Grid>
+            <Grid item xs={6} sm={3}>
+              <Box sx={{ textAlign: "center" }}>
+                <Typography variant="h4" sx={{ fontWeight: 700, mb: 0.5 }}>
+                  {allFoods.filter(f => f.isPopular).length}
+                </Typography>
+                <Typography variant="body2" sx={{ opacity: 0.8 }}>
+                  {language === "fa" ? "محبوب" : "Popular"}
+                </Typography>
+              </Box>
+            </Grid>
+            <Grid item xs={6} sm={3}>
+              <Box sx={{ textAlign: "center" }}>
+                <Typography variant="h4" sx={{ fontWeight: 700, mb: 0.5 }}>
+                  {allFoods.filter(f => f.isVegetarian).length}
+                </Typography>
+                <Typography variant="body2" sx={{ opacity: 0.8 }}>
+                  {language === "fa" ? "گیاهی" : "Vegetarian"}
+                </Typography>
+              </Box>
+            </Grid>
+            <Grid item xs={6} sm={3}>
+              <Box sx={{ textAlign: "center" }}>
+                <Typography variant="h4" sx={{ fontWeight: 700, mb: 0.5 }}>
+                  4.6
+                </Typography>
+                <Typography variant="body2" sx={{ opacity: 0.8 }}>
+                  {language === "fa" ? "امتیاز متوسط" : "Avg Rating"}
+                </Typography>
+              </Box>
+            </Grid>
+          </Grid>
+        </Paper>
+
+        {/* Search and Controls */}
+        <Paper elevation={1} sx={{ p: { xs: 2, md: 3 }, borderRadius: 2 }}>
+          <Stack spacing={3}>
+            {/* Main Search and View Controls */}
+            <Box
               sx={{
-                fontFamily: isRTL
-                  ? "var(--font-persian)"
-                  : "var(--font-english)",
+                display: "flex",
+                gap: 2,
+                flexWrap: "wrap",
+                alignItems: "center",
+                justifyContent: "space-between",
               }}
             >
-              {language === "fa"
-                ? `${filteredAndSortedFoods.length} غذا یافت شد`
-                : `${filteredAndSortedFoods.length} foods found`}
-            </Typography>
-            {filteredAndSortedFoods.filter((f) => f.isPopular).length > 0 && (
-              <Chip
-                icon={<StarIcon />}
-                label={
-                  language === "fa"
-                    ? `${
-                        filteredAndSortedFoods.filter((f) => f.isPopular).length
-                      } محبوب`
-                    : `${
-                        filteredAndSortedFoods.filter((f) => f.isPopular).length
-                      } popular`
-                }
-                color="primary"
-                variant="outlined"
-                size="small"
-              />
-            )}
-            {filteredAndSortedFoods.filter((f) => f.isVegetarian).length >
-              0 && (
-              <Chip
-                label={
-                  language === "fa"
-                    ? `${
-                        filteredAndSortedFoods.filter((f) => f.isVegetarian)
-                          .length
-                      } گیاهی`
-                    : `${
-                        filteredAndSortedFoods.filter((f) => f.isVegetarian)
-                          .length
-                      } vegetarian`
-                }
-                color="success"
-                variant="outlined"
-                size="small"
-              />
-            )}
-          </Box>
-        </Stack>
-      </Paper>
+              {/* Search Bar */}
+              <Box sx={{ display: "flex", gap: 2, flexGrow: 1, alignItems: "center" }}>
+                <TextField
+                  placeholder={language === "fa" ? "جستجو در غذاها..." : "Search foods..."}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  sx={{
+                    flexGrow: 1,
+                    maxWidth: { xs: "100%", sm: 400 },
+                    "& .MuiOutlinedInput-root": {
+                      borderRadius: 3,
+                    },
+                    "& .MuiInputBase-input": {
+                      direction: isRTL ? "rtl" : "ltr",
+                      fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+                    },
+                  }}
+                  InputProps={{
+                    startAdornment: <SearchIcon sx={{ mr: 1, color: "text.secondary" }} />,
+                  }}
+                />
 
-      {/* Food Grid */}
-      <Grid container spacing={3}>
-        {filteredAndSortedFoods.map((food, index) => (
-          <Grid item xs={12} sm={6} md={4} lg={3} key={food.id}>
-            <Fade in={true} timeout={300 + index * 100}>
-              <Card
-                sx={{
-                  height: "100%",
-                  display: "flex",
-                  flexDirection: "column",
-                  position: "relative",
-                  borderRadius: 3,
-                  overflow: "hidden",
-                  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                  "&:hover": {
-                    transform: "translateY(-8px)",
-                    boxShadow: "0 20px 40px rgba(0,0,0,0.1)",
-                  },
-                  border: food.isPopular ? "2px solid #ff6b35" : "none",
-                }}
+                {/* Mobile Filter Toggle */}
+                <IconButton
+                  onClick={() => setFilterDrawerOpen(true)}
+                  sx={{ display: { xs: "flex", md: "none" } }}
+                >
+                  <TuneIcon />
+                </IconButton>
+              </Box>
+
+              {/* View Mode Toggle */}
+              <ToggleButtonGroup
+                value={viewMode}
+                exclusive
+                onChange={(_, newMode) => newMode && setViewMode(newMode)}
+                size="small"
               >
-                {/* Popular Badge */}
-                {food.isPopular && (
+                <ToggleButton value="grid" aria-label="grid view">
+                  <ViewModuleIcon />
+                </ToggleButton>
+                <ToggleButton value="list" aria-label="list view">
+                  <ViewListIcon />
+                </ToggleButton>
+              </ToggleButtonGroup>
+            </Box>
+
+            {/* Desktop Filters */}
+            <Box
+              sx={{
+                display: { xs: "none", md: "flex" },
+                gap: 2,
+                flexWrap: "wrap",
+                alignItems: "center",
+              }}
+            >
+              <FormControl sx={{ minWidth: 140 }}>
+                <InputLabel>{language === "fa" ? "دسته‌بندی" : "Category"}</InputLabel>
+                <Select
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  sx={{ borderRadius: 3 }}
+                >
+                  <MenuItem value="all">{getCategoryLabel("all")}</MenuItem>
+                  <MenuItem value="breakfast">{getCategoryLabel("breakfast")}</MenuItem>
+                  <MenuItem value="lunch">{getCategoryLabel("lunch")}</MenuItem>
+                  <MenuItem value="dinner">{getCategoryLabel("dinner")}</MenuItem>
+                </Select>
+              </FormControl>
+
+              <FormControl sx={{ minWidth: 160 }}>
+                <InputLabel>{language === "fa" ? "مرتب‌سازی" : "Sort By"}</InputLabel>
+                <Select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  sx={{ borderRadius: 3 }}
+                >
+                  <MenuItem value="name">{getSortLabel("name")}</MenuItem>
+                  <MenuItem value="price-low">{getSortLabel("price-low")}</MenuItem>
+                  <MenuItem value="price-high">{getSortLabel("price-high")}</MenuItem>
+                  <MenuItem value="rating">{getSortLabel("rating")}</MenuItem>
+                  <MenuItem value="prep-time">{getSortLabel("prep-time")}</MenuItem>
+                  <MenuItem value="calories">{getSortLabel("calories")}</MenuItem>
+                  <MenuItem value="popularity">{getSortLabel("popularity")}</MenuItem>
+                </Select>
+              </FormControl>
+
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={showOnlyVegetarian}
+                    onChange={(e) => setShowOnlyVegetarian(e.target.checked)}
+                    color="success"
+                  />
+                }
+                label={
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                    <EcoIcon fontSize="small" />
+                    <Typography variant="body2">
+                      {language === "fa" ? "گیاهی" : "Vegetarian"}
+                    </Typography>
+                  </Box>
+                }
+              />
+
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={showOnlyPopular}
+                    onChange={(e) => setShowOnlyPopular(e.target.checked)}
+                    color="warning"
+                  />
+                }
+                label={
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                    <WhatshotIcon fontSize="small" />
+                    <Typography variant="body2">
+                      {language === "fa" ? "محبوب" : "Popular"}
+                    </Typography>
+                  </Box>
+                }
+              />
+
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={showOnlyAvailable}
+                    onChange={(e) => setShowOnlyAvailable(e.target.checked)}
+                    color="primary"
+                  />
+                }
+                label={
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                    <ScheduleIcon fontSize="small" />
+                    <Typography variant="body2">
+                      {language === "fa" ? "موجود" : "Available"}
+                    </Typography>
+                  </Box>
+                }
+              />
+
+              <Button
+                variant="outlined"
+                onClick={handleResetFilters}
+                startIcon={<RefreshIcon />}
+                sx={{ borderRadius: 2 }}
+              >
+                {language === "fa" ? "پاک کردن" : "Reset"}
+              </Button>
+            </Box>
+
+            {/* Results Summary */}
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 2,
+                flexWrap: "wrap",
+                justifyContent: "space-between",
+              }}
+            >
+              <Box sx={{ display: "flex", alignItems: "center", gap: 2, flexWrap: "wrap" }}>
+                <Typography
+                  variant="body1"
+                  color="text.secondary"
+                  sx={{
+                    fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+                  }}
+                >
+                  {language === "fa"
+                    ? `${filteredAndSortedFoods.length} غذا یافت شد`
+                    : `${filteredAndSortedFoods.length} foods found`}
+                </Typography>
+
+                {filteredAndSortedFoods.filter(f => f.isPopular).length > 0 && (
+                  <Chip
+                    icon={<StarIcon />}
+                    label={`${filteredAndSortedFoods.filter(f => f.isPopular).length} ${language === "fa" ? "محبوب" : "popular"}`}
+                    color="primary"
+                    variant="outlined"
+                    size="small"
+                  />
+                )}
+
+                {filteredAndSortedFoods.filter(f => f.isVegetarian).length > 0 && (
+                  <Chip
+                    icon={<EcoIcon />}
+                    label={`${filteredAndSortedFoods.filter(f => f.isVegetarian).length} ${language === "fa" ? "گیاهی" : "vegetarian"}`}
+                    color="success"
+                    variant="outlined"
+                    size="small"
+                  />
+                )}
+
+                {filteredAndSortedFoods.filter(f => f.discount).length > 0 && (
+                  <Chip
+                    icon={<PriceIcon />}
+                    label={`${filteredAndSortedFoods.filter(f => f.discount).length} ${language === "fa" ? "تخفیف" : "discounted"}`}
+                    color="error"
+                    variant="outlined"
+                    size="small"
+                  />
+                )}
+              </Box>
+
+              {/* Cart Summary */}
+              {getTotalCartItems() > 0 && (
+                <Chip
+                  icon={<ShoppingCartIcon />}
+                  label={`${getTotalCartItems()} ${language === "fa" ? "آیتم" : "items"} - ${formatCurrency(getCartTotal(), language)}`}
+                  color="primary"
+                  sx={{ fontWeight: 600 }}
+                />
+              )}
+            </Box>
+          </Stack>
+        </Paper>
+
+        {/* Food Grid */}
+        <Grid 
+          container 
+          spacing={{ xs: 2, md: 3 }}
+          sx={{ 
+            direction: isRTL ? "rtl" : "ltr",
+            // Adjust columns based on view mode
+            '& .MuiGrid-item': viewMode === 'list' ? {
+              '@media (min-width: 900px)': {
+                maxWidth: '100%',
+                flexBasis: '100%',
+              }
+            } : {}
+          }}
+        >
+          {filteredAndSortedFoods.map((food, index) => (
+            <Grid 
+              item 
+              xs={12} 
+              sm={viewMode === 'list' ? 12 : 6} 
+              md={viewMode === 'list' ? 12 : 4} 
+              lg={viewMode === 'list' ? 12 : 3} 
+              key={food.id}
+            >
+              <Fade in={true} timeout={300 + index * 50}>
+                <Card
+                  sx={{
+                    height: "100%",
+                    display: "flex",
+                    flexDirection: viewMode === 'list' ? "row" : "column",
+                    position: "relative",
+                    borderRadius: 3,
+                    overflow: "hidden",
+                    cursor: "pointer",
+                    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                    "&:hover": {
+                      transform: food.isAvailable ? "translateY(-8px)" : "none",
+                      boxShadow: food.isAvailable ? "0 20px 40px rgba(0,0,0,0.1)" : "none",
+                    },
+                    border: food.isPopular ? "2px solid #ff6b35" : "none",
+                    filter: !food.isAvailable ? "grayscale(30%)" : "none",
+                    opacity: !food.isAvailable ? 0.8 : 1,
+                  }}
+                  onClick={() => handleFoodClick(food)}
+                >
+                  {/* Badges */}
                   <Box
                     sx={{
                       position: "absolute",
                       top: 12,
                       right: isRTL ? "auto" : 12,
                       left: isRTL ? 12 : "auto",
-                      zIndex: 1,
+                      zIndex: 2,
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 0.5,
                     }}
                   >
-                    <Chip
-                      icon={<StarIcon />}
-                      label={language === "fa" ? "محبوب" : "Popular"}
-                      color="warning"
-                      size="small"
-                      sx={{
-                        fontWeight: 600,
-                        color: "white",
-                        bgcolor: "#ff6b35",
-                        fontFamily: isRTL
-                          ? "var(--font-persian)"
-                          : "var(--font-english)",
-                      }}
-                    />
+                    {food.discount && (
+                      <Chip
+                        icon={<PriceIcon />}
+                        label={`${food.discount}%`}
+                        size="small"
+                        sx={{
+                          fontWeight: 600,
+                          color: "white",
+                          bgcolor: "#ef4444",
+                          fontSize: "0.75rem",
+                        }}
+                      />
+                    )}
+                    {food.isPopular && (
+                      <Chip
+                        icon={<StarIcon />}
+                        label={language === "fa" ? "محبوب" : "Popular"}
+                        size="small"
+                        sx={{
+                          fontWeight: 600,
+                          color: "white",
+                          bgcolor: "#ff6b35",
+                          fontSize: "0.75rem",
+                        }}
+                      />
+                    )}
+                    {food.isVegetarian && (
+                      <Chip
+                        icon={<EcoIcon />}
+                        label={language === "fa" ? "گیاهی" : "Vegetarian"}
+                        size="small"
+                        color="success"
+                        sx={{
+                          fontWeight: 600,
+                          color: "white",
+                          bgcolor: "#4caf50",
+                          fontSize: "0.75rem",
+                        }}
+                      />
+                    )}
+                    {!food.isAvailable && (
+                      <Chip
+                        label={language === "fa" ? "ناموجود" : "Unavailable"}
+                        size="small"
+                        sx={{
+                          fontWeight: 600,
+                          color: "white",
+                          bgcolor: "#757575",
+                          fontSize: "0.75rem",
+                        }}
+                      />
+                    )}
                   </Box>
-                )}
 
-                {/* Vegetarian Badge */}
-                {food.isVegetarian && (
+                  {/* Favorite Button */}
                   <Box
                     sx={{
                       position: "absolute",
-                      top: food.isPopular ? 50 : 12,
-                      right: isRTL ? "auto" : 12,
-                      left: isRTL ? 12 : "auto",
-                      zIndex: 1,
+                      top: 12,
+                      left: isRTL ? "auto" : 12,
+                      right: isRTL ? 12 : "auto",
+                      zIndex: 2,
                     }}
+                    onClick={(e) => e.stopPropagation()}
                   >
-                    <Chip
-                      label={language === "fa" ? "گیاهی" : "Vegetarian"}
-                      color="success"
-                      size="small"
+                    <IconButton
+                      onClick={() => handleFavoriteToggle(food.id)}
                       sx={{
-                        fontWeight: 600,
-                        color: "white",
-                        bgcolor: "#4caf50",
-                        fontFamily: isRTL
-                          ? "var(--font-persian)"
-                          : "var(--font-english)",
+                        bgcolor: "rgba(255,255,255,0.9)",
+                        color: favorites.includes(food.id) ? "#e91e63" : "#666",
+                        "&:hover": {
+                          bgcolor: "rgba(255,255,255,1)",
+                          transform: "scale(1.1)",
+                        },
                       }}
-                    />
+                    >
+                      {favorites.includes(food.id) ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+                    </IconButton>
                   </Box>
-                )}
 
-                {/* Favorite Button */}
-                <Box
-                  sx={{
-                    position: "absolute",
-                    top: 12,
-                    left: isRTL ? "auto" : 12,
-                    right: isRTL ? 12 : "auto",
-                    zIndex: 1,
-                  }}
-                >
-                  <IconButton
-                    onClick={() => handleFavoriteToggle(food.id)}
+                  <CardMedia
+                    component="img"
+                    height={viewMode === 'list' ? 200 : 240}
+                    image={food.imageUrl}
+                    alt={language === "fa" ? food.name : food.nameEn}
                     sx={{
-                      bgcolor: "rgba(255,255,255,0.9)",
-                      color: favorites.includes(food.id) ? "#e91e63" : "#666",
+                      width: viewMode === 'list' ? { xs: "100%", sm: 300 } : "100%",
+                      objectFit: "cover",
+                      transition: "transform 0.3s ease",
                       "&:hover": {
-                        bgcolor: "rgba(255,255,255,1)",
-                        transform: "scale(1.1)",
+                        transform: food.isAvailable ? "scale(1.05)" : "none",
                       },
                     }}
+                  />
+
+                  <CardContent 
+                    sx={{ 
+                      flexGrow: 1, 
+                      p: 3,
+                      display: "flex",
+                      flexDirection: "column",
+                    }}
                   >
-                    {favorites.includes(food.id) ? (
-                      <FavoriteIcon />
-                    ) : (
-                      <FavoriteBorderIcon />
-                    )}
-                  </IconButton>
-                </Box>
+                    <Stack spacing={2} sx={{ height: "100%" }}>
+                      {/* Title and Rating */}
+                      <Box>
+                        <Typography
+                          variant="h6"
+                          component="h3"
+                          sx={{
+                            fontWeight: 700,
+                            mb: 1,
+                            direction: isRTL ? "rtl" : "ltr",
+                            textAlign: isRTL ? "right" : "left",
+                            fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+                            lineHeight: 1.3,
+                            fontSize: { xs: "1rem", md: "1.25rem" },
+                          }}
+                        >
+                          {language === "fa" ? food.name : food.nameEn}
+                        </Typography>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1,
+                            justifyContent: isRTL ? "flex-end" : "flex-start",
+                          }}
+                        >
+                          <Rating value={food.rating} precision={0.1} size="small" readOnly />
+                          <Typography variant="body2" color="text.secondary">
+                            ({food.rating})
+                          </Typography>
+                        </Box>
+                      </Box>
 
-                <CardMedia
-                  component="img"
-                  height="240"
-                  image={food.imageUrl}
-                  alt={language === "fa" ? food.name : food.nameEn}
-                  sx={{
-                    objectFit: "cover",
-                    transition: "transform 0.3s ease",
-                    "&:hover": {
-                      transform: "scale(1.05)",
-                    },
-                  }}
-                />
+                      {/* Price */}
+                      <Box>
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                          <Typography
+                            variant="h6"
+                            color="primary"
+                            sx={{
+                              fontWeight: 700,
+                              direction: isRTL ? "rtl" : "ltr",
+                              fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+                            }}
+                          >
+                            {formatCurrency(food.price, language)}
+                          </Typography>
+                          {food.originalPrice && (
+                            <Typography
+                              variant="body2"
+                              sx={{
+                                textDecoration: "line-through",
+                                color: "text.secondary",
+                                direction: isRTL ? "rtl" : "ltr",
+                                fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+                              }}
+                            >
+                              {formatCurrency(food.originalPrice, language)}
+                            </Typography>
+                          )}
+                        </Box>
+                      </Box>
 
-                <CardContent sx={{ flexGrow: 1, p: 3 }}>
-                  <Stack spacing={2}>
-                    {/* Title and Rating */}
-                    <Box>
-                      <Typography
-                        variant="h6"
-                        component="h3"
-                        sx={{
-                          fontWeight: 700,
-                          mb: 1,
-                          direction: isRTL ? "rtl" : "ltr",
-                          textAlign: isRTL ? "right" : "left",
-                          fontFamily: isRTL
-                            ? "var(--font-persian)"
-                            : "var(--font-english)",
-                          lineHeight: 1.3,
-                        }}
-                      >
-                        {language === "fa" ? food.name : food.nameEn}
-                      </Typography>
+                      {/* Meta Info */}
                       <Box
                         sx={{
                           display: "flex",
-                          alignItems: "center",
-                          gap: 1,
+                          gap: 2,
                           justifyContent: isRTL ? "flex-end" : "flex-start",
-                        }}
-                      >
-                        <Rating
-                          value={food.rating}
-                          precision={0.1}
-                          size="small"
-                          readOnly
-                        />
-                        <Typography variant="body2" color="text.secondary">
-                          ({food.rating})
-                        </Typography>
-                      </Box>
-                    </Box>
-
-                    {/* Price */}
-                    <Typography
-                      variant="h6"
-                      color="primary"
-                      sx={{
-                        fontWeight: 700,
-                        direction: isRTL ? "rtl" : "ltr",
-                        textAlign: isRTL ? "right" : "left",
-                        fontFamily: isRTL
-                          ? "var(--font-persian)"
-                          : "var(--font-english)",
-                      }}
-                    >
-                      {formatCurrency(food.price, language)}
-                    </Typography>
-
-                    {/* Meta Info */}
-                    <Box
-                      sx={{
-                        display: "flex",
-                        gap: 2,
-                        justifyContent: isRTL ? "flex-end" : "flex-start",
-                        direction: isRTL ? "rtl" : "ltr",
-                      }}
-                    >
-                      <Box
-                        sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
-                      >
-                        <TimeIcon
-                          sx={{ fontSize: 16, color: "text.secondary" }}
-                        />
-                        <Typography variant="caption" color="text.secondary">
-                          {food.prepTime} {language === "fa" ? "دقیقه" : "min"}
-                        </Typography>
-                      </Box>
-                      <Box
-                        sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
-                      >
-                        <PriceIcon
-                          sx={{ fontSize: 16, color: "text.secondary" }}
-                        />
-                        <Typography variant="caption" color="text.secondary">
-                          {food.calories} {language === "fa" ? "کالری" : "cal"}
-                        </Typography>
-                      </Box>
-                    </Box>
-
-                    {/* Description */}
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                      sx={{
-                        lineHeight: 1.6,
-                        direction: isRTL ? "rtl" : "ltr",
-                        textAlign: isRTL ? "right" : "left",
-                        fontFamily: isRTL
-                          ? "var(--font-persian)"
-                          : "var(--font-english)",
-                      }}
-                    >
-                      {language === "fa"
-                        ? food.description
-                        : food.descriptionEn}
-                    </Typography>
-
-                    {/* Ingredients */}
-                    <Box>
-                      <Typography
-                        variant="subtitle2"
-                        sx={{
-                          fontWeight: 600,
-                          mb: 1,
                           direction: isRTL ? "rtl" : "ltr",
-                          textAlign: isRTL ? "right" : "left",
-                          fontFamily: isRTL
-                            ? "var(--font-persian)"
-                            : "var(--font-english)",
-                        }}
-                      >
-                        {language === "fa"
-                          ? "مواد تشکیل دهنده:"
-                          : "Ingredients:"}
-                      </Typography>
-                      <Box
-                        sx={{
-                          display: "flex",
                           flexWrap: "wrap",
-                          gap: 0.5,
-                          justifyContent: isRTL ? "flex-end" : "flex-start",
                         }}
                       >
-                        {(language === "fa"
-                          ? food.ingredients
-                          : food.ingredientsEn
-                        )
-                          .slice(0, 3)
-                          .map((ingredient, index) => (
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                          <TimeIcon sx={{ fontSize: 16, color: "text.secondary" }} />
+                          <Typography variant="caption" color="text.secondary">
+                            {food.prepTime} {language === "fa" ? "دقیقه" : "min"}
+                          </Typography>
+                        </Box>
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                          <MoneyIcon sx={{ fontSize: 16, color: "text.secondary" }} />
+                          <Typography variant="caption" color="text.secondary">
+                            {food.calories} {language === "fa" ? "کالری" : "cal"}
+                          </Typography>
+                        </Box>
+                      </Box>
+
+                      {/* Description */}
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{
+                          lineHeight: 1.6,
+                          direction: isRTL ? "rtl" : "ltr",
+                          textAlign: isRTL ? "right" : "left",
+                          fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+                          display: "-webkit-box",
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: "vertical",
+                          overflow: "hidden",
+                        }}
+                      >
+                        {language === "fa" ? food.description : food.descriptionEn}
+                      </Typography>
+
+                      {/* Ingredients */}
+                      <Box sx={{ flexGrow: 1 }}>
+                        <Typography
+                          variant="subtitle2"
+                          sx={{
+                            fontWeight: 600,
+                            mb: 1,
+                            direction: isRTL ? "rtl" : "ltr",
+                            textAlign: isRTL ? "right" : "left",
+                            fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+                          }}
+                        >
+                          {language === "fa" ? "مواد تشکیل دهنده:" : "Ingredients:"}
+                        </Typography>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            flexWrap: "wrap",
+                            gap: 0.5,
+                            justifyContent: isRTL ? "flex-end" : "flex-start",
+                          }}
+                        >
+                          {(language === "fa" ? food.ingredients : food.ingredientsEn)
+                            .slice(0, 3)
+                            .map((ingredient, index) => (
+                              <Chip
+                                key={index}
+                                label={ingredient}
+                                size="small"
+                                variant="outlined"
+                                sx={{
+                                  borderRadius: 2,
+                                  fontSize: "0.7rem",
+                                  fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+                                  bgcolor: "rgba(0,0,0,0.02)",
+                                }}
+                              />
+                            ))}
+                          {food.ingredients.length > 3 && (
                             <Chip
-                              key={index}
-                              label={ingredient}
+                              label={`+${food.ingredients.length - 3} ${language === "fa" ? "بیشتر" : "more"}`}
                               size="small"
                               variant="outlined"
                               sx={{
                                 borderRadius: 2,
                                 fontSize: "0.7rem",
-                                fontFamily: isRTL
-                                  ? "var(--font-persian)"
-                                  : "var(--font-english)",
+                                fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
                                 bgcolor: "rgba(0,0,0,0.02)",
                               }}
                             />
-                          ))}
-                        {food.ingredients.length > 3 && (
-                          <Chip
-                            label={
-                              language === "fa"
-                                ? `+${food.ingredients.length - 3} بیشتر`
-                                : `+${food.ingredients.length - 3} more`
-                            }
-                            size="small"
-                            variant="outlined"
-                            sx={{
-                              borderRadius: 2,
-                              fontSize: "0.7rem",
-                              fontFamily: isRTL
-                                ? "var(--font-persian)"
-                                : "var(--font-english)",
-                              bgcolor: "rgba(0,0,0,0.02)",
-                            }}
-                          />
+                          )}
+                        </Box>
+                      </Box>
+
+                      {/* Actions */}
+                      <Box
+                        sx={{
+                          display: "flex",
+                          gap: 1,
+                          pt: 1,
+                          justifyContent: isRTL ? "flex-end" : "flex-start",
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Button
+                          variant="contained"
+                          size="small"
+                          disabled={!food.isAvailable}
+                          startIcon={<ShoppingCartIcon />}
+                          onClick={() => handleAddToCart(food.id)}
+                          sx={{
+                            borderRadius: 2,
+                            fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+                            minWidth: 120,
+                          }}
+                        >
+                          {language === "fa" ? "افزودن به سبد" : "Add to Cart"}
+                        </Button>
+                        {cart[food.id] && (
+                          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                            <IconButton
+                              size="small"
+                              onClick={() => handleRemoveFromCart(food.id)}
+                              sx={{ bgcolor: "rgba(0,0,0,0.04)" }}
+                            >
+                              <Typography variant="body2" sx={{ fontWeight: 600 }}>-</Typography>
+                            </IconButton>
+                            <Typography variant="body2" sx={{ minWidth: 20, textAlign: "center" }}>
+                              {cart[food.id]}
+                            </Typography>
+                            <IconButton
+                              size="small"
+                              onClick={() => handleAddToCart(food.id)}
+                              sx={{ bgcolor: "rgba(0,0,0,0.04)" }}
+                            >
+                              <Typography variant="body2" sx={{ fontWeight: 600 }}>+</Typography>
+                            </IconButton>
+                          </Box>
                         )}
                       </Box>
-                    </Box>
 
-                    {/* Category Badge */}
-                    <Box sx={{ pt: 1 }}>
+                      {/* Category Badge */}
+                      <Box sx={{ display: "flex", justifyContent: isRTL ? "flex-end" : "flex-start" }}>
+                        <Chip
+                          label={getCategoryLabel(food.category)}
+                          size="small"
+                          color="secondary"
+                          sx={{
+                            fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+                            fontWeight: 500,
+                          }}
+                        />
+                      </Box>
+                    </Stack>
+                  </CardContent>
+                </Card>
+              </Fade>
+            </Grid>
+          ))}
+        </Grid>
+
+        {/* No Results */}
+        {filteredAndSortedFoods.length === 0 && (
+          <Paper
+            elevation={0}
+            sx={{
+              textAlign: "center",
+              py: 8,
+              bgcolor: "grey.50",
+              borderRadius: 3,
+              direction: isRTL ? "rtl" : "ltr",
+            }}
+          >
+            <RestaurantIcon sx={{ fontSize: 60, color: "text.secondary", mb: 2 }} />
+            <Typography
+              variant="h6"
+              color="text.secondary"
+              gutterBottom
+              sx={{
+                fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+              }}
+            >
+              {language === "fa" ? "هیچ غذایی یافت نشد" : "No foods found"}
+            </Typography>
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              sx={{
+                fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+                mb: 2,
+              }}
+            >
+              {language === "fa"
+                ? "لطفاً فیلترهای خود را تغییر دهید"
+                : "Please adjust your filters"}
+            </Typography>
+            <Button
+              variant="outlined"
+              onClick={handleResetFilters}
+              startIcon={<RefreshIcon />}
+            >
+              {language === "fa" ? "پاک کردن فیلترها" : "Reset Filters"}
+            </Button>
+          </Paper>
+        )}
+      </Stack>
+
+      {/* Mobile Filter Drawer */}
+      <Drawer
+        anchor={isRTL ? "left" : "right"}
+        open={filterDrawerOpen}
+        onClose={() => setFilterDrawerOpen(false)}
+        sx={{
+          "& .MuiDrawer-paper": {
+            width: { xs: "100%", sm: 400 },
+            p: 3,
+          },
+        }}
+      >
+        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 3 }}>
+          <Typography variant="h6">
+            {language === "fa" ? "فیلترها" : "Filters"}
+          </Typography>
+          <IconButton onClick={() => setFilterDrawerOpen(false)}>
+            <CloseIcon />
+          </IconButton>
+        </Box>
+
+        <Stack spacing={3}>
+          <FormControl fullWidth>
+            <InputLabel>{language === "fa" ? "دسته‌بندی" : "Category"}</InputLabel>
+            <Select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}>
+              <MenuItem value="all">{getCategoryLabel("all")}</MenuItem>
+              <MenuItem value="breakfast">{getCategoryLabel("breakfast")}</MenuItem>
+              <MenuItem value="lunch">{getCategoryLabel("lunch")}</MenuItem>
+              <MenuItem value="dinner">{getCategoryLabel("dinner")}</MenuItem>
+            </Select>
+          </FormControl>
+
+          <FormControl fullWidth>
+            <InputLabel>{language === "fa" ? "مرتب‌سازی" : "Sort By"}</InputLabel>
+            <Select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+              <MenuItem value="name">{getSortLabel("name")}</MenuItem>
+              <MenuItem value="price-low">{getSortLabel("price-low")}</MenuItem>
+              <MenuItem value="price-high">{getSortLabel("price-high")}</MenuItem>
+              <MenuItem value="rating">{getSortLabel("rating")}</MenuItem>
+              <MenuItem value="prep-time">{getSortLabel("prep-time")}</MenuItem>
+              <MenuItem value="calories">{getSortLabel("calories")}</MenuItem>
+              <MenuItem value="popularity">{getSortLabel("popularity")}</MenuItem>
+            </Select>
+          </FormControl>
+
+          <Box>
+            <Typography variant="subtitle2" gutterBottom>
+              {language === "fa" ? "محدوده قیمت" : "Price Range"}
+            </Typography>
+            <Slider
+              value={priceRange}
+              onChange={(_, newValue) => setPriceRange(newValue as number[])}
+              valueLabelDisplay="auto"
+              min={0}
+              max={100000}
+              step={5000}
+              valueLabelFormat={(value) => formatCurrency(value, language)}
+            />
+            <Box sx={{ display: "flex", justifyContent: "space-between", mt: 1 }}>
+              <Typography variant="caption">{formatCurrency(priceRange[0], language)}</Typography>
+              <Typography variant="caption">{formatCurrency(priceRange[1], language)}</Typography>
+            </Box>
+          </Box>
+
+          <Box>
+            <Typography variant="subtitle2" gutterBottom>
+              {language === "fa" ? "محدوده کالری" : "Calorie Range"}
+            </Typography>
+            <Slider
+              value={calorieRange}
+              onChange={(_, newValue) => setCalorieRange(newValue as number[])}
+              valueLabelDisplay="auto"
+              min={0}
+              max={1000}
+              step={50}
+            />
+            <Box sx={{ display: "flex", justifyContent: "space-between", mt: 1 }}>
+              <Typography variant="caption">{calorieRange[0]} cal</Typography>
+              <Typography variant="caption">{calorieRange[1]} cal</Typography>
+            </Box>
+          </Box>
+
+          <Box>
+            <Typography variant="subtitle2" gutterBottom>
+              {language === "fa" ? "حداقل امتیاز" : "Minimum Rating"}
+            </Typography>
+            <Slider
+              value={ratingFilter}
+              onChange={(_, newValue) => setRatingFilter(newValue as number)}
+              valueLabelDisplay="auto"
+              min={0}
+              max={5}
+              step={0.5}
+              marks={[
+                { value: 0, label: "0" },
+                { value: 2.5, label: "2.5" },
+                { value: 5, label: "5" },
+              ]}
+            />
+          </Box>
+
+          <Divider />
+
+          <FormControlLabel
+            control={
+              <Switch
+                checked={showOnlyVegetarian}
+                onChange={(e) => setShowOnlyVegetarian(e.target.checked)}
+                color="success"
+              />
+            }
+            label={language === "fa" ? "فقط گیاهی" : "Vegetarian Only"}
+          />
+
+          <FormControlLabel
+            control={
+              <Switch
+                checked={showOnlyPopular}
+                onChange={(e) => setShowOnlyPopular(e.target.checked)}
+                color="warning"
+              />
+            }
+            label={language === "fa" ? "فقط محبوب" : "Popular Only"}
+          />
+
+          <FormControlLabel
+            control={
+              <Switch
+                checked={showOnlyAvailable}
+                onChange={(e) => setShowOnlyAvailable(e.target.checked)}
+                color="primary"
+              />
+            }
+            label={language === "fa" ? "فقط موجود" : "Available Only"}
+          />
+
+          <Button
+            variant="outlined"
+            fullWidth
+            onClick={handleResetFilters}
+            startIcon={<RefreshIcon />}
+          >
+            {language === "fa" ? "پاک کردن فیلترها" : "Reset Filters"}
+          </Button>
+
+          <Button
+            variant="contained"
+            fullWidth
+            onClick={() => setFilterDrawerOpen(false)}
+          >
+            {language === "fa" ? "اعمال فیلترها" : "Apply Filters"}
+          </Button>
+        </Stack>
+      </Drawer>
+
+      {/* Food Detail Dialog */}
+      <Dialog
+        open={foodDetailOpen}
+        onClose={() => setFoodDetailOpen(false)}
+        maxWidth="md"
+        fullWidth
+        fullScreen={{ xs: true, md: false }}
+      >
+        {selectedFood && (
+          <>
+            <DialogTitle
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                pb: 1,
+              }}
+            >
+              <Typography
+                variant="h5"
+                sx={{
+                  fontWeight: 700,
+                  direction: isRTL ? "rtl" : "ltr",
+                  fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+                }}
+              >
+                {language === "fa" ? selectedFood.name : selectedFood.nameEn}
+              </Typography>
+              <IconButton onClick={() => setFoodDetailOpen(false)}>
+                <CloseIcon />
+              </IconButton>
+            </DialogTitle>
+            <DialogContent>
+              <Stack spacing={3}>
+                <Box sx={{ position: "relative" }}>
+                  <CardMedia
+                    component="img"
+                    height={300}
+                    image={selectedFood.imageUrl}
+                    alt={language === "fa" ? selectedFood.name : selectedFood.nameEn}
+                    sx={{ borderRadius: 2, objectFit: "cover" }}
+                  />
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      top: 12,
+                      right: 12,
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 0.5,
+                    }}
+                  >
+                    {selectedFood.isPopular && (
                       <Chip
-                        label={getCategoryLabel(food.category)}
+                        icon={<StarIcon />}
+                        label={language === "fa" ? "محبوب" : "Popular"}
                         size="small"
-                        color="secondary"
                         sx={{
-                          alignSelf: isRTL ? "flex-end" : "flex-start",
-                          fontFamily: isRTL
-                            ? "var(--font-persian)"
-                            : "var(--font-english)",
-                          fontWeight: 500,
+                          fontWeight: 600,
+                          color: "white",
+                          bgcolor: "#ff6b35",
                         }}
                       />
-                    </Box>
-                  </Stack>
-                </CardContent>
-              </Card>
-            </Fade>
-          </Grid>
-        ))}
-      </Grid>
+                    )}
+                    {selectedFood.isVegetarian && (
+                      <Chip
+                        icon={<EcoIcon />}
+                        label={language === "fa" ? "گیاهی" : "Vegetarian"}
+                        size="small"
+                        color="success"
+                      />
+                    )}
+                  </Box>
+                </Box>
 
-      {/* No Results */}
-      {filteredAndSortedFoods.length === 0 && (
-        <Paper
-          elevation={0}
-          sx={{
-            textAlign: "center",
-            py: 8,
-            bgcolor: "grey.50",
-            borderRadius: 3,
-            direction: isRTL ? "rtl" : "ltr",
-          }}
+                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                  <Rating value={selectedFood.rating} precision={0.1} size="large" readOnly />
+                  <Typography variant="h6" color="text.secondary">
+                    ({selectedFood.rating})
+                  </Typography>
+                </Box>
+
+                <Typography
+                  variant="h4"
+                  color="primary"
+                  sx={{
+                    fontWeight: 700,
+                    direction: isRTL ? "rtl" : "ltr",
+                    fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+                  }}
+                >
+                  {formatCurrency(selectedFood.price, language)}
+                  {selectedFood.originalPrice && (
+                    <Typography
+                      component="span"
+                      variant="h6"
+                      sx={{
+                        textDecoration: "line-through",
+                        color: "text.secondary",
+                        ml: 2,
+                      }}
+                    >
+                      {formatCurrency(selectedFood.originalPrice, language)}
+                    </Typography>
+                  )}
+                </Typography>
+
+                <Typography
+                  variant="body1"
+                  sx={{
+                    lineHeight: 1.7,
+                    direction: isRTL ? "rtl" : "ltr",
+                    textAlign: isRTL ? "right" : "left",
+                    fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+                  }}
+                >
+                  {language === "fa" ? selectedFood.description : selectedFood.descriptionEn}
+                </Typography>
+
+                <Grid container spacing={2}>
+                  <Grid item xs={6}>
+                    <Box sx={{ textAlign: "center", p: 2, bgcolor: "grey.50", borderRadius: 2 }}>
+                      <TimeIcon sx={{ fontSize: 32, color: "primary.main", mb: 1 }} />
+                      <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                        {selectedFood.prepTime}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {language === "fa" ? "دقیقه" : "minutes"}
+                      </Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Box sx={{ textAlign: "center", p: 2, bgcolor: "grey.50", borderRadius: 2 }}>
+                      <MoneyIcon sx={{ fontSize: 32, color: "primary.main", mb: 1 }} />
+                      <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                        {selectedFood.calories}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {language === "fa" ? "کالری" : "calories"}
+                      </Typography>
+                    </Box>
+                  </Grid>
+                </Grid>
+
+                <Box>
+                  <Typography
+                    variant="h6"
+                    gutterBottom
+                    sx={{
+                      fontWeight: 600,
+                      direction: isRTL ? "rtl" : "ltr",
+                      textAlign: isRTL ? "right" : "left",
+                      fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+                    }}
+                  >
+                    {language === "fa" ? "مواد تشکیل دهنده:" : "Ingredients:"}
+                  </Typography>
+                  <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+                    {(language === "fa" ? selectedFood.ingredients : selectedFood.ingredientsEn).map(
+                      (ingredient, index) => (
+                        <Chip
+                          key={index}
+                          label={ingredient}
+                          variant="outlined"
+                          sx={{
+                            borderRadius: 2,
+                            fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+                          }}
+                        />
+                      )
+                    )}
+                  </Box>
+                </Box>
+
+                {selectedFood.nutritionFacts && (
+                  <Box>
+                    <Typography
+                      variant="h6"
+                      gutterBottom
+                      sx={{
+                        fontWeight: 600,
+                        direction: isRTL ? "rtl" : "ltr",
+                        textAlign: isRTL ? "right" : "left",
+                        fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+                      }}
+                    >
+                      {language === "fa" ? "ارزش غذایی:" : "Nutrition Facts:"}
+                    </Typography>
+                    <Grid container spacing={1}>
+                      <Grid item xs={3}>
+                        <Box sx={{ textAlign: "center", p: 1, bgcolor: "primary.50", borderRadius: 1 }}>
+                          <Typography variant="body2" color="primary">
+                            {language === "fa" ? "پروتئین" : "Protein"}
+                          </Typography>
+                          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                            {selectedFood.nutritionFacts.protein}g
+                          </Typography>
+                        </Box>
+                      </Grid>
+                      <Grid item xs={3}>
+                        <Box sx={{ textAlign: "center", p: 1, bgcolor: "secondary.50", borderRadius: 1 }}>
+                          <Typography variant="body2" color="secondary">
+                            {language === "fa" ? "کربوهیدرات" : "Carbs"}
+                          </Typography>
+                          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                            {selectedFood.nutritionFacts.carbs}g
+                          </Typography>
+                        </Box>
+                      </Grid>
+                      <Grid item xs={3}>
+                        <Box sx={{ textAlign: "center", p: 1, bgcolor: "warning.50", borderRadius: 1 }}>
+                          <Typography variant="body2" color="warning.main">
+                            {language === "fa" ? "چربی" : "Fat"}
+                          </Typography>
+                          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                            {selectedFood.nutritionFacts.fat}g
+                          </Typography>
+                        </Box>
+                      </Grid>
+                      <Grid item xs={3}>
+                        <Box sx={{ textAlign: "center", p: 1, bgcolor: "success.50", borderRadius: 1 }}>
+                          <Typography variant="body2" color="success.main">
+                            {language === "fa" ? "فیبر" : "Fiber"}
+                          </Typography>
+                          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                            {selectedFood.nutritionFacts.fiber}g
+                          </Typography>
+                        </Box>
+                      </Grid>
+                    </Grid>
+                  </Box>
+                )}
+
+                {selectedFood.allergens && selectedFood.allergens.length > 0 && (
+                  <Alert severity="warning" sx={{ direction: isRTL ? "rtl" : "ltr" }}>
+                    <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5 }}>
+                      {language === "fa" ? "آلرژن‌ها:" : "Allergens:"}
+                    </Typography>
+                    <Typography variant="body2">
+                      {(language === "fa" ? selectedFood.allergens : selectedFood.allergensEn)?.join(", ")}
+                    </Typography>
+                  </Alert>
+                )}
+              </Stack>
+            </DialogContent>
+            <DialogActions sx={{ p: 3, pt: 0 }}>
+              <Box sx={{ display: "flex", gap: 1, width: "100%" }}>
+                <IconButton
+                  onClick={() => handleFavoriteToggle(selectedFood.id)}
+                  color={favorites.includes(selectedFood.id) ? "error" : "default"}
+                >
+                  {favorites.includes(selectedFood.id) ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+                </IconButton>
+                <Button
+                  variant="contained"
+                  fullWidth
+                  size="large"
+                  disabled={!selectedFood.isAvailable}
+                  startIcon={<ShoppingCartIcon />}
+                  onClick={() => {
+                    handleAddToCart(selectedFood.id);
+                    setFoodDetailOpen(false);
+                  }}
+                  sx={{
+                    borderRadius: 2,
+                    fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+                  }}
+                >
+                  {selectedFood.isAvailable
+                    ? (language === "fa" ? "افزودن به سبد خرید" : "Add to Cart")
+                    : (language === "fa" ? "ناموجود" : "Unavailable")}
+                </Button>
+              </Box>
+            </DialogActions>
+          </>
+        )}
+      </Dialog>
+
+      {/* Success Snackbar */}
+      <Snackbar
+        open={showSuccessMessage}
+        autoHideDuration={3000}
+        onClose={() => setShowSuccessMessage(false)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert 
+          onClose={() => setShowSuccessMessage(false)} 
+          severity="success"
+          sx={{ width: "100%" }}
         >
-          <RestaurantIcon
-            sx={{ fontSize: 60, color: "text.secondary", mb: 2 }}
-          />
-          <Typography
-            variant="h6"
-            color="text.secondary"
-            gutterBottom
-            sx={{
-              fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
-            }}
-          >
-            {language === "fa" ? "هیچ غذایی یافت نشد" : "No foods found"}
-          </Typography>
-          <Typography
-            variant="body2"
-            color="text.secondary"
-            sx={{
-              fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
-            }}
-          >
-            {language === "fa"
-              ? "لطفاً جستجوی خود را تغییر دهید"
-              : "Please try different search terms"}
-          </Typography>
-        </Paper>
-      )}
+          {successMessage}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };
