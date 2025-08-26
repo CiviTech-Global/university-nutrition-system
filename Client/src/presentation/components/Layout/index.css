@@ -186,6 +186,17 @@
   }
 }
 
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.2;
+  }
+}
+
 /* Enhanced error states */
 .home-layout.error {
   background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);

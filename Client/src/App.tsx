@@ -6,6 +6,7 @@ import Dashboard from "./presentation/pages/Dashboard";
 import Credit from "./presentation/pages/Credit";
 import Profile from "./presentation/pages/Profile";
 import Foods from "./presentation/pages/Foods";
+import SaleDay from "./presentation/pages/SaleDay";
 import TestLanguage from "./presentation/pages/TestLanguage";
 import Layout from "./presentation/components/Layout";
 import "./presentation/assets/persian-rtl.css";
@@ -45,6 +46,14 @@ function App() {
         element={
           <Layout>
             <Foods />
+          </Layout>
+        }
+      />
+      <Route
+        path="/sale-day"
+        element={
+          <Layout>
+            <SaleDay />
           </Layout>
         }
       />
