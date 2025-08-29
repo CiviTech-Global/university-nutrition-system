@@ -36,7 +36,7 @@ import {
 } from "@mui/icons-material";
 import type { SelectChangeEvent } from "@mui/material";
 import { getCurrentUser } from "../../utils/userUtils";
-import { useLanguage } from "../../components/Layout";
+import { useLanguage } from "../../contexts/LanguageContext";
 import {
   formatCurrency,
   formatDate,

@@ -23,7 +23,7 @@ import {
   TextFields,
   Palette,
 } from "@mui/icons-material";
-import { useLanguage } from "../../components/Layout";
+import { useLanguage } from "../../contexts/LanguageContext";
 import LanguageToggle from "../../components/LanguageToggle";
 import {
   formatCurrency,

@@ -1,0 +1,153 @@
+/* Professional sidebar styling */
+aside {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+aside .MuiList-root .MuiListItemButton-root .MuiListItemIcon-root svg {
+  font-size: 18px;
+}
+
+aside .MuiListSubheader-root {
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.4;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #64748b;
+  padding-left: 12px;
+  padding-right: 12px;
+  margin-bottom: 4px;
+}
+
+[dir="rtl"] aside .MuiListSubheader-root {
+  text-align: right;
+}
+
+/* Clean menu item styling */
+aside .MuiListItemButton-root {
+  margin: 0 0 6px 0;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+}
+
+aside .MuiListItemButton-root:hover {
+  background-color: #f1f5f9;
+}
+
+/* Selected state */
+aside .selected-path {
+  background-color: #3b82f6 !important;
+  color: white;
+  box-shadow: 0 1px 3px rgba(59, 130, 246, 0.3);
+}
+
+aside .selected-path .MuiListItemIcon-root,
+aside .selected-path .MuiListItemText-root {
+  color: white;
+}
+
+/* Typography */
+aside .MuiListItemText-primary {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+/* RTL specific styles */
+[dir="rtl"] aside {
+  border-left: 1px solid #f1f5f9;
+  border-right: none;
+}
+
+[dir="rtl"] aside .MuiListItemIcon-root {
+  margin-left: 0;
+  margin-right: 8px;
+}
+
+[dir="rtl"] aside .MuiListItemText-root {
+  text-align: right;
+  padding-right: 0;
+  padding-left: 8px;
+}
+
+/* Professional transitions */
+aside .MuiListItemButton-root {
+  transition: all 0.15s ease;
+}
+
+/* Clean selected state without border indicators */
+aside .selected-path {
+  position: relative;
+}
+
+/* Badge animations */
+aside .MuiChip-root {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+/* Typography fine-tuning */
+aside .MuiListItemText-primary {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+aside .MuiListSubheader-root {
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+[dir="rtl"] aside .MuiListSubheader-root {
+  padding-right: 16px;
+  padding-left: 16px;
+  text-align: right;
+}
+
+/* Avatar styling */
+aside .MuiAvatar-root {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* Paper component styling */
+aside .MuiPaper-root {
+  border: 1px solid #e5e7eb;
+}
+
+/* Collapsed state */
+aside.collapsed {
+  min-width: 64px;
+  max-width: 64px;
+}
+
+aside.collapsed .MuiListItemButton-root {
+  justify-content: center;
+  padding: 8px;
+  margin: 0 4px 6px 4px;
+}
+
+aside.collapsed .MuiListItemIcon-root {
+  min-width: auto;
+  margin: 0;
+}
+
+/* Professional spacing */
+aside .MuiList-root {
+  padding: 0;
+}
+
+/* Badge styling */
+aside .badge {
+  background-color: #ef4444;
+  border-radius: 9px;
+  font-size: 10px;
+  font-weight: 600;
+}

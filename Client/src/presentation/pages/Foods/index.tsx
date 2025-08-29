@@ -52,7 +52,7 @@ import {
   MonetizationOn as MoneyIcon,
   Refresh as RefreshIcon,
 } from "@mui/icons-material";
-import { useLanguage } from "../../components/Layout";
+import { useLanguage } from "../../contexts/LanguageContext";
 import { formatCurrency } from "../../utils/languageUtils";
 import { getCurrentUser } from "../../utils/userUtils";
 

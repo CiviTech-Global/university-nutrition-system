@@ -23,7 +23,7 @@ import {
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { getUserByEmail } from "../../utils/userUtils";
-import { useLanguage } from "../../components/Layout";
+import { useLanguage } from "../../contexts/LanguageContext";
 import {
   createComponentStyles,
   getTypographyStyles,

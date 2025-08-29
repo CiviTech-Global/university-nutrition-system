@@ -29,7 +29,7 @@ import {
   AccountBalance as AccountBalanceIcon,
 } from "@mui/icons-material";
 import { getCurrentUser } from "../../utils/userUtils";
-import { useLanguage } from "../../components/Layout";
+import { useLanguage } from "../../contexts/LanguageContext";
 import {
   formatCurrency,
   formatDate,

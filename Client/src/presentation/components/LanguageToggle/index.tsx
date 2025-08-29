@@ -7,7 +7,7 @@ import {
   Tooltip,
 } from "@mui/material";
 import { Language } from "@mui/icons-material";
-import { useLanguage } from "../Layout";
+import { useLanguage } from "../../contexts/LanguageContext";
 import { createFontStyles } from "../../utils/fontUtils";
 
 interface LanguageToggleProps {

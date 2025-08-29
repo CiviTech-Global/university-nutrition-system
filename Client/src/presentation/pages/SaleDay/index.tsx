@@ -32,7 +32,7 @@ import {
   Inventory as InventoryIcon,
   TrendingUp as TrendingUpIcon,
 } from "@mui/icons-material";
-import { useLanguage } from "../../components/Layout";
+import { useLanguage } from "../../contexts/LanguageContext";
 import {
   formatCurrency,
   formatTime,
