@@ -19,21 +19,39 @@ import {
   Tooltip,
   Badge,
   Stack,
+  Drawer,
+  AppBar,
+  Toolbar,
+  useMediaQuery,
+  useTheme,
+  Divider,
+  Collapse,
+  Fab,
+  Zoom,
+  Paper,
+  Switch,
+  FormControlLabel,
 } from "@mui/material";
 import {
   Dashboard as DashboardIcon,
   CreditCard as CreditIcon,
   Person as ProfileIcon,
   Restaurant as FoodsIcon,
-  LockReset as ForgotPasswordIcon,
   LocalOffer as SaleDayIcon,
-  Language,
-  Logout,
+  Language as LanguageIcon,
+  Logout as LogoutIcon,
+  Menu as MenuIcon,
+  Close as CloseIcon,
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon,
-  Settings,
-  Notifications,
-  Translate,
+  Settings as SettingsIcon,
+  Notifications as NotificationsIcon,
+  Translate as TranslateIcon,
+  ExpandMore as ExpandMoreIcon,
+  ExpandLess as ExpandLessIcon,
+  KeyboardArrowUp as KeyboardArrowUpIcon,
+  Brightness4 as DarkModeIcon,
+  Brightness7 as LightModeIcon,
 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { translations } from "../../locales";
@@ -66,24 +84,41 @@ interface LayoutProps {
   children: React.ReactNode;
 }
 
+interface MenuItem {
+  text: string;
+  icon: React.ReactNode;
+  path: string;
+  badge?: string | number;
+  color?: string;
+}
+
+const DRAWER_WIDTH = 280;
+const DRAWER_WIDTH_COLLAPSED = 72;
+
 const Layout = ({ children }: LayoutProps) => {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
+  const [desktopDrawerCollapsed, setDesktopDrawerCollapsed] = useState(false);
   const [language, setLanguageState] = useState<LanguageType>("en");
   const [user, setUser] = useState<any>(null);
+  const [darkMode, setDarkMode] = useState(false);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({});
+
   const navigate = useNavigate();
   const location = useLocation();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const isTablet = useMediaQuery(theme.breakpoints.between("md", "lg"));
 
   const isRTL = language === "fa";
   const t = translations[language];
   const componentStyles = createComponentStyles(language);
 
-  // Create theme based on language
-  const theme = createTheme({
+  // Create dynamic theme based on language and dark mode
+  const customTheme = createTheme({
     direction: isRTL ? "rtl" : "ltr",
-    typography: {
-      fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
-    },
     palette: {
+      mode: darkMode ? "dark" : "light",
       primary: {
         main: "#2563eb",
         light: "#3b82f6",
@@ -95,9 +130,16 @@ const Layout = ({ children }: LayoutProps) => {
         dark: "#d97706",
       },
       background: {
-        default: "#f8fafc",
-        paper: "#ffffff",
+        default: darkMode ? "#0f172a" : "#f8fafc",
+        paper: darkMode ? "#1e293b" : "#ffffff",
       },
+      text: {
+        primary: darkMode ? "#f1f5f9" : "#0f172a",
+        secondary: darkMode ? "#94a3b8" : "#64748b",
+      },
+    },
+    typography: {
+      fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
     },
     components: {
       MuiCssBaseline: {
@@ -105,22 +147,59 @@ const Layout = ({ children }: LayoutProps) => {
           body: {
             direction: isRTL ? "rtl" : "ltr",
             fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
-            backgroundColor: "#f8fafc",
+            backgroundColor: darkMode ? "#0f172a" : "#f8fafc",
+            overflow: "hidden",
+          },
+        },
+      },
+      MuiDrawer: {
+        styleOverrides: {
+          paper: {
+            backgroundImage: "none",
           },
         },
       },
     },
   });
 
+  // Initialize user and preferences
   useEffect(() => {
     const currentUser = getCurrentUser();
     if (currentUser) {
       setUser(currentUser);
-      setLanguageState(currentUser.language);
+      setLanguageState(currentUser.language || "en");
+      
+      // Load saved preferences
+      const savedDarkMode = localStorage.getItem("darkMode");
+      const savedCollapsed = localStorage.getItem("sidebarCollapsed");
+      
+      if (savedDarkMode) {
+        setDarkMode(JSON.parse(savedDarkMode));
+      }
+      if (savedCollapsed && !isMobile) {
+        setDesktopDrawerCollapsed(JSON.parse(savedCollapsed));
+      }
     } else {
       window.location.href = "/login";
     }
+  }, [isMobile]);
+
+  // Handle scroll to top visibility
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.pageYOffset > 300);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // Auto-collapse sidebar on tablet
+  useEffect(() => {
+    if (isTablet && !desktopDrawerCollapsed) {
+      setDesktopDrawerCollapsed(true);
+    }
+  }, [isTablet]);
 
   const setLanguage = (newLanguage: LanguageType) => {
     setLanguageState(newLanguage);
@@ -131,8 +210,14 @@ const Layout = ({ children }: LayoutProps) => {
     }
   };
 
-  const handleSidebarToggle = () => {
-    setSidebarCollapsed(!sidebarCollapsed);
+  const handleMobileDrawerToggle = () => {
+    setMobileDrawerOpen(!mobileDrawerOpen);
+  };
+
+  const handleDesktopDrawerToggle = () => {
+    const newCollapsed = !desktopDrawerCollapsed;
+    setDesktopDrawerCollapsed(newCollapsed);
+    localStorage.setItem("sidebarCollapsed", JSON.stringify(newCollapsed));
   };
 
   const handleLanguageChange = (
@@ -144,434 +229,489 @@ const Layout = ({ children }: LayoutProps) => {
     }
   };
 
+  const handleDarkModeToggle = () => {
+    const newDarkMode = !darkMode;
+    setDarkMode(newDarkMode);
+    localStorage.setItem("darkMode", JSON.stringify(newDarkMode));
+  };
+
   const handleLogout = () => {
     logoutUser();
     window.location.href = "/login";
   };
 
-  const mainMenuItems = [
+  const handleMenuItemClick = (path: string) => {
+    navigate(path);
+    if (isMobile) {
+      setMobileDrawerOpen(false);
+    }
+  };
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const toggleMenuExpansion = (menuKey: string) => {
+    setExpandedMenus(prev => ({
+      ...prev,
+      [menuKey]: !prev[menuKey]
+    }));
+  };
+
+  const mainMenuItems: MenuItem[] = [
     {
       text: t.dashboard,
       icon: <DashboardIcon />,
       path: "/dashboard",
-      badge: null,
+      badge: undefined,
     },
     {
       text: t.foods,
       icon: <FoodsIcon />,
       path: "/foods",
-      badge: null,
+      badge: undefined,
     },
     {
       text: t.saleDay,
       icon: <SaleDayIcon />,
       path: "/sale-day",
       badge: "HOT",
+      color: "#ef4444",
     },
     {
       text: t.credit,
       icon: <CreditIcon />,
       path: "/credit",
-      badge: "3",
+      badge: 3,
     },
     {
       text: t.profile,
       icon: <ProfileIcon />,
       path: "/profile",
-      badge: null,
+      badge: undefined,
     },
   ];
 
-  const secondaryMenuItems = [
+  const toolsMenuItems: MenuItem[] = [
     {
-      text: t.settings,
-      icon: <Settings />,
+      text: t.settings || "Settings",
+      icon: <SettingsIcon />,
       path: "/settings",
-      badge: null,
+      badge: undefined,
     },
     {
-      text: t.notifications,
-      icon: <Notifications />,
+      text: t.notifications || "Notifications",
+      icon: <NotificationsIcon />,
       path: "/notifications",
-      badge: "5",
+      badge: 5,
     },
-    {
-      text: t.forgotPasswordMenu,
-      icon: <ForgotPasswordIcon />,
-      path: "/forgot-password",
-      badge: null,
-    },
+  ];
+
+  const developmentMenuItems: MenuItem[] = [
     {
       text: "Test Language",
-      icon: <Translate />,
+      icon: <TranslateIcon />,
       path: "/test-language",
-      badge: null,
+      badge: undefined,
+    },
+    {
+      text: t.forgotPasswordMenu || "Reset Password",
+      icon: <TranslateIcon />,
+      path: "/forgot-password",
+      badge: undefined,
     },
   ];
 
-  const drawer = (
+  const renderMenuItems = (items: MenuItem[], collapsed: boolean = false) => (
+    <List sx={{ p: 0 }}>
+      {items.map((item) => {
+        const isActive = location.pathname === item.path;
+        
+        return (
+          <ListItem key={item.text} disablePadding sx={{ mb: 0.5 }}>
+            <Tooltip 
+              title={collapsed ? item.text : ""}
+              placement={isRTL ? "left" : "right"}
+              arrow
+            >
+              <ListItemButton
+                selected={isActive}
+                onClick={() => handleMenuItemClick(item.path)}
+                sx={{
+                  borderRadius: 2,
+                  mx: 1,
+                  minHeight: 48,
+                  justifyContent: collapsed ? "center" : "flex-start",
+                  px: collapsed ? 1 : 2,
+                  backgroundColor: isActive
+                    ? "rgba(59, 130, 246, 0.12)"
+                    : "transparent",
+                  border: isActive
+                    ? `1px solid ${customTheme.palette.primary.main}40`
+                    : "1px solid transparent",
+                  position: "relative",
+                  overflow: "hidden",
+                  "&:hover": {
+                    backgroundColor: darkMode 
+                      ? "rgba(255, 255, 255, 0.08)" 
+                      : "rgba(0, 0, 0, 0.04)",
+                    transform: "translateX(4px)",
+                  },
+                  "&.Mui-selected": {
+                    backgroundColor: "rgba(59, 130, 246, 0.12)",
+                    "&:hover": {
+                      backgroundColor: "rgba(59, 130, 246, 0.16)",
+                    },
+                  },
+                  transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+                }}
+              >
+                {/* Active indicator */}
+                {isActive && (
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      left: 0,
+                      top: 0,
+                      bottom: 0,
+                      width: 3,
+                      backgroundColor: customTheme.palette.primary.main,
+                      borderRadius: "0 2px 2px 0",
+                    }}
+                  />
+                )}
+
+                <ListItemIcon
+                  sx={{
+                    minWidth: collapsed ? 0 : 40,
+                    color: isActive
+                      ? customTheme.palette.primary.main
+                      : customTheme.palette.text.secondary,
+                    justifyContent: "center",
+                  }}
+                >
+                  {item.icon}
+                </ListItemIcon>
+
+                {!collapsed && (
+                  <>
+                    <ListItemText
+                      primary={item.text}
+                      sx={{
+                        direction: isRTL ? "rtl" : "ltr",
+                        textAlign: isRTL ? "right" : "left",
+                        "& .MuiListItemText-primary": {
+                          fontWeight: isActive ? 600 : 500,
+                          color: isActive
+                            ? customTheme.palette.primary.main
+                            : customTheme.palette.text.primary,
+                          fontFamily: isRTL
+                            ? "var(--font-persian)"
+                            : "var(--font-english)",
+                        },
+                      }}
+                    />
+
+                    {item.badge && (
+                      <Chip
+                        label={item.badge}
+                        size="small"
+                        sx={{
+                          backgroundColor: item.color || customTheme.palette.error.main,
+                          color: "white",
+                          fontSize: "0.75rem",
+                          fontWeight: 600,
+                          minWidth: 24,
+                          height: 24,
+                          animation: item.badge === "HOT" ? "pulse 2s infinite" : "none",
+                        }}
+                      />
+                    )}
+                  </>
+                )}
+              </ListItemButton>
+            </Tooltip>
+          </ListItem>
+        );
+      })}
+    </List>
+  );
+
+  const renderMenuSection = (
+    title: string,
+    items: MenuItem[],
+    collapsed: boolean,
+    menuKey?: string
+  ) => (
+    <Box sx={{ mb: 2 }}>
+      {!collapsed && (
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            px: 2,
+            py: 1,
+            cursor: menuKey ? "pointer" : "default",
+          }}
+          onClick={menuKey ? () => toggleMenuExpansion(menuKey) : undefined}
+        >
+          <Typography
+            variant="caption"
+            sx={{
+              color: customTheme.palette.text.secondary,
+              fontWeight: 600,
+              textTransform: "uppercase",
+              letterSpacing: "0.5px",
+              direction: isRTL ? "rtl" : "ltr",
+              fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+            }}
+          >
+            {title}
+          </Typography>
+          {menuKey && (
+            <IconButton size="small" sx={{ color: customTheme.palette.text.secondary }}>
+              {expandedMenus[menuKey] ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+            </IconButton>
+          )}
+        </Box>
+      )}
+      
+      {menuKey ? (
+        <Collapse in={!collapsed && (expandedMenus[menuKey] ?? true)}>
+          {renderMenuItems(items, collapsed)}
+        </Collapse>
+      ) : (
+        renderMenuItems(items, collapsed)
+      )}
+    </Box>
+  );
+
+  const drawerContent = (collapsed: boolean = false) => (
     <Box
       sx={{
         height: "100%",
         display: "flex",
         flexDirection: "column",
-        background: "linear-gradient(180deg, #1e293b 0%, #334155 100%)",
-        color: "#ffffff",
-        boxShadow: "4px 0 20px rgba(0, 0, 0, 0.1)",
-        overflow: "hidden",
+        background: darkMode
+          ? "linear-gradient(180deg, #1e293b 0%, #0f172a 100%)"
+          : "linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)",
+        borderRight: `1px solid ${darkMode ? "#334155" : "#e2e8f0"}`,
       }}
     >
       {/* Header */}
       <Box
         sx={{
-          p: 2,
-          background: "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)",
-          borderRadius: "0 0 0px 0px",
-          mb: 2,
+          p: collapsed ? 1 : 3,
+          background: darkMode
+            ? "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)"
+            : "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)",
+          color: "white",
+          position: "relative",
+          overflow: "hidden",
         }}
       >
-        <Stack
+        {/* Background decoration */}
+        <Box
           sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            mb: 2,
+            position: "absolute",
+            top: -20,
+            right: -20,
+            width: 80,
+            height: 80,
+            background: "rgba(255,255,255,0.1)",
+            borderRadius: "50%",
+            animation: "pulse 3s infinite",
           }}
-        >
-          {!sidebarCollapsed && (
+        />
+
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: collapsed ? 0 : 2 }}>
+          {!collapsed && (
             <Typography
               variant="h6"
               sx={{
-                color: "white",
                 fontWeight: 700,
                 fontSize: "1.1rem",
                 direction: isRTL ? "rtl" : "ltr",
-                fontFamily: isRTL
-                  ? "var(--font-persian)"
-                  : "var(--font-english)",
+                fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
               }}
             >
               {t.title}
             </Typography>
           )}
-          <Tooltip title={sidebarCollapsed ? t.expand : t.collapse}>
-            <IconButton
-              onClick={handleSidebarToggle}
-              sx={{
-                color: "white",
-                backgroundColor: "rgba(255, 255, 255, 0.1)",
-                "&:hover": {
-                  backgroundColor: "rgba(255, 255, 255, 0.2)",
-                },
-              }}
-            >
-              {isRTL ? <ChevronRightIcon /> : <ChevronLeftIcon />}
-            </IconButton>
-          </Tooltip>
+          
+          {!isMobile && (
+            <Tooltip title={collapsed ? t.expand || "Expand" : t.collapse || "Collapse"}>
+              <IconButton
+                onClick={handleDesktopDrawerToggle}
+                sx={{
+                  color: "white",
+                  backgroundColor: "rgba(255, 255, 255, 0.1)",
+                  "&:hover": {
+                    backgroundColor: "rgba(255, 255, 255, 0.2)",
+                    transform: "scale(1.1)",
+                  },
+                  transition: "all 0.2s ease",
+                }}
+              >
+                {collapsed ? 
+                  (isRTL ? <ChevronLeftIcon /> : <ChevronRightIcon />) : 
+                  (isRTL ? <ChevronRightIcon /> : <ChevronLeftIcon />)
+                }
+              </IconButton>
+            </Tooltip>
+          )}
         </Stack>
 
         {/* User Profile Section */}
-        {!sidebarCollapsed && (
-          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-            <Avatar
-              sx={{
-                width: 48,
-                height: 48,
-                backgroundColor: "rgba(255, 255, 255, 0.2)",
-                border: "2px solid rgba(255, 255, 255, 0.3)",
-              }}
-            >
-              {user?.firstName?.charAt(0) || "U"}
-            </Avatar>
-            <Box>
-              <Typography
-                variant="subtitle2"
+        {!collapsed && (
+          <Paper
+            elevation={0}
+            sx={{
+              p: 2,
+              backgroundColor: "rgba(255, 255, 255, 0.1)",
+              backdropFilter: "blur(10px)",
+              borderRadius: 2,
+              border: "1px solid rgba(255, 255, 255, 0.2)",
+            }}
+          >
+            <Stack direction="row" alignItems="center" spacing={2}>
+              <Avatar
                 sx={{
-                  color: "white",
+                  width: 48,
+                  height: 48,
+                  backgroundColor: "rgba(255, 255, 255, 0.2)",
+                  border: "2px solid rgba(255, 255, 255, 0.3)",
                   fontWeight: 600,
-                  direction: isRTL ? "rtl" : "ltr",
-                  fontFamily: isRTL
-                    ? "var(--font-persian)"
-                    : "var(--font-english)",
                 }}
               >
-                {user?.firstName} {user?.lastName}
-              </Typography>
-              <Chip
-                label={user?.role || "Student"}
-                size="small"
-                sx={{
-                  backgroundColor: "rgba(255, 255, 255, 0.2)",
-                  color: "white",
-                  fontSize: "0.75rem",
-                  height: 20,
-                }}
-              />
-            </Box>
-          </Box>
+                {user?.firstName?.charAt(0) || "U"}
+              </Avatar>
+              <Box sx={{ flex: 1 }}>
+                <Typography
+                  variant="subtitle1"
+                  sx={{
+                    fontWeight: 600,
+                    direction: isRTL ? "rtl" : "ltr",
+                    fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+                  }}
+                >
+                  {user?.firstName} {user?.lastName}
+                </Typography>
+                <Chip
+                  label={user?.role || "Student"}
+                  size="small"
+                  sx={{
+                    backgroundColor: "rgba(255, 255, 255, 0.2)",
+                    color: "white",
+                    fontSize: "0.75rem",
+                    height: 22,
+                    fontWeight: 500,
+                  }}
+                />
+              </Box>
+            </Stack>
+          </Paper>
         )}
       </Box>
 
-      {/* Main Navigation - Scrollable */}
+      {/* Navigation Content */}
       <Box
         sx={{
           flex: 1,
           px: 1,
+          py: 2,
           overflow: "auto",
           "&::-webkit-scrollbar": {
-            width: "4px",
+            width: "6px",
           },
           "&::-webkit-scrollbar-track": {
-            background: "rgba(255, 255, 255, 0.1)",
-            borderRadius: "0px",
+            background: darkMode ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)",
+            borderRadius: "3px",
           },
           "&::-webkit-scrollbar-thumb": {
-            background: "rgba(255, 255, 255, 0.3)",
-            borderRadius: "0px",
+            background: darkMode ? "rgba(255, 255, 255, 0.3)" : "rgba(0, 0, 0, 0.3)",
+            borderRadius: "3px",
             "&:hover": {
-              background: "rgba(255, 255, 255, 0.5)",
+              background: darkMode ? "rgba(255, 255, 255, 0.5)" : "rgba(0, 0, 0, 0.5)",
             },
           },
         }}
       >
-        {/* Main Menu Section */}
-        <Box sx={{ mb: 3 }}>
-          {!sidebarCollapsed && (
-            <Typography
-              variant="caption"
-              sx={{
-                color: "rgba(255, 255, 255, 0.7)",
-                px: 2,
-                py: 1,
-                display: "block",
-                fontWeight: 600,
-                textTransform: "uppercase",
-                letterSpacing: "0.5px",
-                direction: isRTL ? "rtl" : "ltr",
-                fontFamily: isRTL
-                  ? "var(--font-persian)"
-                  : "var(--font-english)",
-              }}
-            >
-              {t.mainMenu || "Main Menu"}
-            </Typography>
-          )}
-          <List sx={{ p: 0 }}>
-            {mainMenuItems.map((item) => (
-              <ListItem key={item.text} disablePadding sx={{ mb: 0.5 }}>
-                <ListItemButton
-                  selected={location.pathname === item.path}
-                  onClick={() => navigate(item.path)}
-                  sx={{
-                    borderRadius: 0,
-                    mx: 1,
-                    minHeight: 48,
-                    justifyContent: sidebarCollapsed ? "center" : "flex-start",
-                    px: sidebarCollapsed ? 2 : 2,
-                    backgroundColor:
-                      location.pathname === item.path
-                        ? "rgba(59, 130, 246, 0.2)"
-                        : "transparent",
-                    border:
-                      location.pathname === item.path
-                        ? "1px solid rgba(59, 130, 246, 0.3)"
-                        : "1px solid transparent",
-                    "&:hover": {
-                      backgroundColor: "rgba(255, 255, 255, 0.1)",
-                      border: "1px solid rgba(255, 255, 255, 0.2)",
-                    },
-                    "&.Mui-selected": {
-                      backgroundColor: "rgba(59, 130, 246, 0.2)",
-                      border: "1px solid rgba(59, 130, 246, 0.3)",
-                      "&:hover": {
-                        backgroundColor: "rgba(59, 130, 246, 0.3)",
-                      },
-                    },
-                  }}
-                >
-                  <ListItemIcon
-                    sx={{
-                      minWidth: sidebarCollapsed ? 0 : 40,
-                      color:
-                        location.pathname === item.path
-                          ? "#3b82f6"
-                          : "rgba(255, 255, 255, 0.8)",
-                      justifyContent: "center",
-                    }}
-                  >
-                    {item.icon}
-                  </ListItemIcon>
-                  {!sidebarCollapsed && (
-                    <ListItemText
-                      primary={item.text}
-                      sx={{
-                        direction: isRTL ? "rtl" : "ltr",
-                        fontFamily: isRTL
-                          ? "var(--font-persian)"
-                          : "var(--font-english)",
-                        "& .MuiListItemText-primary": {
-                          fontWeight:
-                            location.pathname === item.path ? 600 : 500,
-                          color:
-                            location.pathname === item.path
-                              ? "#3b82f6"
-                              : "rgba(255, 255, 255, 0.9)",
-                        },
-                      }}
-                    />
-                  )}
-                  {!sidebarCollapsed && item.badge && (
-                    <Badge
-                      badgeContent={item.badge}
-                      color="error"
-                      sx={{
-                        "& .MuiBadge-badge": {
-                          backgroundColor: "#ef4444",
-                          color: "white",
-                          fontSize: "0.75rem",
-                          minWidth: 20,
-                          height: 20,
-                        },
-                      }}
-                    />
-                  )}
-                </ListItemButton>
-              </ListItem>
-            ))}
-          </List>
-        </Box>
-
-        {/* Secondary Menu Section */}
-        <Box sx={{ mb: 3 }}>
-          {!sidebarCollapsed && (
-            <Typography
-              variant="caption"
-              sx={{
-                color: "rgba(255, 255, 255, 0.7)",
-                px: 2,
-                py: 1,
-                display: "block",
-                fontWeight: 600,
-                textTransform: "uppercase",
-                letterSpacing: "0.5px",
-                direction: isRTL ? "rtl" : "ltr",
-                fontFamily: isRTL
-                  ? "var(--font-persian)"
-                  : "var(--font-english)",
-              }}
-            >
-              {t.tools || "Tools"}
-            </Typography>
-          )}
-          <List sx={{ p: 0 }}>
-            {secondaryMenuItems.map((item) => (
-              <ListItem key={item.text} disablePadding sx={{ mb: 0.5 }}>
-                <ListItemButton
-                  selected={location.pathname === item.path}
-                  onClick={() => navigate(item.path)}
-                  sx={{
-                    borderRadius: 0,
-                    mx: 1,
-                    minHeight: 48,
-                    justifyContent: sidebarCollapsed ? "center" : "flex-start",
-                    px: sidebarCollapsed ? 2 : 2,
-                    backgroundColor:
-                      location.pathname === item.path
-                        ? "rgba(245, 158, 11, 0.2)"
-                        : "transparent",
-                    border:
-                      location.pathname === item.path
-                        ? "1px solid rgba(245, 158, 11, 0.3)"
-                        : "1px solid transparent",
-                    "&:hover": {
-                      backgroundColor: "rgba(255, 255, 255, 0.1)",
-                      border: "1px solid rgba(255, 255, 255, 0.2)",
-                    },
-                    "&.Mui-selected": {
-                      backgroundColor: "rgba(245, 158, 11, 0.2)",
-                      border: "1px solid rgba(245, 158, 11, 0.3)",
-                      "&:hover": {
-                        backgroundColor: "rgba(245, 158, 11, 0.3)",
-                      },
-                    },
-                  }}
-                >
-                  <ListItemIcon
-                    sx={{
-                      minWidth: sidebarCollapsed ? 0 : 40,
-                      color:
-                        location.pathname === item.path
-                          ? "#f59e0b"
-                          : "rgba(255, 255, 255, 0.8)",
-                      justifyContent: "center",
-                    }}
-                  >
-                    {item.icon}
-                  </ListItemIcon>
-                  {!sidebarCollapsed && (
-                    <ListItemText
-                      primary={item.text}
-                      sx={{
-                        direction: isRTL ? "rtl" : "ltr",
-                        fontFamily: isRTL
-                          ? "var(--font-persian)"
-                          : "var(--font-english)",
-                        "& .MuiListItemText-primary": {
-                          fontWeight:
-                            location.pathname === item.path ? 600 : 500,
-                          color:
-                            location.pathname === item.path
-                              ? "#f59e0b"
-                              : "rgba(255, 255, 255, 0.9)",
-                        },
-                      }}
-                    />
-                  )}
-                  {!sidebarCollapsed && item.badge && (
-                    <Badge
-                      badgeContent={item.badge}
-                      color="error"
-                      sx={{
-                        "& .MuiBadge-badge": {
-                          backgroundColor: "#ef4444",
-                          color: "white",
-                          fontSize: "0.75rem",
-                          minWidth: 20,
-                          height: 20,
-                        },
-                      }}
-                    />
-                  )}
-                </ListItemButton>
-              </ListItem>
-            ))}
-          </List>
-        </Box>
+        {/* Main Menu */}
+        {renderMenuSection(t.mainMenu || "Main Menu", mainMenuItems, collapsed)}
+        
+        <Divider sx={{ mx: 2, my: 1, opacity: 0.3 }} />
+        
+        {/* Tools Menu */}
+        {renderMenuSection(t.tools || "Tools", toolsMenuItems, collapsed, "tools")}
+        
+        {/* Development Menu - Only show in development */}
+        {process.env.NODE_ENV === "development" && (
+          <>
+            <Divider sx={{ mx: 2, my: 1, opacity: 0.3 }} />
+            {renderMenuSection("Development", developmentMenuItems, collapsed, "dev")}
+          </>
+        )}
       </Box>
 
       {/* Footer Actions */}
-      <Box sx={{ p: 2, borderTop: "1px solid rgba(255, 255, 255, 0.1)" }}>
+      <Box
+        sx={{
+          p: 2,
+          borderTop: `1px solid ${darkMode ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)"}`,
+        }}
+      >
+        {/* Dark Mode Toggle */}
+        {!collapsed && (
+          <FormControlLabel
+            control={
+              <Switch
+                checked={darkMode}
+                onChange={handleDarkModeToggle}
+                color="primary"
+              />
+            }
+            label={
+              <Stack direction="row" alignItems="center" spacing={1}>
+                {darkMode ? <DarkModeIcon /> : <LightModeIcon />}
+                <Typography variant="body2">
+                  {darkMode ? (language === "fa" ? "حالت تاریک" : "Dark Mode") : (language === "fa" ? "حالت روشن" : "Light Mode")}
+                </Typography>
+              </Stack>
+            }
+            sx={{
+              width: "100%",
+              mb: 2,
+              mx: 0,
+              "& .MuiFormControlLabel-label": {
+                fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+                direction: isRTL ? "rtl" : "ltr",
+              },
+            }}
+          />
+        )}
+
         {/* Language Toggle */}
         <Box sx={{ mb: 2 }}>
-          {!sidebarCollapsed && (
+          {!collapsed && (
             <Typography
               variant="caption"
               sx={{
-                color: "rgba(255, 255, 255, 0.7)",
+                color: customTheme.palette.text.secondary,
                 mb: 1,
                 display: "block",
                 fontWeight: 600,
                 textTransform: "uppercase",
                 letterSpacing: "0.5px",
                 direction: isRTL ? "rtl" : "ltr",
-                fontFamily: isRTL
-                  ? "var(--font-persian)"
-                  : "var(--font-english)",
+                fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
               }}
             >
               {t.language || "Language"}
             </Typography>
           )}
+          
           <ToggleButtonGroup
             value={language}
             exclusive
@@ -583,30 +723,28 @@ const Layout = ({ children }: LayoutProps) => {
                 flex: 1,
                 py: 1,
                 fontSize: "0.875rem",
-                fontFamily: isRTL
-                  ? "var(--font-persian)"
-                  : "var(--font-english)",
-                backgroundColor: "rgba(255, 255, 255, 0.1)",
-                border: "1px solid rgba(255, 255, 255, 0.2)",
-                color: "rgba(255, 255, 255, 0.8)",
+                fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+                backgroundColor: darkMode ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)",
+                border: `1px solid ${darkMode ? "rgba(255, 255, 255, 0.2)" : "rgba(0, 0, 0, 0.2)"}`,
+                color: customTheme.palette.text.primary,
                 "&.Mui-selected": {
-                  backgroundColor: "rgba(59, 130, 246, 0.3)",
-                  color: "#3b82f6",
-                  border: "1px solid rgba(59, 130, 246, 0.5)",
+                  backgroundColor: customTheme.palette.primary.main,
+                  color: "white",
+                  border: `1px solid ${customTheme.palette.primary.main}`,
                 },
                 "&:hover": {
-                  backgroundColor: "rgba(255, 255, 255, 0.15)",
+                  backgroundColor: darkMode ? "rgba(255, 255, 255, 0.15)" : "rgba(0, 0, 0, 0.15)",
                 },
               },
             }}
           >
             <ToggleButton value="en">
-              <Language sx={{ mr: 0.5, fontSize: "1rem" }} />
-              {!sidebarCollapsed && "EN"}
+              <LanguageIcon sx={{ mr: 0.5, fontSize: "1rem" }} />
+              {!collapsed && "EN"}
             </ToggleButton>
             <ToggleButton value="fa">
-              <Language sx={{ mr: 0.5, fontSize: "1rem" }} />
-              {!sidebarCollapsed && "فارسی"}
+              <LanguageIcon sx={{ mr: 0.5, fontSize: "1rem" }} />
+              {!collapsed && "فارسی"}
             </ToggleButton>
           </ToggleButtonGroup>
         </Box>
@@ -615,23 +753,25 @@ const Layout = ({ children }: LayoutProps) => {
         <Button
           fullWidth
           variant="outlined"
-          startIcon={isRTL ? undefined : <Logout />}
-          endIcon={isRTL ? <Logout /> : undefined}
+          startIcon={isRTL ? undefined : <LogoutIcon />}
+          endIcon={isRTL ? <LogoutIcon /> : undefined}
           onClick={handleLogout}
           sx={{
-            color: "#ef4444",
-            borderColor: "#ef4444",
+            color: customTheme.palette.error.main,
+            borderColor: customTheme.palette.error.main,
             fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
             fontWeight: 600,
             py: 1.5,
-            borderRadius: 0,
+            borderRadius: 2,
             "&:hover": {
-              borderColor: "#dc2626",
-              backgroundColor: "rgba(239, 68, 68, 0.1)",
+              borderColor: customTheme.palette.error.dark,
+              backgroundColor: `${customTheme.palette.error.main}10`,
+              transform: "translateY(-1px)",
             },
+            transition: "all 0.2s ease",
           }}
         >
-          {!sidebarCollapsed && t.logout}
+          {!collapsed && (t.logout || "Logout")}
         </Button>
       </Box>
     </Box>
@@ -650,45 +790,135 @@ const Layout = ({ children }: LayoutProps) => {
 
   return (
     <LanguageContext.Provider value={contextValue}>
-      <ThemeProvider theme={theme}>
+      <ThemeProvider theme={customTheme}>
         <CssBaseline />
-        <Stack
-          className="home-layout"
-          flexDirection={isRTL ? "row-reverse" : "row"}
-          sx={{
-            backgroundColor: "#FCFCFD",
-            direction: isRTL ? "rtl" : "ltr",
-            width: "100%",
-            height: "100vh",
-            overflow: "hidden",
-          }}
-        >
-          <Box
-            component="aside"
+        
+        {/* Mobile App Bar */}
+        {isMobile && (
+          <AppBar
+            position="fixed"
             sx={{
-              ...componentStyles.sidebar.container,
-              maxWidth: sidebarCollapsed ? 80 : 280,
-              minWidth: sidebarCollapsed ? 80 : 280,
-              left: isRTL ? "auto" : 0,
-              right: isRTL ? 0 : "auto",
-              zIndex: 1,
-              transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+              backgroundColor: customTheme.palette.background.paper,
+              color: customTheme.palette.text.primary,
+              boxShadow: "0 1px 3px rgba(0, 0, 0, 0.12)",
+              zIndex: customTheme.zIndex.drawer + 1,
             }}
           >
-            {drawer}
-          </Box>
-          <Stack
-            spacing={3}
+            <Toolbar>
+              <IconButton
+                edge="start"
+                onClick={handleMobileDrawerToggle}
+                sx={{ mr: 2 }}
+              >
+                <MenuIcon />
+              </IconButton>
+              <Typography
+                variant="h6"
+                sx={{
+                  flexGrow: 1,
+                  fontWeight: 600,
+                  direction: isRTL ? "rtl" : "ltr",
+                  fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+                }}
+              >
+                {t.title}
+              </Typography>
+              <Avatar
+                sx={{
+                  width: 32,
+                  height: 32,
+                  backgroundColor: customTheme.palette.primary.main,
+                }}
+              >
+                {user?.firstName?.charAt(0) || "U"}
+              </Avatar>
+            </Toolbar>
+          </AppBar>
+        )}
+
+        <Box sx={{ display: "flex", height: "100vh" }}>
+          {/* Desktop Drawer */}
+          {!isMobile && (
+            <Drawer
+              variant="permanent"
+              sx={{
+                width: desktopDrawerCollapsed ? DRAWER_WIDTH_COLLAPSED : DRAWER_WIDTH,
+                flexShrink: 0,
+                "& .MuiDrawer-paper": {
+                  width: desktopDrawerCollapsed ? DRAWER_WIDTH_COLLAPSED : DRAWER_WIDTH,
+                  boxSizing: "border-box",
+                  transition: customTheme.transitions.create("width", {
+                    easing: customTheme.transitions.easing.easeOut,
+                    duration: customTheme.transitions.duration.enteringScreen,
+                  }),
+                  overflowX: "hidden",
+                  border: "none",
+                },
+              }}
+            >
+              {drawerContent(desktopDrawerCollapsed)}
+            </Drawer>
+          )}
+
+          {/* Mobile Drawer */}
+          {isMobile && (
+            <Drawer
+              variant="temporary"
+              anchor={isRTL ? "right" : "left"}
+              open={mobileDrawerOpen}
+              onClose={handleMobileDrawerToggle}
+              ModalProps={{
+                keepMounted: true,
+              }}
+              sx={{
+                "& .MuiDrawer-paper": {
+                  width: DRAWER_WIDTH,
+                  boxSizing: "border-box",
+                  border: "none",
+                },
+              }}
+            >
+              <Box sx={{ display: "flex", justifyContent: "flex-end", p: 1 }}>
+                <IconButton onClick={handleMobileDrawerToggle}>
+                  <CloseIcon />
+                </IconButton>
+              </Box>
+              {drawerContent(false)}
+            </Drawer>
+          )}
+
+          {/* Main Content */}
+          <Box
+            component="main"
             sx={{
-              flex: 1,
+              flexGrow: 1,
+              bgcolor: customTheme.palette.background.default,
               overflow: "auto",
-              ...componentStyles.dashboard.container,
-              height: "100vh",
+              pt: isMobile ? 8 : 0,
+              direction: isRTL ? "rtl" : "ltr",
             }}
           >
             {children}
-          </Stack>
-        </Stack>
+          </Box>
+
+          {/* Scroll to Top Button */}
+          <Zoom in={showScrollTop}>
+            <Fab
+              onClick={scrollToTop}
+              color="primary"
+              size="medium"
+              sx={{
+                position: "fixed",
+                bottom: 24,
+                right: isRTL ? "auto" : 24,
+                left: isRTL ? 24 : "auto",
+                zIndex: 1000,
+              }}
+            >
+              <KeyboardArrowUpIcon />
+            </Fab>
+          </Zoom>
+        </Box>
       </ThemeProvider>
     </LanguageContext.Provider>
   );

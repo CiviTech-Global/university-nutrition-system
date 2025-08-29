@@ -2,7 +2,6 @@ import { useState, useEffect, useMemo } from "react";
 import {
   Box,
   Typography,
-  Grid,
   Card,
   CardContent,
   CardMedia,
@@ -13,33 +12,27 @@ import {
   Select,
   MenuItem,
   Stack,
-  Container,
   Paper,
-  Avatar,
   Rating,
   Button,
   Fade,
   IconButton,
-  Tooltip,
-  Badge,
   Drawer,
   Divider,
   Slider,
   Switch,
   FormControlLabel,
-  SpeedDial,
-  SpeedDialAction,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   Skeleton,
-  Collapse,
   Alert,
   Snackbar,
   ToggleButton,
   ToggleButtonGroup,
 } from "@mui/material";
+import { useMediaQuery, useTheme } from "@mui/material";
 import {
   Search as SearchIcon,
   Restaurant as RestaurantIcon,
@@ -48,31 +41,19 @@ import {
   LocalOffer as PriceIcon,
   Favorite as FavoriteIcon,
   FavoriteBorder as FavoriteBorderIcon,
-  FilterList as FilterIcon,
-  Sort as SortIcon,
-  Share as ShareIcon,
   ShoppingCart as ShoppingCartIcon,
   Close as CloseIcon,
-  ExpandMore as ExpandMoreIcon,
-  ExpandLess as ExpandLessIcon,
   ViewList as ViewListIcon,
   ViewModule as ViewModuleIcon,
-  Menu as MenuIcon,
   TuneRounded as TuneIcon,
-  RestaurantMenu as MenuItemIcon,
-  LocalDining as DiningIcon,
-  Eco as EcoIcon,
+  Nature as EcoIcon,
   Whatshot as WhatshotIcon,
   Schedule as ScheduleIcon,
   MonetizationOn as MoneyIcon,
   Refresh as RefreshIcon,
 } from "@mui/icons-material";
 import { useLanguage } from "../../components/Layout";
-import {
-  formatCurrency,
-  createComponentStyles,
-  getTypographyStyles,
-} from "../../utils/languageUtils";
+import { formatCurrency } from "../../utils/languageUtils";
 import { getCurrentUser } from "../../utils/userUtils";
 
 interface FoodItem {
@@ -106,9 +87,10 @@ interface FoodItem {
 }
 
 const Foods = () => {
-  const { language, t, isRTL } = useLanguage();
-  const componentStyles = createComponentStyles(language);
-  
+  const { language, isRTL } = useLanguage();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+
   // State management
   const [user, setUser] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -122,7 +104,7 @@ const Foods = () => {
   const [showOnlyVegetarian, setShowOnlyVegetarian] = useState(false);
   const [showOnlyPopular, setShowOnlyPopular] = useState(false);
   const [showOnlyAvailable, setShowOnlyAvailable] = useState(false);
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
   const [selectedFood, setSelectedFood] = useState<FoodItem | null>(null);
   const [foodDetailOpen, setFoodDetailOpen] = useState(false);
@@ -139,7 +121,7 @@ const Foods = () => {
     } else {
       window.location.href = "/login";
     }
-    
+
     // Simulate loading delay
     setTimeout(() => setIsLoading(false), 1000);
   }, []);
@@ -148,7 +130,7 @@ const Foods = () => {
     try {
       const savedFavorites = localStorage.getItem(`favorites_${userId}`);
       const savedCart = localStorage.getItem(`cart_${userId}`);
-      
+
       if (savedFavorites) {
         setFavorites(JSON.parse(savedFavorites));
       }
@@ -178,10 +160,12 @@ const Foods = () => {
   const foodImages = {
     cheloKebab: "/src/presentation/assets/images/چلو-کباب-بختیاری-scaled.jpg",
     cheloJooje: "/src/presentation/assets/images/چلو جوجه کباب.jpeg",
-    cheloJoojeTahchin: "/src/presentation/assets/images/چلو جوجه کباب و ته چین.jpg",
+    cheloJoojeTahchin:
+      "/src/presentation/assets/images/چلو جوجه کباب و ته چین.jpg",
     ghormehSabzi: "/src/presentation/assets/images/قورمه سبزی.jpg",
     gheimeh: "/src/presentation/assets/images/قیمه.jpg",
-    gheimehBademjan: "/src/presentation/assets/images/قیمه_بادمجان_غذای_روز_تمامی_گروه_های_سنی_1024x1005.jpg",
+    gheimehBademjan:
+      "/src/presentation/assets/images/قیمه_بادمجان_غذای_روز_تمامی_گروه_های_سنی_1024x1005.jpg",
     kookooSibZamini: "/src/presentation/assets/images/کوکو سیب زمینی.jpg",
     zereshkPolo: "/src/presentation/assets/images/زرشک پلو با مرغ.jpeg",
     khorakKoobideh: "/src/presentation/assets/images/خوراک کوبیده.jpg",
@@ -198,9 +182,17 @@ const Foods = () => {
       nameEn: "Bread, Cheese & Tea",
       price: 15000,
       ingredients: ["نان تازه", "پنیر سفید", "چای سیاه", "عسل", "کره"],
-      ingredientsEn: ["Fresh bread", "White cheese", "Black tea", "Honey", "Butter"],
-      description: "صبحانه سنتی ایرانی با نان تازه، پنیر سفید، چای سیاه و عسل طبیعی",
-      descriptionEn: "Traditional Iranian breakfast with fresh bread, white cheese, black tea, and natural honey",
+      ingredientsEn: [
+        "Fresh bread",
+        "White cheese",
+        "Black tea",
+        "Honey",
+        "Butter",
+      ],
+      description:
+        "صبحانه سنتی ایرانی با نان تازه، پنیر سفید، چای سیاه و عسل طبیعی",
+      descriptionEn:
+        "Traditional Iranian breakfast with fresh bread, white cheese, black tea, and natural honey",
       imageUrl: foodImages.defaultFood,
       category: "breakfast",
       rating: 4.5,
@@ -221,7 +213,8 @@ const Foods = () => {
       ingredients: ["سیب زمینی", "تخم مرغ", "پیاز", "ادویه", "روغن"],
       ingredientsEn: ["Potato", "Eggs", "Onion", "Spices", "Oil"],
       description: "کوکو سیب زمینی خانگی با تخم مرغ تازه و ادویه مخصوص",
-      descriptionEn: "Homemade potato kookoo with fresh eggs and special spices",
+      descriptionEn:
+        "Homemade potato kookoo with fresh eggs and special spices",
       imageUrl: foodImages.kookooSibZamini,
       category: "breakfast",
       rating: 4.3,
@@ -241,9 +234,17 @@ const Foods = () => {
       originalPrice: 62000,
       discount: 11,
       ingredients: ["برنج زعفرانی", "کباب بختیاری", "کره", "پیاز", "زعفران"],
-      ingredientsEn: ["Saffron rice", "Bakhtiari kebab", "Butter", "Onion", "Saffron"],
-      description: "چلو کباب بختیاری با گوشت مرغ و گوشت قرمز، سرو شده با برنج زعفرانی",
-      descriptionEn: "Bakhtiari kebab with chicken and red meat, served with saffron rice",
+      ingredientsEn: [
+        "Saffron rice",
+        "Bakhtiari kebab",
+        "Butter",
+        "Onion",
+        "Saffron",
+      ],
+      description:
+        "چلو کباب بختیاری با گوشت مرغ و گوشت قرمز، سرو شده با برنج زعفرانی",
+      descriptionEn:
+        "Bakhtiari kebab with chicken and red meat, served with saffron rice",
       imageUrl: foodImages.cheloKebab,
       category: "lunch",
       rating: 4.9,
@@ -299,7 +300,8 @@ const Foods = () => {
       ingredients: ["سبزی قورمه", "لوبیا", "گوشت", "لیمو عمانی", "برنج"],
       ingredientsEn: ["Herbs", "Beans", "Meat", "Dried lime", "Rice"],
       description: "خورشت سبزی با لوبیا، گوشت و لیمو عمانی، غذای سنتی ایرانی",
-      descriptionEn: "Traditional Iranian herb stew with beans, meat, and dried lime",
+      descriptionEn:
+        "Traditional Iranian herb stew with beans, meat, and dried lime",
       imageUrl: foodImages.ghormehSabzi,
       category: "lunch",
       rating: 4.6,
@@ -353,7 +355,8 @@ const Foods = () => {
       ingredients: ["برنج", "مرغ", "زرشک", "زعفران", "کره"],
       ingredientsEn: ["Rice", "Chicken", "Barberries", "Saffron", "Butter"],
       description: "زرشک پلو با مرغ و زعفران، طعمی منحصر به فرد و دلپذیر",
-      descriptionEn: "Barberry rice with chicken and saffron, unique and delightful taste",
+      descriptionEn:
+        "Barberry rice with chicken and saffron, unique and delightful taste",
       imageUrl: foodImages.zereshkPolo,
       category: "lunch",
       rating: 4.7,
@@ -464,7 +467,8 @@ const Foods = () => {
   const filteredAndSortedFoods = useMemo(() => {
     let filtered = allFoods.filter((food) => {
       // Text search
-      const matchesSearch = searchTerm === "" || 
+      const matchesSearch =
+        searchTerm === "" ||
         food.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         food.nameEn.toLowerCase().includes(searchTerm.toLowerCase()) ||
         food.ingredients.some((ingredient) =>
@@ -475,13 +479,16 @@ const Foods = () => {
         );
 
       // Category filter
-      const matchesCategory = selectedCategory === "all" || food.category === selectedCategory;
+      const matchesCategory =
+        selectedCategory === "all" || food.category === selectedCategory;
 
       // Price range filter
-      const matchesPrice = food.price >= priceRange[0] && food.price <= priceRange[1];
+      const matchesPrice =
+        food.price >= priceRange[0] && food.price <= priceRange[1];
 
       // Calorie range filter
-      const matchesCalories = food.calories >= calorieRange[0] && food.calories <= calorieRange[1];
+      const matchesCalories =
+        food.calories >= calorieRange[0] && food.calories <= calorieRange[1];
 
       // Rating filter
       const matchesRating = food.rating >= ratingFilter;
@@ -491,9 +498,16 @@ const Foods = () => {
       const matchesPopular = !showOnlyPopular || food.isPopular;
       const matchesAvailable = !showOnlyAvailable || food.isAvailable;
 
-      return matchesSearch && matchesCategory && matchesPrice && 
-             matchesCalories && matchesRating && matchesVegetarian && 
-             matchesPopular && matchesAvailable;
+      return (
+        matchesSearch &&
+        matchesCategory &&
+        matchesPrice &&
+        matchesCalories &&
+        matchesRating &&
+        matchesVegetarian &&
+        matchesPopular &&
+        matchesAvailable
+      );
     });
 
     // Sort foods
@@ -526,8 +540,15 @@ const Foods = () => {
 
     return filtered;
   }, [
-    searchTerm, selectedCategory, sortBy, priceRange, calorieRange, 
-    ratingFilter, showOnlyVegetarian, showOnlyPopular, showOnlyAvailable
+    searchTerm,
+    selectedCategory,
+    sortBy,
+    priceRange,
+    calorieRange,
+    ratingFilter,
+    showOnlyVegetarian,
+    showOnlyPopular,
+    showOnlyAvailable,
   ]);
 
   // Event handlers
@@ -537,20 +558,24 @@ const Foods = () => {
         ? prev.filter((id) => id !== foodId)
         : [...prev, foodId]
     );
-    
-    const message = favorites.includes(foodId) 
-      ? (language === "fa" ? "از علاقه‌مندی‌ها حذف شد" : "Removed from favorites")
-      : (language === "fa" ? "به علاقه‌مندی‌ها اضافه شد" : "Added to favorites");
-    
+
+    const message = favorites.includes(foodId)
+      ? language === "fa"
+        ? "از علاقه‌مندی‌ها حذف شد"
+        : "Removed from favorites"
+      : language === "fa"
+      ? "به علاقه‌مندی‌ها اضافه شد"
+      : "Added to favorites";
+
     showSuccessNotification(message);
   };
 
   const handleAddToCart = (foodId: string) => {
     setCart((prev) => ({
       ...prev,
-      [foodId]: (prev[foodId] || 0) + 1
+      [foodId]: (prev[foodId] || 0) + 1,
     }));
-    
+
     showSuccessNotification(
       language === "fa" ? "به سبد خرید اضافه شد" : "Added to cart"
     );
@@ -593,29 +618,41 @@ const Foods = () => {
   // Helper functions
   const getCategoryLabel = (category: string) => {
     switch (category) {
-      case "breakfast": return language === "fa" ? "صبحانه" : "Breakfast";
-      case "lunch": return language === "fa" ? "ناهار" : "Lunch";
-      case "dinner": return language === "fa" ? "شام" : "Dinner";
-      default: return language === "fa" ? "همه" : "All";
+      case "breakfast":
+        return language === "fa" ? "صبحانه" : "Breakfast";
+      case "lunch":
+        return language === "fa" ? "ناهار" : "Lunch";
+      case "dinner":
+        return language === "fa" ? "شام" : "Dinner";
+      default:
+        return language === "fa" ? "همه" : "All";
     }
   };
 
   const getSortLabel = (sort: string) => {
     switch (sort) {
-      case "name": return language === "fa" ? "نام" : "Name";
-      case "price-low": return language === "fa" ? "قیمت (کم به زیاد)" : "Price (Low to High)";
-      case "price-high": return language === "fa" ? "قیمت (زیاد به کم)" : "Price (High to Low)";
-      case "rating": return language === "fa" ? "امتیاز" : "Rating";
-      case "prep-time": return language === "fa" ? "زمان آماده‌سازی" : "Prep Time";
-      case "calories": return language === "fa" ? "کالری" : "Calories";
-      case "popularity": return language === "fa" ? "محبوبیت" : "Popularity";
-      default: return language === "fa" ? "نام" : "Name";
+      case "name":
+        return language === "fa" ? "نام" : "Name";
+      case "price-low":
+        return language === "fa" ? "قیمت (کم به زیاد)" : "Price (Low to High)";
+      case "price-high":
+        return language === "fa" ? "قیمت (زیاد به کم)" : "Price (High to Low)";
+      case "rating":
+        return language === "fa" ? "امتیاز" : "Rating";
+      case "prep-time":
+        return language === "fa" ? "زمان آماده‌سازی" : "Prep Time";
+      case "calories":
+        return language === "fa" ? "کالری" : "Calories";
+      case "popularity":
+        return language === "fa" ? "محبوبیت" : "Popularity";
+      default:
+        return language === "fa" ? "نام" : "Name";
     }
   };
 
   const getCartTotal = () => {
     return Object.entries(cart).reduce((total, [foodId, quantity]) => {
-      const food = allFoods.find(f => f.id === foodId);
+      const food = allFoods.find((f) => f.id === foodId);
       return total + (food?.price || 0) * quantity;
     }, 0);
   };
@@ -627,13 +664,28 @@ const Foods = () => {
   // Loading skeleton
   if (isLoading) {
     return (
-      <Container maxWidth="xl" sx={{ py: 4 }}>
-        <Stack spacing={4}>
-          <Skeleton variant="rectangular" height={200} sx={{ borderRadius: 3 }} />
-          <Skeleton variant="rectangular" height={120} sx={{ borderRadius: 2 }} />
-          <Grid container spacing={3}>
+      <Box sx={{ py: 4, width: "100%" }}>
+        <Stack spacing={3}>
+          <Skeleton
+            variant="rectangular"
+            height={200}
+            sx={{ borderRadius: 3 }}
+          />
+          <Skeleton
+            variant="rectangular"
+            height={120}
+            sx={{ borderRadius: 2 }}
+          />
+          <Stack 
+            direction="row" 
+            sx={{ 
+              flexWrap: 'wrap', 
+              gap: 3,
+              justifyContent: 'flex-start'
+            }}
+          >
             {Array.from({ length: 12 }).map((_, index) => (
-              <Grid item xs={12} sm={6} md={4} lg={3} key={index}>
+              <Box key={index} sx={{ flex: '1 1 300px', minWidth: '300px', maxWidth: '400px' }}>
                 <Card sx={{ borderRadius: 3 }}>
                   <Skeleton variant="rectangular" height={200} />
                   <CardContent>
@@ -642,145 +694,138 @@ const Foods = () => {
                     <Skeleton variant="text" height={20} width="60%" />
                   </CardContent>
                 </Card>
-              </Grid>
+              </Box>
             ))}
-          </Grid>
+          </Stack>
         </Stack>
-      </Container>
+      </Box>
     );
   }
 
   return (
-    <Container maxWidth="xl" sx={{ py: 4 }}>
-      <Stack spacing={4}>
-        {/* Hero Section */}
-        <Paper
-          elevation={0}
+    <Box sx={{ py: 4, width: "100%" }}>
+      <Stack spacing={3}>
+        {/* Header */}
+        <Box
           sx={{
-            background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-            color: "white",
-            p: { xs: 3, md: 6 },
-            borderRadius: 3,
-            textAlign: "center",
-            position: "relative",
-            overflow: "hidden",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            flexDirection: isRTL ? "row-reverse" : "row",
+            mb: 2,
           }}
         >
-          {/* Animated background elements */}
-          <Box
-            sx={{
-              position: "absolute",
-              top: -20,
-              left: -20,
-              width: 80,
-              height: 80,
-              background: "rgba(255,255,255,0.1)",
-              borderRadius: "50%",
-              animation: "pulse 2s infinite",
-            }}
-          />
-          <Box
-            sx={{
-              position: "absolute",
-              bottom: -30,
-              right: -30,
-              width: 120,
-              height: 120,
-              background: "rgba(255,255,255,0.05)",
-              borderRadius: "50%",
-              animation: "pulse 3s infinite",
-            }}
-          />
-
-          <Avatar
-            sx={{
-              bgcolor: "rgba(255,255,255,0.2)",
-              width: { xs: 60, md: 80 },
-              height: { xs: 60, md: 80 },
-              margin: "0 auto 2rem",
-              fontSize: { xs: "1.5rem", md: "2rem" },
-            }}
-          >
-            <RestaurantIcon fontSize="large" />
-          </Avatar>
-          
           <Typography
-            variant="h3"
+            variant="h4"
             component="h1"
-            gutterBottom
+            color="primary"
             sx={{
-              fontWeight: 700,
-              mb: 2,
-              fontSize: { xs: "2rem", md: "3rem" },
               direction: isRTL ? "rtl" : "ltr",
               fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+              textAlign: isRTL ? "right" : "left",
             }}
           >
-            {language === "fa" ? "منوی غذاهای ایرانی" : "Iranian Food Menu"}
+            {language === "fa" ? "منوی غذاها" : "Food Menu"}
           </Typography>
-          
-          <Typography
-            variant="h6"
-            sx={{
-              opacity: 0.9,
-              fontWeight: 400,
-              fontSize: { xs: "1rem", md: "1.25rem" },
-              direction: isRTL ? "rtl" : "ltr",
-              fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
-            }}
-          >
-            {language === "fa"
-              ? "طعم‌های اصیل ایرانی با بهترین مواد اولیه و دستور پخت سنتی"
-              : "Authentic Iranian flavors with the finest ingredients and traditional recipes"}
-          </Typography>
+        </Box>
 
-          {/* Statistics */}
-          <Grid container spacing={2} sx={{ mt: 4, justifyContent: "center" }}>
-            <Grid item xs={6} sm={3}>
-              <Box sx={{ textAlign: "center" }}>
-                <Typography variant="h4" sx={{ fontWeight: 700, mb: 0.5 }}>
-                  {allFoods.length}
-                </Typography>
-                <Typography variant="body2" sx={{ opacity: 0.8 }}>
-                  {language === "fa" ? "غذا" : "Foods"}
-                </Typography>
-              </Box>
-            </Grid>
-            <Grid item xs={6} sm={3}>
-              <Box sx={{ textAlign: "center" }}>
-                <Typography variant="h4" sx={{ fontWeight: 700, mb: 0.5 }}>
-                  {allFoods.filter(f => f.isPopular).length}
-                </Typography>
-                <Typography variant="body2" sx={{ opacity: 0.8 }}>
-                  {language === "fa" ? "محبوب" : "Popular"}
-                </Typography>
-              </Box>
-            </Grid>
-            <Grid item xs={6} sm={3}>
-              <Box sx={{ textAlign: "center" }}>
-                <Typography variant="h4" sx={{ fontWeight: 700, mb: 0.5 }}>
-                  {allFoods.filter(f => f.isVegetarian).length}
-                </Typography>
-                <Typography variant="body2" sx={{ opacity: 0.8 }}>
-                  {language === "fa" ? "گیاهی" : "Vegetarian"}
-                </Typography>
-              </Box>
-            </Grid>
-            <Grid item xs={6} sm={3}>
-              <Box sx={{ textAlign: "center" }}>
-                <Typography variant="h4" sx={{ fontWeight: 700, mb: 0.5 }}>
-                  4.6
-                </Typography>
-                <Typography variant="body2" sx={{ opacity: 0.8 }}>
-                  {language === "fa" ? "امتیاز متوسط" : "Avg Rating"}
-                </Typography>
-              </Box>
-            </Grid>
-          </Grid>
-        </Paper>
+        {/* Statistics Cards */}
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={3} sx={{ flexWrap: "wrap" }}>
+          <Stack sx={{ flex: { xs: "1 1 100%", sm: "1 1 calc(50% - 12px)", md: "1 1 calc(25% - 18px)" } }}>
+            <Card
+              sx={{
+                background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+                color: "white",
+              }}
+            >
+              <CardContent>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                  <RestaurantIcon sx={{ fontSize: 40 }} />
+                  <Box>
+                    <Typography variant="h4" sx={{ fontWeight: 700 }}>
+                      {allFoods.length}
+                    </Typography>
+                    <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                      {language === "fa" ? "کل غذاها" : "Total Foods"}
+                    </Typography>
+                  </Box>
+                </Box>
+              </CardContent>
+            </Card>
+          </Stack>
+          
+          <Stack sx={{ flex: { xs: "1 1 100%", sm: "1 1 calc(50% - 12px)", md: "1 1 calc(25% - 18px)" } }}>
+            <Card
+              sx={{
+                background: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
+                color: "white",
+              }}
+            >
+              <CardContent>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                  <StarIcon sx={{ fontSize: 40 }} />
+                  <Box>
+                    <Typography variant="h4" sx={{ fontWeight: 700 }}>
+                      {allFoods.filter((f) => f.isPopular).length}
+                    </Typography>
+                    <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                      {language === "fa" ? "محبوب" : "Popular"}
+                    </Typography>
+                  </Box>
+                </Box>
+              </CardContent>
+            </Card>
+          </Stack>
+          
+          <Stack sx={{ flex: { xs: "1 1 100%", sm: "1 1 calc(50% - 12px)", md: "1 1 calc(25% - 18px)" } }}>
+            <Card
+              sx={{
+                background: "linear-gradient(135deg, #4caf50 0%, #2e7d32 100%)",
+                color: "white",
+              }}
+            >
+              <CardContent>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                  <EcoIcon sx={{ fontSize: 40 }} />
+                  <Box>
+                    <Typography variant="h4" sx={{ fontWeight: 700 }}>
+                      {allFoods.filter((f) => f.isVegetarian).length}
+                    </Typography>
+                    <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                      {language === "fa" ? "گیاهی" : "Vegetarian"}
+                    </Typography>
+                  </Box>
+                </Box>
+              </CardContent>
+            </Card>
+          </Stack>
+          
+          <Stack sx={{ flex: { xs: "1 1 100%", sm: "1 1 calc(50% - 12px)", md: "1 1 calc(25% - 18px)" } }}>
+            <Card
+              sx={{
+                background: "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)",
+                color: "white",
+              }}
+            >
+              <CardContent>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                  <StarIcon sx={{ fontSize: 40 }} />
+                  <Box>
+                    <Typography variant="h4" sx={{ fontWeight: 700 }}>
+                      4.6
+                    </Typography>
+                    <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                      {language === "fa" ? "امتیاز متوسط" : "Avg Rating"}
+                    </Typography>
+                  </Box>
+                </Box>
+              </CardContent>
+            </Card>
+          </Stack>
+        </Stack>
 
         {/* Search and Controls */}
-        <Paper elevation={1} sx={{ p: { xs: 2, md: 3 }, borderRadius: 2 }}>
+        <Paper elevation={3} sx={{ p: { xs: 3, md: 4 } }}>
           <Stack spacing={3}>
             {/* Main Search and View Controls */}
             <Box
@@ -793,9 +838,18 @@ const Foods = () => {
               }}
             >
               {/* Search Bar */}
-              <Box sx={{ display: "flex", gap: 2, flexGrow: 1, alignItems: "center" }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  gap: 2,
+                  flexGrow: 1,
+                  alignItems: "center",
+                }}
+              >
                 <TextField
-                  placeholder={language === "fa" ? "جستجو در غذاها..." : "Search foods..."}
+                  placeholder={
+                    language === "fa" ? "جستجو در غذاها..." : "Search foods..."
+                  }
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   sx={{
@@ -806,11 +860,15 @@ const Foods = () => {
                     },
                     "& .MuiInputBase-input": {
                       direction: isRTL ? "rtl" : "ltr",
-                      fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+                      fontFamily: isRTL
+                        ? "var(--font-persian)"
+                        : "var(--font-english)",
                     },
                   }}
                   InputProps={{
-                    startAdornment: <SearchIcon sx={{ mr: 1, color: "text.secondary" }} />,
+                    startAdornment: (
+                      <SearchIcon sx={{ mr: 1, color: "text.secondary" }} />
+                    ),
                   }}
                 />
 
@@ -849,33 +907,51 @@ const Foods = () => {
               }}
             >
               <FormControl sx={{ minWidth: 140 }}>
-                <InputLabel>{language === "fa" ? "دسته‌بندی" : "Category"}</InputLabel>
+                <InputLabel>
+                  {language === "fa" ? "دسته‌بندی" : "Category"}
+                </InputLabel>
                 <Select
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
                   sx={{ borderRadius: 3 }}
                 >
                   <MenuItem value="all">{getCategoryLabel("all")}</MenuItem>
-                  <MenuItem value="breakfast">{getCategoryLabel("breakfast")}</MenuItem>
+                  <MenuItem value="breakfast">
+                    {getCategoryLabel("breakfast")}
+                  </MenuItem>
                   <MenuItem value="lunch">{getCategoryLabel("lunch")}</MenuItem>
-                  <MenuItem value="dinner">{getCategoryLabel("dinner")}</MenuItem>
+                  <MenuItem value="dinner">
+                    {getCategoryLabel("dinner")}
+                  </MenuItem>
                 </Select>
               </FormControl>
 
               <FormControl sx={{ minWidth: 160 }}>
-                <InputLabel>{language === "fa" ? "مرتب‌سازی" : "Sort By"}</InputLabel>
+                <InputLabel>
+                  {language === "fa" ? "مرتب‌سازی" : "Sort By"}
+                </InputLabel>
                 <Select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
                   sx={{ borderRadius: 3 }}
                 >
                   <MenuItem value="name">{getSortLabel("name")}</MenuItem>
-                  <MenuItem value="price-low">{getSortLabel("price-low")}</MenuItem>
-                  <MenuItem value="price-high">{getSortLabel("price-high")}</MenuItem>
+                  <MenuItem value="price-low">
+                    {getSortLabel("price-low")}
+                  </MenuItem>
+                  <MenuItem value="price-high">
+                    {getSortLabel("price-high")}
+                  </MenuItem>
                   <MenuItem value="rating">{getSortLabel("rating")}</MenuItem>
-                  <MenuItem value="prep-time">{getSortLabel("prep-time")}</MenuItem>
-                  <MenuItem value="calories">{getSortLabel("calories")}</MenuItem>
-                  <MenuItem value="popularity">{getSortLabel("popularity")}</MenuItem>
+                  <MenuItem value="prep-time">
+                    {getSortLabel("prep-time")}
+                  </MenuItem>
+                  <MenuItem value="calories">
+                    {getSortLabel("calories")}
+                  </MenuItem>
+                  <MenuItem value="popularity">
+                    {getSortLabel("popularity")}
+                  </MenuItem>
                 </Select>
               </FormControl>
 
@@ -953,12 +1029,21 @@ const Foods = () => {
                 justifyContent: "space-between",
               }}
             >
-              <Box sx={{ display: "flex", alignItems: "center", gap: 2, flexWrap: "wrap" }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 2,
+                  flexWrap: "wrap",
+                }}
+              >
                 <Typography
                   variant="body1"
                   color="text.secondary"
                   sx={{
-                    fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+                    fontFamily: isRTL
+                      ? "var(--font-persian)"
+                      : "var(--font-english)",
                   }}
                 >
                   {language === "fa"
@@ -966,30 +1051,40 @@ const Foods = () => {
                     : `${filteredAndSortedFoods.length} foods found`}
                 </Typography>
 
-                {filteredAndSortedFoods.filter(f => f.isPopular).length > 0 && (
+                {filteredAndSortedFoods.filter((f) => f.isPopular).length >
+                  0 && (
                   <Chip
                     icon={<StarIcon />}
-                    label={`${filteredAndSortedFoods.filter(f => f.isPopular).length} ${language === "fa" ? "محبوب" : "popular"}`}
+                    label={`${
+                      filteredAndSortedFoods.filter((f) => f.isPopular).length
+                    } ${language === "fa" ? "محبوب" : "popular"}`}
                     color="primary"
                     variant="outlined"
                     size="small"
                   />
                 )}
 
-                {filteredAndSortedFoods.filter(f => f.isVegetarian).length > 0 && (
+                {filteredAndSortedFoods.filter((f) => f.isVegetarian).length >
+                  0 && (
                   <Chip
                     icon={<EcoIcon />}
-                    label={`${filteredAndSortedFoods.filter(f => f.isVegetarian).length} ${language === "fa" ? "گیاهی" : "vegetarian"}`}
+                    label={`${
+                      filteredAndSortedFoods.filter((f) => f.isVegetarian)
+                        .length
+                    } ${language === "fa" ? "گیاهی" : "vegetarian"}`}
                     color="success"
                     variant="outlined"
                     size="small"
                   />
                 )}
 
-                {filteredAndSortedFoods.filter(f => f.discount).length > 0 && (
+                {filteredAndSortedFoods.filter((f) => f.discount).length >
+                  0 && (
                   <Chip
                     icon={<PriceIcon />}
-                    label={`${filteredAndSortedFoods.filter(f => f.discount).length} ${language === "fa" ? "تخفیف" : "discounted"}`}
+                    label={`${
+                      filteredAndSortedFoods.filter((f) => f.discount).length
+                    } ${language === "fa" ? "تخفیف" : "discounted"}`}
                     color="error"
                     variant="outlined"
                     size="small"
@@ -1001,7 +1096,9 @@ const Foods = () => {
               {getTotalCartItems() > 0 && (
                 <Chip
                   icon={<ShoppingCartIcon />}
-                  label={`${getTotalCartItems()} ${language === "fa" ? "آیتم" : "items"} - ${formatCurrency(getCartTotal(), language)}`}
+                  label={`${getTotalCartItems()} ${
+                    language === "fa" ? "آیتم" : "items"
+                  } - ${formatCurrency(getCartTotal(), language)}`}
                   color="primary"
                   sx={{ fontWeight: 600 }}
                 />
@@ -1010,48 +1107,50 @@ const Foods = () => {
           </Stack>
         </Paper>
 
-        {/* Food Grid */}
-        <Grid 
-          container 
-          spacing={{ xs: 2, md: 3 }}
-          sx={{ 
+        {/* Food Cards */}
+        <Stack
+          direction="row"
+          spacing={3}
+          sx={{
             direction: isRTL ? "rtl" : "ltr",
-            // Adjust columns based on view mode
-            '& .MuiGrid-item': viewMode === 'list' ? {
-              '@media (min-width: 900px)': {
-                maxWidth: '100%',
-                flexBasis: '100%',
-              }
-            } : {}
+            flexWrap: "wrap",
           }}
         >
           {filteredAndSortedFoods.map((food, index) => (
-            <Grid 
-              item 
-              xs={12} 
-              sm={viewMode === 'list' ? 12 : 6} 
-              md={viewMode === 'list' ? 12 : 4} 
-              lg={viewMode === 'list' ? 12 : 3} 
+            <Stack
               key={food.id}
+              sx={{
+                flex:
+                  viewMode === "list"
+                    ? "1 1 100%"
+                    : {
+                        xs: "1 1 100%",
+                        sm: "1 1 calc(50% - 12px)",
+                        md: "1 1 calc(33.333% - 16px)",
+                        lg: "1 1 calc(25% - 18px)",
+                      },
+              }}
             >
               <Fade in={true} timeout={300 + index * 50}>
                 <Card
+                  elevation={food.isPopular ? 6 : 2}
                   sx={{
                     height: "100%",
                     display: "flex",
-                    flexDirection: viewMode === 'list' ? "row" : "column",
+                    flexDirection: viewMode === "list" ? "row" : "column",
                     position: "relative",
-                    borderRadius: 3,
                     overflow: "hidden",
                     cursor: "pointer",
-                    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                    transition: "all 0.3s ease-in-out",
                     "&:hover": {
-                      transform: food.isAvailable ? "translateY(-8px)" : "none",
-                      boxShadow: food.isAvailable ? "0 20px 40px rgba(0,0,0,0.1)" : "none",
+                      transform: food.isAvailable ? "translateY(-4px)" : "none",
+                      boxShadow: food.isAvailable
+                        ? "0 8px 24px rgba(0,0,0,0.12)"
+                        : "none",
                     },
                     border: food.isPopular ? "2px solid #ff6b35" : "none",
                     filter: !food.isAvailable ? "grayscale(30%)" : "none",
-                    opacity: !food.isAvailable ? 0.8 : 1,
+                    opacity: !food.isAvailable ? 0.7 : 1,
                   }}
                   onClick={() => handleFoodClick(food)}
                 >
@@ -1144,17 +1243,22 @@ const Foods = () => {
                         },
                       }}
                     >
-                      {favorites.includes(food.id) ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+                      {favorites.includes(food.id) ? (
+                        <FavoriteIcon />
+                      ) : (
+                        <FavoriteBorderIcon />
+                      )}
                     </IconButton>
                   </Box>
 
                   <CardMedia
                     component="img"
-                    height={viewMode === 'list' ? 200 : 240}
+                    height={viewMode === "list" ? 200 : 240}
                     image={food.imageUrl}
                     alt={language === "fa" ? food.name : food.nameEn}
                     sx={{
-                      width: viewMode === 'list' ? { xs: "100%", sm: 300 } : "100%",
+                      width:
+                        viewMode === "list" ? { xs: "100%", sm: 300 } : "100%",
                       objectFit: "cover",
                       transition: "transform 0.3s ease",
                       "&:hover": {
@@ -1163,15 +1267,14 @@ const Foods = () => {
                     }}
                   />
 
-                  <CardContent 
-                    sx={{ 
-                      flexGrow: 1, 
-                      p: 3,
+                  <CardContent
+                    sx={{
+                      flexGrow: 1,
                       display: "flex",
                       flexDirection: "column",
                     }}
                   >
-                    <Stack spacing={2} sx={{ height: "100%" }}>
+                    <Stack spacing={2.5} sx={{ height: "100%" }}>
                       {/* Title and Rating */}
                       <Box>
                         <Typography
@@ -1182,7 +1285,9 @@ const Foods = () => {
                             mb: 1,
                             direction: isRTL ? "rtl" : "ltr",
                             textAlign: isRTL ? "right" : "left",
-                            fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+                            fontFamily: isRTL
+                              ? "var(--font-persian)"
+                              : "var(--font-english)",
                             lineHeight: 1.3,
                             fontSize: { xs: "1rem", md: "1.25rem" },
                           }}
@@ -1197,7 +1302,12 @@ const Foods = () => {
                             justifyContent: isRTL ? "flex-end" : "flex-start",
                           }}
                         >
-                          <Rating value={food.rating} precision={0.1} size="small" readOnly />
+                          <Rating
+                            value={food.rating}
+                            precision={0.1}
+                            size="small"
+                            readOnly
+                          />
                           <Typography variant="body2" color="text.secondary">
                             ({food.rating})
                           </Typography>
@@ -1206,14 +1316,18 @@ const Foods = () => {
 
                       {/* Price */}
                       <Box>
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                        >
                           <Typography
                             variant="h6"
                             color="primary"
                             sx={{
                               fontWeight: 700,
                               direction: isRTL ? "rtl" : "ltr",
-                              fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+                              fontFamily: isRTL
+                                ? "var(--font-persian)"
+                                : "var(--font-english)",
                             }}
                           >
                             {formatCurrency(food.price, language)}
@@ -1225,7 +1339,9 @@ const Foods = () => {
                                 textDecoration: "line-through",
                                 color: "text.secondary",
                                 direction: isRTL ? "rtl" : "ltr",
-                                fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+                                fontFamily: isRTL
+                                  ? "var(--font-persian)"
+                                  : "var(--font-english)",
                               }}
                             >
                               {formatCurrency(food.originalPrice, language)}
@@ -1244,16 +1360,34 @@ const Foods = () => {
                           flexWrap: "wrap",
                         }}
                       >
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                          <TimeIcon sx={{ fontSize: 16, color: "text.secondary" }} />
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 0.5,
+                          }}
+                        >
+                          <TimeIcon
+                            sx={{ fontSize: 16, color: "text.secondary" }}
+                          />
                           <Typography variant="caption" color="text.secondary">
-                            {food.prepTime} {language === "fa" ? "دقیقه" : "min"}
+                            {food.prepTime}{" "}
+                            {language === "fa" ? "دقیقه" : "min"}
                           </Typography>
                         </Box>
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                          <MoneyIcon sx={{ fontSize: 16, color: "text.secondary" }} />
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 0.5,
+                          }}
+                        >
+                          <MoneyIcon
+                            sx={{ fontSize: 16, color: "text.secondary" }}
+                          />
                           <Typography variant="caption" color="text.secondary">
-                            {food.calories} {language === "fa" ? "کالری" : "cal"}
+                            {food.calories}{" "}
+                            {language === "fa" ? "کالری" : "cal"}
                           </Typography>
                         </Box>
                       </Box>
@@ -1266,14 +1400,18 @@ const Foods = () => {
                           lineHeight: 1.6,
                           direction: isRTL ? "rtl" : "ltr",
                           textAlign: isRTL ? "right" : "left",
-                          fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+                          fontFamily: isRTL
+                            ? "var(--font-persian)"
+                            : "var(--font-english)",
                           display: "-webkit-box",
                           WebkitLineClamp: 2,
                           WebkitBoxOrient: "vertical",
                           overflow: "hidden",
                         }}
                       >
-                        {language === "fa" ? food.description : food.descriptionEn}
+                        {language === "fa"
+                          ? food.description
+                          : food.descriptionEn}
                       </Typography>
 
                       {/* Ingredients */}
@@ -1285,10 +1423,14 @@ const Foods = () => {
                             mb: 1,
                             direction: isRTL ? "rtl" : "ltr",
                             textAlign: isRTL ? "right" : "left",
-                            fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+                            fontFamily: isRTL
+                              ? "var(--font-persian)"
+                              : "var(--font-english)",
                           }}
                         >
-                          {language === "fa" ? "مواد تشکیل دهنده:" : "Ingredients:"}
+                          {language === "fa"
+                            ? "مواد تشکیل دهنده:"
+                            : "Ingredients:"}
                         </Typography>
                         <Box
                           sx={{
@@ -1298,7 +1440,10 @@ const Foods = () => {
                             justifyContent: isRTL ? "flex-end" : "flex-start",
                           }}
                         >
-                          {(language === "fa" ? food.ingredients : food.ingredientsEn)
+                          {(language === "fa"
+                            ? food.ingredients
+                            : food.ingredientsEn
+                          )
                             .slice(0, 3)
                             .map((ingredient, index) => (
                               <Chip
@@ -1309,20 +1454,26 @@ const Foods = () => {
                                 sx={{
                                   borderRadius: 2,
                                   fontSize: "0.7rem",
-                                  fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+                                  fontFamily: isRTL
+                                    ? "var(--font-persian)"
+                                    : "var(--font-english)",
                                   bgcolor: "rgba(0,0,0,0.02)",
                                 }}
                               />
                             ))}
                           {food.ingredients.length > 3 && (
                             <Chip
-                              label={`+${food.ingredients.length - 3} ${language === "fa" ? "بیشتر" : "more"}`}
+                              label={`+${food.ingredients.length - 3} ${
+                                language === "fa" ? "بیشتر" : "more"
+                              }`}
                               size="small"
                               variant="outlined"
                               sx={{
                                 borderRadius: 2,
                                 fontSize: "0.7rem",
-                                fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+                                fontFamily: isRTL
+                                  ? "var(--font-persian)"
+                                  : "var(--font-english)",
                                 bgcolor: "rgba(0,0,0,0.02)",
                               }}
                             />
@@ -1348,22 +1499,38 @@ const Foods = () => {
                           onClick={() => handleAddToCart(food.id)}
                           sx={{
                             borderRadius: 2,
-                            fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+                            fontFamily: isRTL
+                              ? "var(--font-persian)"
+                              : "var(--font-english)",
                             minWidth: 120,
                           }}
                         >
                           {language === "fa" ? "افزودن به سبد" : "Add to Cart"}
                         </Button>
                         {cart[food.id] && (
-                          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 1,
+                            }}
+                          >
                             <IconButton
                               size="small"
                               onClick={() => handleRemoveFromCart(food.id)}
                               sx={{ bgcolor: "rgba(0,0,0,0.04)" }}
                             >
-                              <Typography variant="body2" sx={{ fontWeight: 600 }}>-</Typography>
+                              <Typography
+                                variant="body2"
+                                sx={{ fontWeight: 600 }}
+                              >
+                                -
+                              </Typography>
                             </IconButton>
-                            <Typography variant="body2" sx={{ minWidth: 20, textAlign: "center" }}>
+                            <Typography
+                              variant="body2"
+                              sx={{ minWidth: 20, textAlign: "center" }}
+                            >
                               {cart[food.id]}
                             </Typography>
                             <IconButton
@@ -1371,20 +1538,32 @@ const Foods = () => {
                               onClick={() => handleAddToCart(food.id)}
                               sx={{ bgcolor: "rgba(0,0,0,0.04)" }}
                             >
-                              <Typography variant="body2" sx={{ fontWeight: 600 }}>+</Typography>
+                              <Typography
+                                variant="body2"
+                                sx={{ fontWeight: 600 }}
+                              >
+                                +
+                              </Typography>
                             </IconButton>
                           </Box>
                         )}
                       </Box>
 
                       {/* Category Badge */}
-                      <Box sx={{ display: "flex", justifyContent: isRTL ? "flex-end" : "flex-start" }}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          justifyContent: isRTL ? "flex-end" : "flex-start",
+                        }}
+                      >
                         <Chip
                           label={getCategoryLabel(food.category)}
                           size="small"
                           color="secondary"
                           sx={{
-                            fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+                            fontFamily: isRTL
+                              ? "var(--font-persian)"
+                              : "var(--font-english)",
                             fontWeight: 500,
                           }}
                         />
@@ -1393,9 +1572,9 @@ const Foods = () => {
                   </CardContent>
                 </Card>
               </Fade>
-            </Grid>
+            </Stack>
           ))}
-        </Grid>
+        </Stack>
 
         {/* No Results */}
         {filteredAndSortedFoods.length === 0 && (
@@ -1409,13 +1588,17 @@ const Foods = () => {
               direction: isRTL ? "rtl" : "ltr",
             }}
           >
-            <RestaurantIcon sx={{ fontSize: 60, color: "text.secondary", mb: 2 }} />
+            <RestaurantIcon
+              sx={{ fontSize: 60, color: "text.secondary", mb: 2 }}
+            />
             <Typography
               variant="h6"
               color="text.secondary"
               gutterBottom
               sx={{
-                fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+                fontFamily: isRTL
+                  ? "var(--font-persian)"
+                  : "var(--font-english)",
               }}
             >
               {language === "fa" ? "هیچ غذایی یافت نشد" : "No foods found"}
@@ -1424,7 +1607,9 @@ const Foods = () => {
               variant="body2"
               color="text.secondary"
               sx={{
-                fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+                fontFamily: isRTL
+                  ? "var(--font-persian)"
+                  : "var(--font-english)",
                 mb: 2,
               }}
             >
@@ -1455,7 +1640,14 @@ const Foods = () => {
           },
         }}
       >
-        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 3 }}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            mb: 3,
+          }}
+        >
           <Typography variant="h6">
             {language === "fa" ? "فیلترها" : "Filters"}
           </Typography>
@@ -1466,25 +1658,38 @@ const Foods = () => {
 
         <Stack spacing={3}>
           <FormControl fullWidth>
-            <InputLabel>{language === "fa" ? "دسته‌بندی" : "Category"}</InputLabel>
-            <Select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}>
+            <InputLabel>
+              {language === "fa" ? "دسته‌بندی" : "Category"}
+            </InputLabel>
+            <Select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+            >
               <MenuItem value="all">{getCategoryLabel("all")}</MenuItem>
-              <MenuItem value="breakfast">{getCategoryLabel("breakfast")}</MenuItem>
+              <MenuItem value="breakfast">
+                {getCategoryLabel("breakfast")}
+              </MenuItem>
               <MenuItem value="lunch">{getCategoryLabel("lunch")}</MenuItem>
               <MenuItem value="dinner">{getCategoryLabel("dinner")}</MenuItem>
             </Select>
           </FormControl>
 
           <FormControl fullWidth>
-            <InputLabel>{language === "fa" ? "مرتب‌سازی" : "Sort By"}</InputLabel>
+            <InputLabel>
+              {language === "fa" ? "مرتب‌سازی" : "Sort By"}
+            </InputLabel>
             <Select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
               <MenuItem value="name">{getSortLabel("name")}</MenuItem>
               <MenuItem value="price-low">{getSortLabel("price-low")}</MenuItem>
-              <MenuItem value="price-high">{getSortLabel("price-high")}</MenuItem>
+              <MenuItem value="price-high">
+                {getSortLabel("price-high")}
+              </MenuItem>
               <MenuItem value="rating">{getSortLabel("rating")}</MenuItem>
               <MenuItem value="prep-time">{getSortLabel("prep-time")}</MenuItem>
               <MenuItem value="calories">{getSortLabel("calories")}</MenuItem>
-              <MenuItem value="popularity">{getSortLabel("popularity")}</MenuItem>
+              <MenuItem value="popularity">
+                {getSortLabel("popularity")}
+              </MenuItem>
             </Select>
           </FormControl>
 
@@ -1501,9 +1706,15 @@ const Foods = () => {
               step={5000}
               valueLabelFormat={(value) => formatCurrency(value, language)}
             />
-            <Box sx={{ display: "flex", justifyContent: "space-between", mt: 1 }}>
-              <Typography variant="caption">{formatCurrency(priceRange[0], language)}</Typography>
-              <Typography variant="caption">{formatCurrency(priceRange[1], language)}</Typography>
+            <Box
+              sx={{ display: "flex", justifyContent: "space-between", mt: 1 }}
+            >
+              <Typography variant="caption">
+                {formatCurrency(priceRange[0], language)}
+              </Typography>
+              <Typography variant="caption">
+                {formatCurrency(priceRange[1], language)}
+              </Typography>
             </Box>
           </Box>
 
@@ -1519,7 +1730,9 @@ const Foods = () => {
               max={1000}
               step={50}
             />
-            <Box sx={{ display: "flex", justifyContent: "space-between", mt: 1 }}>
+            <Box
+              sx={{ display: "flex", justifyContent: "space-between", mt: 1 }}
+            >
               <Typography variant="caption">{calorieRange[0]} cal</Typography>
               <Typography variant="caption">{calorieRange[1]} cal</Typography>
             </Box>
@@ -1604,7 +1817,7 @@ const Foods = () => {
         onClose={() => setFoodDetailOpen(false)}
         maxWidth="md"
         fullWidth
-        fullScreen={{ xs: true, md: false }}
+        fullScreen={isMobile}
       >
         {selectedFood && (
           <>
@@ -1621,7 +1834,9 @@ const Foods = () => {
                 sx={{
                   fontWeight: 700,
                   direction: isRTL ? "rtl" : "ltr",
-                  fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+                  fontFamily: isRTL
+                    ? "var(--font-persian)"
+                    : "var(--font-english)",
                 }}
               >
                 {language === "fa" ? selectedFood.name : selectedFood.nameEn}
@@ -1637,7 +1852,11 @@ const Foods = () => {
                     component="img"
                     height={300}
                     image={selectedFood.imageUrl}
-                    alt={language === "fa" ? selectedFood.name : selectedFood.nameEn}
+                    alt={
+                      language === "fa"
+                        ? selectedFood.name
+                        : selectedFood.nameEn
+                    }
                     sx={{ borderRadius: 2, objectFit: "cover" }}
                   />
                   <Box
@@ -1674,7 +1893,12 @@ const Foods = () => {
                 </Box>
 
                 <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                  <Rating value={selectedFood.rating} precision={0.1} size="large" readOnly />
+                  <Rating
+                    value={selectedFood.rating}
+                    precision={0.1}
+                    size="large"
+                    readOnly
+                  />
                   <Typography variant="h6" color="text.secondary">
                     ({selectedFood.rating})
                   </Typography>
@@ -1686,7 +1910,9 @@ const Foods = () => {
                   sx={{
                     fontWeight: 700,
                     direction: isRTL ? "rtl" : "ltr",
-                    fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+                    fontFamily: isRTL
+                      ? "var(--font-persian)"
+                      : "var(--font-english)",
                   }}
                 >
                   {formatCurrency(selectedFood.price, language)}
@@ -1711,16 +1937,29 @@ const Foods = () => {
                     lineHeight: 1.7,
                     direction: isRTL ? "rtl" : "ltr",
                     textAlign: isRTL ? "right" : "left",
-                    fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+                    fontFamily: isRTL
+                      ? "var(--font-persian)"
+                      : "var(--font-english)",
                   }}
                 >
-                  {language === "fa" ? selectedFood.description : selectedFood.descriptionEn}
+                  {language === "fa"
+                    ? selectedFood.description
+                    : selectedFood.descriptionEn}
                 </Typography>
 
-                <Grid container spacing={2}>
-                  <Grid item xs={6}>
-                    <Box sx={{ textAlign: "center", p: 2, bgcolor: "grey.50", borderRadius: 2 }}>
-                      <TimeIcon sx={{ fontSize: 32, color: "primary.main", mb: 1 }} />
+                <Stack direction="row" spacing={2}>
+                  <Stack sx={{ flex: "1 1 50%" }}>
+                    <Box
+                      sx={{
+                        textAlign: "center",
+                        p: 2,
+                        bgcolor: "grey.50",
+                        borderRadius: 2,
+                      }}
+                    >
+                      <TimeIcon
+                        sx={{ fontSize: 32, color: "primary.main", mb: 1 }}
+                      />
                       <Typography variant="h6" sx={{ fontWeight: 600 }}>
                         {selectedFood.prepTime}
                       </Typography>
@@ -1728,10 +1967,19 @@ const Foods = () => {
                         {language === "fa" ? "دقیقه" : "minutes"}
                       </Typography>
                     </Box>
-                  </Grid>
-                  <Grid item xs={6}>
-                    <Box sx={{ textAlign: "center", p: 2, bgcolor: "grey.50", borderRadius: 2 }}>
-                      <MoneyIcon sx={{ fontSize: 32, color: "primary.main", mb: 1 }} />
+                  </Stack>
+                  <Stack sx={{ flex: "1 1 50%" }}>
+                    <Box
+                      sx={{
+                        textAlign: "center",
+                        p: 2,
+                        bgcolor: "grey.50",
+                        borderRadius: 2,
+                      }}
+                    >
+                      <MoneyIcon
+                        sx={{ fontSize: 32, color: "primary.main", mb: 1 }}
+                      />
                       <Typography variant="h6" sx={{ fontWeight: 600 }}>
                         {selectedFood.calories}
                       </Typography>
@@ -1739,8 +1987,8 @@ const Foods = () => {
                         {language === "fa" ? "کالری" : "calories"}
                       </Typography>
                     </Box>
-                  </Grid>
-                </Grid>
+                  </Stack>
+                </Stack>
 
                 <Box>
                   <Typography
@@ -1750,25 +1998,30 @@ const Foods = () => {
                       fontWeight: 600,
                       direction: isRTL ? "rtl" : "ltr",
                       textAlign: isRTL ? "right" : "left",
-                      fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+                      fontFamily: isRTL
+                        ? "var(--font-persian)"
+                        : "var(--font-english)",
                     }}
                   >
                     {language === "fa" ? "مواد تشکیل دهنده:" : "Ingredients:"}
                   </Typography>
                   <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-                    {(language === "fa" ? selectedFood.ingredients : selectedFood.ingredientsEn).map(
-                      (ingredient, index) => (
-                        <Chip
-                          key={index}
-                          label={ingredient}
-                          variant="outlined"
-                          sx={{
-                            borderRadius: 2,
-                            fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
-                          }}
-                        />
-                      )
-                    )}
+                    {(language === "fa"
+                      ? selectedFood.ingredients
+                      : selectedFood.ingredientsEn
+                    ).map((ingredient, index) => (
+                      <Chip
+                        key={index}
+                        label={ingredient}
+                        variant="outlined"
+                        sx={{
+                          borderRadius: 2,
+                          fontFamily: isRTL
+                            ? "var(--font-persian)"
+                            : "var(--font-english)",
+                        }}
+                      />
+                    ))}
                   </Box>
                 </Box>
 
@@ -1781,14 +2034,23 @@ const Foods = () => {
                         fontWeight: 600,
                         direction: isRTL ? "rtl" : "ltr",
                         textAlign: isRTL ? "right" : "left",
-                        fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+                        fontFamily: isRTL
+                          ? "var(--font-persian)"
+                          : "var(--font-english)",
                       }}
                     >
                       {language === "fa" ? "ارزش غذایی:" : "Nutrition Facts:"}
                     </Typography>
-                    <Grid container spacing={1}>
-                      <Grid item xs={3}>
-                        <Box sx={{ textAlign: "center", p: 1, bgcolor: "primary.50", borderRadius: 1 }}>
+                    <Stack direction="row" spacing={1}>
+                      <Stack sx={{ flex: "1 1 25%" }}>
+                        <Box
+                          sx={{
+                            textAlign: "center",
+                            p: 1,
+                            bgcolor: "primary.50",
+                            borderRadius: 1,
+                          }}
+                        >
                           <Typography variant="body2" color="primary">
                             {language === "fa" ? "پروتئین" : "Protein"}
                           </Typography>
@@ -1796,9 +2058,16 @@ const Foods = () => {
                             {selectedFood.nutritionFacts.protein}g
                           </Typography>
                         </Box>
-                      </Grid>
-                      <Grid item xs={3}>
-                        <Box sx={{ textAlign: "center", p: 1, bgcolor: "secondary.50", borderRadius: 1 }}>
+                      </Stack>
+                      <Stack sx={{ flex: "1 1 25%" }}>
+                        <Box
+                          sx={{
+                            textAlign: "center",
+                            p: 1,
+                            bgcolor: "secondary.50",
+                            borderRadius: 1,
+                          }}
+                        >
                           <Typography variant="body2" color="secondary">
                             {language === "fa" ? "کربوهیدرات" : "Carbs"}
                           </Typography>
@@ -1806,9 +2075,16 @@ const Foods = () => {
                             {selectedFood.nutritionFacts.carbs}g
                           </Typography>
                         </Box>
-                      </Grid>
-                      <Grid item xs={3}>
-                        <Box sx={{ textAlign: "center", p: 1, bgcolor: "warning.50", borderRadius: 1 }}>
+                      </Stack>
+                      <Stack sx={{ flex: "1 1 25%" }}>
+                        <Box
+                          sx={{
+                            textAlign: "center",
+                            p: 1,
+                            bgcolor: "warning.50",
+                            borderRadius: 1,
+                          }}
+                        >
                           <Typography variant="body2" color="warning.main">
                             {language === "fa" ? "چربی" : "Fat"}
                           </Typography>
@@ -1816,9 +2092,16 @@ const Foods = () => {
                             {selectedFood.nutritionFacts.fat}g
                           </Typography>
                         </Box>
-                      </Grid>
-                      <Grid item xs={3}>
-                        <Box sx={{ textAlign: "center", p: 1, bgcolor: "success.50", borderRadius: 1 }}>
+                      </Stack>
+                      <Stack sx={{ flex: "1 1 25%" }}>
+                        <Box
+                          sx={{
+                            textAlign: "center",
+                            p: 1,
+                            bgcolor: "success.50",
+                            borderRadius: 1,
+                          }}
+                        >
                           <Typography variant="body2" color="success.main">
                             {language === "fa" ? "فیبر" : "Fiber"}
                           </Typography>
@@ -1826,30 +2109,46 @@ const Foods = () => {
                             {selectedFood.nutritionFacts.fiber}g
                           </Typography>
                         </Box>
-                      </Grid>
-                    </Grid>
+                      </Stack>
+                    </Stack>
                   </Box>
                 )}
 
-                {selectedFood.allergens && selectedFood.allergens.length > 0 && (
-                  <Alert severity="warning" sx={{ direction: isRTL ? "rtl" : "ltr" }}>
-                    <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5 }}>
-                      {language === "fa" ? "آلرژن‌ها:" : "Allergens:"}
-                    </Typography>
-                    <Typography variant="body2">
-                      {(language === "fa" ? selectedFood.allergens : selectedFood.allergensEn)?.join(", ")}
-                    </Typography>
-                  </Alert>
-                )}
+                {selectedFood.allergens &&
+                  selectedFood.allergens.length > 0 && (
+                    <Alert
+                      severity="warning"
+                      sx={{ direction: isRTL ? "rtl" : "ltr" }}
+                    >
+                      <Typography
+                        variant="body2"
+                        sx={{ fontWeight: 600, mb: 0.5 }}
+                      >
+                        {language === "fa" ? "آلرژن‌ها:" : "Allergens:"}
+                      </Typography>
+                      <Typography variant="body2">
+                        {(language === "fa"
+                          ? selectedFood.allergens
+                          : selectedFood.allergensEn
+                        )?.join(", ")}
+                      </Typography>
+                    </Alert>
+                  )}
               </Stack>
             </DialogContent>
             <DialogActions sx={{ p: 3, pt: 0 }}>
               <Box sx={{ display: "flex", gap: 1, width: "100%" }}>
                 <IconButton
                   onClick={() => handleFavoriteToggle(selectedFood.id)}
-                  color={favorites.includes(selectedFood.id) ? "error" : "default"}
+                  color={
+                    favorites.includes(selectedFood.id) ? "error" : "default"
+                  }
                 >
-                  {favorites.includes(selectedFood.id) ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+                  {favorites.includes(selectedFood.id) ? (
+                    <FavoriteIcon />
+                  ) : (
+                    <FavoriteBorderIcon />
+                  )}
                 </IconButton>
                 <Button
                   variant="contained"
@@ -1863,12 +2162,18 @@ const Foods = () => {
                   }}
                   sx={{
                     borderRadius: 2,
-                    fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+                    fontFamily: isRTL
+                      ? "var(--font-persian)"
+                      : "var(--font-english)",
                   }}
                 >
                   {selectedFood.isAvailable
-                    ? (language === "fa" ? "افزودن به سبد خرید" : "Add to Cart")
-                    : (language === "fa" ? "ناموجود" : "Unavailable")}
+                    ? language === "fa"
+                      ? "افزودن به سبد خرید"
+                      : "Add to Cart"
+                    : language === "fa"
+                    ? "ناموجود"
+                    : "Unavailable"}
                 </Button>
               </Box>
             </DialogActions>
@@ -1883,15 +2188,15 @@ const Foods = () => {
         onClose={() => setShowSuccessMessage(false)}
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       >
-        <Alert 
-          onClose={() => setShowSuccessMessage(false)} 
+        <Alert
+          onClose={() => setShowSuccessMessage(false)}
           severity="success"
           sx={{ width: "100%" }}
         >
           {successMessage}
         </Alert>
       </Snackbar>
-    </Container>
+    </Box>
   );
 };
 

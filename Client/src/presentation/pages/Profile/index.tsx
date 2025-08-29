@@ -8,7 +8,6 @@ import {
   Button,
   Avatar,
   Divider,
-  Grid,
   Card,
   CardContent,
   Alert,
@@ -180,9 +179,9 @@ const Profile = () => {
           )}
         </Box>
 
-        <Grid container spacing={3}>
+        <Stack direction={{ xs: "column", md: "row" }} spacing={3}>
           {/* Profile Picture and Basic Info */}
-          <Grid item xs={12} md={4}>
+          <Stack sx={{ flex: { xs: "1 1 100%", md: "1 1 33.333%" } }}>
             <Paper elevation={3} sx={{ p: 4, borderRadius: 0 }}>
               <Stack spacing={3} alignItems="center">
                 <Avatar
@@ -259,10 +258,10 @@ const Profile = () => {
                 </Card>
               </Stack>
             </Paper>
-          </Grid>
+          </Stack>
 
           {/* Profile Details */}
-          <Grid item xs={12} md={8}>
+          <Stack sx={{ flex: { xs: "1 1 100%", md: "1 1 66.667%" } }}>
             <Paper elevation={3} sx={{ p: 4, borderRadius: 0 }}>
               <Stack spacing={3}>
                 <Typography
@@ -278,8 +277,9 @@ const Profile = () => {
                   {t.personalInformation}
                 </Typography>
 
-                <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6}>
+                <Stack spacing={2}>
+                  <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+                    <Stack sx={{ flex: { xs: "1 1 100%", sm: "1 1 50%" } }}>
                     <TextField
                       fullWidth
                       label={t.firstName}
@@ -308,8 +308,8 @@ const Profile = () => {
                         },
                       }}
                     />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
+                    </Stack>
+                    <Stack sx={{ flex: { xs: "1 1 100%", sm: "1 1 50%" } }}>
                     <TextField
                       fullWidth
                       label={t.lastName}
@@ -338,8 +338,9 @@ const Profile = () => {
                         },
                       }}
                     />
-                  </Grid>
-                  <Grid item xs={12}>
+                    </Stack>
+                  </Stack>
+                  <Stack>
                     <TextField
                       fullWidth
                       label={t.email}
@@ -369,8 +370,8 @@ const Profile = () => {
                         },
                       }}
                     />
-                  </Grid>
-                  <Grid item xs={12}>
+                  </Stack>
+                  <Stack>
                     <TextField
                       fullWidth
                       label={t.username}
@@ -399,12 +400,12 @@ const Profile = () => {
                         },
                       }}
                     />
-                  </Grid>
-                </Grid>
+                  </Stack>
+                </Stack>
               </Stack>
             </Paper>
-          </Grid>
-        </Grid>
+          </Stack>
+        </Stack>
       </Stack>
     </Box>
   );

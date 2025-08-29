@@ -9,7 +9,6 @@ import {
   CardMedia,
   Chip,
   Button,
-  Grid,
   Container,
   Avatar,
   Alert,
@@ -417,8 +416,8 @@ const SaleDay = () => {
         </Paper>
 
         {/* Stats Overview */}
-        <Grid container spacing={3}>
-          <Grid item xs={12} sm={6} md={3}>
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={3} sx={{ flexWrap: "wrap" }}>
+          <Stack sx={{ flex: { xs: "1 1 100%", sm: "1 1 calc(50% - 12px)", md: "1 1 calc(25% - 18px)" } }}>
             <Card
               sx={{
                 background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
@@ -439,9 +438,9 @@ const SaleDay = () => {
                 </Box>
               </CardContent>
             </Card>
-          </Grid>
+          </Stack>
           
-          <Grid item xs={12} sm={6} md={3}>
+          <Stack sx={{ flex: { xs: "1 1 100%", sm: "1 1 calc(50% - 12px)", md: "1 1 calc(25% - 18px)" } }}>
             <Card
               sx={{
                 background: "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)",
@@ -462,9 +461,9 @@ const SaleDay = () => {
                 </Box>
               </CardContent>
             </Card>
-          </Grid>
+          </Stack>
           
-          <Grid item xs={12} sm={6} md={3}>
+          <Stack sx={{ flex: { xs: "1 1 100%", sm: "1 1 calc(50% - 12px)", md: "1 1 calc(25% - 18px)" } }}>
             <Card
               sx={{
                 background: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
@@ -485,9 +484,9 @@ const SaleDay = () => {
                 </Box>
               </CardContent>
             </Card>
-          </Grid>
+          </Stack>
           
-          <Grid item xs={12} sm={6} md={3}>
+          <Stack sx={{ flex: { xs: "1 1 100%", sm: "1 1 calc(50% - 12px)", md: "1 1 calc(25% - 18px)" } }}>
             <Card
               sx={{
                 background: "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)",
@@ -508,8 +507,8 @@ const SaleDay = () => {
                 </Box>
               </CardContent>
             </Card>
-          </Grid>
-        </Grid>
+          </Stack>
+        </Stack>
 
         {/* Emergency Alert */}
         <Alert
@@ -526,15 +525,15 @@ const SaleDay = () => {
           </Typography>
         </Alert>
 
-        {/* Food Grid */}
-        <Grid container spacing={3}>
+        {/* Food Stack */}
+        <Stack direction="row" spacing={3} sx={{ flexWrap: "wrap" }}>
           {saleDayFoods.map((food, index) => {
             const stockPercentage = getStockPercentage(food);
             const timeRemaining = food.endTime ? getTimeRemaining(food.endTime) : null;
             const isReserved = reservations[food.id];
             
             return (
-              <Grid item xs={12} sm={6} md={4} key={food.id}>
+              <Stack key={food.id} sx={{ flex: { xs: "1 1 100%", sm: "1 1 calc(50% - 12px)", md: "1 1 calc(33.333% - 16px)" } }}>
                 <Fade in={true} timeout={300 + index * 100}>
                   <Card
                     sx={{
@@ -845,10 +844,10 @@ const SaleDay = () => {
                     </CardContent>
                   </Card>
                 </Fade>
-              </Grid>
+              </Stack>
             );
           })}
-        </Grid>
+        </Stack>
 
         {/* No Available Foods */}
         {availableFoods.length === 0 && (

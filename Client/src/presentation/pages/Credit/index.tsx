@@ -6,7 +6,6 @@ import {
   Stack,
   Card,
   CardContent,
-  Grid,
   Chip,
   Button,
   TextField,
@@ -254,8 +253,8 @@ const Credit = () => {
         </Box>
 
         {/* Credit Statistics Cards */}
-        <Grid container spacing={3}>
-          <Grid item xs={12} sm={6} md={3}>
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={3} sx={{ flexWrap: "wrap" }}>
+          <Stack sx={{ flex: { xs: "1 1 100%", sm: "1 1 calc(50% - 12px)", md: "1 1 calc(25% - 18px)" } }}>
             <Card sx={{ backgroundColor: "primary.50" }}>
               <CardContent>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
@@ -291,9 +290,9 @@ const Credit = () => {
                 </Box>
               </CardContent>
             </Card>
-          </Grid>
+          </Stack>
 
-          <Grid item xs={12} sm={6} md={3}>
+          <Stack sx={{ flex: { xs: "1 1 100%", sm: "1 1 calc(50% - 12px)", md: "1 1 calc(25% - 18px)" } }}>
             <Card sx={{ backgroundColor: "success.50" }}>
               <CardContent>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
@@ -329,9 +328,9 @@ const Credit = () => {
                 </Box>
               </CardContent>
             </Card>
-          </Grid>
+          </Stack>
 
-          <Grid item xs={12} sm={6} md={3}>
+          <Stack sx={{ flex: { xs: "1 1 100%", sm: "1 1 calc(50% - 12px)", md: "1 1 calc(25% - 18px)" } }}>
             <Card sx={{ backgroundColor: "error.50" }}>
               <CardContent>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
@@ -367,9 +366,9 @@ const Credit = () => {
                 </Box>
               </CardContent>
             </Card>
-          </Grid>
+          </Stack>
 
-          <Grid item xs={12} sm={6} md={3}>
+          <Stack sx={{ flex: { xs: "1 1 100%", sm: "1 1 calc(50% - 12px)", md: "1 1 calc(25% - 18px)" } }}>
             <Card sx={{ backgroundColor: "info.50" }}>
               <CardContent>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
@@ -405,8 +404,8 @@ const Credit = () => {
                 </Box>
               </CardContent>
             </Card>
-          </Grid>
-        </Grid>
+          </Stack>
+        </Stack>
 
         {/* Recent Transactions */}
         <Paper elevation={3} sx={{ p: 4, borderRadius: 0 }}>
@@ -436,9 +435,8 @@ const Credit = () => {
 
             <Divider />
 
-            <Grid container spacing={2}>
+            <Stack spacing={2}>
               {transactions.slice(0, 10).map((transaction) => (
-                <Grid item xs={12} key={transaction.id}>
                   <Card variant="outlined">
                     <CardContent>
                       <Box
@@ -519,9 +517,8 @@ const Credit = () => {
                       </Box>
                     </CardContent>
                   </Card>
-                </Grid>
               ))}
-            </Grid>
+            </Stack>
           </Stack>
         </Paper>
       </Stack>

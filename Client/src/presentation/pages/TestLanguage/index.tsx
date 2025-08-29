@@ -6,7 +6,6 @@ import {
   Stack,
   Card,
   CardContent,
-  Grid,
   Button,
   TextField,
   FormControl,
@@ -257,10 +256,10 @@ const TestLanguage = () => {
           </Typography>
         </Alert>
 
-        {/* Test Components Grid */}
-        <Grid container spacing={3}>
+        {/* Test Components Stack */}
+        <Stack spacing={3} sx={{ display: 'flex', flexWrap: 'wrap', flexDirection: { xs: 'column', md: 'row' }, gap: 3 }}>
           {testComponents.map((component, index) => (
-            <Grid item xs={12} md={6} key={index}>
+            <Stack key={index} sx={{ flex: { xs: '1 1 100%', md: '1 1 calc(50% - 12px)' } }}>
               <Card sx={componentStyles.card}>
                 <CardContent>
                   <Box
@@ -295,9 +294,9 @@ const TestLanguage = () => {
                   {component.content}
                 </CardContent>
               </Card>
-            </Grid>
+            </Stack>
           ))}
-        </Grid>
+        </Stack>
 
         {/* Additional Testing Section */}
         <Paper sx={componentStyles.card}>
