@@ -55,8 +55,8 @@ interface SidebarProps {
   onDarkModeToggle?: () => void;
 }
 
-const Sidebar = ({ 
-  collapsed = false, 
+const Sidebar = ({
+  collapsed = false,
   onToggleCollapse,
   language = "en",
   onLanguageChange,
@@ -89,9 +89,9 @@ const Sidebar = ({
   };
 
   const toggleMenuExpansion = (menuKey: string) => {
-    setExpandedMenus(prev => ({
+    setExpandedMenus((prev) => ({
       ...prev,
-      [menuKey]: !prev[menuKey]
+      [menuKey]: !prev[menuKey],
     }));
   };
 
@@ -144,7 +144,7 @@ const Sidebar = ({
     <List sx={{ p: 0 }}>
       {items.map((item) => {
         const isActive = location.pathname === item.path;
-        
+
         return (
           <ListItem key={item.text} disablePadding sx={{ mb: 0.75 }}>
             <ListItemButton
@@ -202,7 +202,9 @@ const Sidebar = ({
                         fontSize: "13px",
                         fontWeight: 500,
                         color: "inherit",
-                        fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+                        fontFamily: isRTL
+                          ? "var(--font-persian)"
+                          : "var(--font-english)",
                         lineHeight: 1.4,
                       },
                     }}
@@ -247,17 +249,32 @@ const Sidebar = ({
         borderLeft: isRTL ? "1px solid #f1f5f9" : "none",
         display: "flex",
         flexDirection: "column",
-        position: "sticky",
+        position: "fixed",
         top: 0,
-        zIndex: 1,
+        left: isRTL ? "auto" : 0,
+        right: isRTL ? 0 : "auto",
+        zIndex: 1200,
         direction: isRTL ? "rtl" : "ltr",
         boxShadow: "0 0 0 1px rgba(0, 0, 0, 0.05)",
+        overflow: "hidden", // Prevent sidebar overflow
       }}
       className={collapsed ? "collapsed" : ""}
     >
       {/* Header */}
-      <Box sx={{ p: collapsed ? 2 : 3, pb: collapsed ? 2 : 3, borderBottom: "1px solid #f8fafc" }}>
-        <Stack direction="row" alignItems="center" spacing={collapsed ? 0 : 2} sx={{ mb: collapsed ? 0 : 2 }}>
+      <Box
+        sx={{
+          p: collapsed ? 2 : 3,
+          pb: collapsed ? 2 : 3,
+          borderBottom: "1px solid #f8fafc",
+          flexShrink: 0, // Prevent header from shrinking
+        }}
+      >
+        <Stack
+          direction="row"
+          alignItems="center"
+          spacing={collapsed ? 0 : 2}
+          sx={{ mb: collapsed ? 0 : 2 }}
+        >
           <Avatar
             sx={{
               width: collapsed ? 28 : 36,
@@ -272,38 +289,52 @@ const Sidebar = ({
           </Avatar>
           {!collapsed && (
             <Box sx={{ flex: 1, minWidth: 0 }}>
-              <Typography 
+              <Typography
                 variant="subtitle1"
-                sx={{ 
+                sx={{
                   fontWeight: 600,
                   fontSize: "15px",
                   lineHeight: 1.4,
                   color: "#1f2937",
                   direction: isRTL ? "rtl" : "ltr",
                   textAlign: isRTL ? "right" : "left",
-                  fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+                  fontFamily: isRTL
+                    ? "var(--font-persian)"
+                    : "var(--font-english)",
                   mb: 0.5,
                 }}
               >
                 {t.title}
               </Typography>
-              <Typography 
+              <Typography
                 variant="caption"
                 sx={{
                   fontSize: "12px",
                   color: "#64748b",
                   direction: isRTL ? "rtl" : "ltr",
-                  fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+                  fontFamily: isRTL
+                    ? "var(--font-persian)"
+                    : "var(--font-english)",
                 }}
               >
                 {user?.role || "Student"}
               </Typography>
             </Box>
           )}
-          
+
           {/* Collapse Toggle Button */}
           {onToggleCollapse && (
-            <Tooltip title={collapsed ? (isRTL ? "توسعه" : "Expand") : (isRTL ? "جمع کردن" : "Collapse")}>
+            <Tooltip
+              title={
+                collapsed
+                  ? isRTL
+                    ? "توسعه"
+                    : "Expand"
+                  : isRTL
+                  ? "جمع کردن"
+                  : "Collapse"
+              }
+            >
               <IconButton
                 onClick={onToggleCollapse}
                 size="small"
@@ -321,10 +352,17 @@ const Sidebar = ({
                   transition: "all 0.15s ease",
                 }}
               >
-                {collapsed ? 
-                  (isRTL ? <ChevronLeftIcon fontSize="small" /> : <ChevronRightIcon fontSize="small" />) : 
-                  (isRTL ? <ChevronRightIcon fontSize="small" /> : <ChevronLeftIcon fontSize="small" />)
-                }
+                {collapsed ? (
+                  isRTL ? (
+                    <ChevronLeftIcon fontSize="small" />
+                  ) : (
+                    <ChevronRightIcon fontSize="small" />
+                  )
+                ) : isRTL ? (
+                  <ChevronRightIcon fontSize="small" />
+                ) : (
+                  <ChevronLeftIcon fontSize="small" />
+                )}
               </IconButton>
             </Tooltip>
           )}
@@ -342,28 +380,32 @@ const Sidebar = ({
               direction: isRTL ? "rtl" : "ltr",
             }}
           >
-            <Typography 
-              variant="body2" 
-              sx={{ 
+            <Typography
+              variant="body2"
+              sx={{
                 fontWeight: 500,
                 fontSize: "13px",
                 color: "#374151",
                 direction: isRTL ? "rtl" : "ltr",
                 textAlign: isRTL ? "right" : "left",
-                fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+                fontFamily: isRTL
+                  ? "var(--font-persian)"
+                  : "var(--font-english)",
                 mb: 0.5,
               }}
             >
               {user?.firstName} {user?.lastName}
             </Typography>
-            <Typography 
-              variant="caption" 
+            <Typography
+              variant="caption"
               sx={{
                 fontSize: "11px",
                 color: "#6b7280",
                 direction: isRTL ? "rtl" : "ltr",
                 textAlign: isRTL ? "right" : "left",
-                fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+                fontFamily: isRTL
+                  ? "var(--font-persian)"
+                  : "var(--font-english)",
               }}
             >
               {user?.email}
@@ -372,8 +414,27 @@ const Sidebar = ({
         )}
       </Box>
 
-      {/* Navigation */}
-      <Box sx={{ flex: 1, px: 1 }}>
+      {/* Navigation - Scrollable Area */}
+      <Box
+        sx={{
+          flex: 1,
+          px: 1,
+          overflow: "auto", // Allow navigation to scroll
+          "&::-webkit-scrollbar": {
+            width: "4px",
+          },
+          "&::-webkit-scrollbar-track": {
+            background: "transparent",
+          },
+          "&::-webkit-scrollbar-thumb": {
+            background: "#cbd5e1",
+            borderRadius: "2px",
+          },
+          "&::-webkit-scrollbar-thumb:hover": {
+            background: "#94a3b8",
+          },
+        }}
+      >
         {/* Dashboard Section */}
         {!collapsed && (
           <List
@@ -394,7 +455,9 @@ const Sidebar = ({
                   cursor: "pointer",
                   direction: isRTL ? "rtl" : "ltr",
                   textAlign: isRTL ? "right" : "left",
-                  fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+                  fontFamily: isRTL
+                    ? "var(--font-persian)"
+                    : "var(--font-english)",
                   "&:hover": {
                     color: "#475569",
                   },
@@ -402,9 +465,17 @@ const Sidebar = ({
                 }}
                 onClick={() => toggleMenuExpansion("Dashboard")}
               >
-                <Stack direction="row" alignItems="center" justifyContent="space-between">
+                <Stack
+                  direction="row"
+                  alignItems="center"
+                  justifyContent="space-between"
+                >
                   <span>Dashboard</span>
-                  {expandedMenus.Dashboard ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />}
+                  {expandedMenus.Dashboard ? (
+                    <ExpandLessIcon fontSize="small" />
+                  ) : (
+                    <ExpandMoreIcon fontSize="small" />
+                  )}
                 </Stack>
               </ListSubheader>
             }
@@ -439,7 +510,9 @@ const Sidebar = ({
                   cursor: "pointer",
                   direction: isRTL ? "rtl" : "ltr",
                   textAlign: isRTL ? "right" : "left",
-                  fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+                  fontFamily: isRTL
+                    ? "var(--font-persian)"
+                    : "var(--font-english)",
                   "&:hover": {
                     color: "#475569",
                   },
@@ -447,9 +520,17 @@ const Sidebar = ({
                 }}
                 onClick={() => toggleMenuExpansion("Account")}
               >
-                <Stack direction="row" alignItems="center" justifyContent="space-between">
+                <Stack
+                  direction="row"
+                  alignItems="center"
+                  justifyContent="space-between"
+                >
                   <span>Account</span>
-                  {expandedMenus.Account ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />}
+                  {expandedMenus.Account ? (
+                    <ExpandLessIcon fontSize="small" />
+                  ) : (
+                    <ExpandMoreIcon fontSize="small" />
+                  )}
                 </Stack>
               </ListSubheader>
             }
@@ -459,23 +540,33 @@ const Sidebar = ({
             </Collapse>
           </List>
         )}
-        
+
         {collapsed && renderMenuItems(accountMenuItems)}
       </Box>
 
       {/* Footer */}
-      <Box sx={{ 
-        p: collapsed ? 1.5 : 2, 
-        borderTop: "1px solid #f1f5f9",
-        backgroundColor: "#fafbfc",
-      }}>
+      <Box
+        sx={{
+          p: collapsed ? 1.5 : 2,
+          borderTop: "1px solid #f1f5f9",
+          backgroundColor: "#fafbfc",
+          flexShrink: 0, // Prevent footer from shrinking
+        }}
+      >
         {/* Settings Row */}
         {!collapsed && (
-          <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+          <Stack
+            direction="row"
+            alignItems="center"
+            justifyContent="space-between"
+            sx={{ mb: 2 }}
+          >
             {/* Language Switcher */}
             {onLanguageChange && (
               <Box
-                onClick={() => onLanguageChange(language === "en" ? "fa" : "en")}
+                onClick={() =>
+                  onLanguageChange(language === "en" ? "fa" : "en")
+                }
                 sx={{
                   display: "flex",
                   alignItems: "center",
@@ -515,14 +606,16 @@ const Sidebar = ({
                     fontSize: "11px",
                     fontWeight: 500,
                     color: "#64748b",
-                    fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+                    fontFamily: isRTL
+                      ? "var(--font-persian)"
+                      : "var(--font-english)",
                   }}
                 >
                   {language === "en" ? "English" : "فارسی"}
                 </Typography>
               </Box>
             )}
-            
+
             {/* Dark Mode Toggle */}
             {onDarkModeToggle && (
               <IconButton
@@ -541,7 +634,11 @@ const Sidebar = ({
                   transition: "all 0.15s ease",
                 }}
               >
-                {darkMode ? <LightModeIcon sx={{ fontSize: 16 }} /> : <DarkModeIcon sx={{ fontSize: 16 }} />}
+                {darkMode ? (
+                  <LightModeIcon sx={{ fontSize: 16 }} />
+                ) : (
+                  <DarkModeIcon sx={{ fontSize: 16 }} />
+                )}
               </IconButton>
             )}
           </Stack>
@@ -549,11 +646,22 @@ const Sidebar = ({
 
         {/* Collapsed Controls */}
         {collapsed && (
-          <Stack direction="column" spacing={1.5} alignItems="center" sx={{ mb: 2 }}>
+          <Stack
+            direction="column"
+            spacing={1.5}
+            alignItems="center"
+            sx={{ mb: 2 }}
+          >
             {onLanguageChange && (
-              <Tooltip title={language === "en" ? "Switch to Persian" : "Switch to English"}>
+              <Tooltip
+                title={
+                  language === "en" ? "Switch to Persian" : "Switch to English"
+                }
+              >
                 <IconButton
-                  onClick={() => onLanguageChange(language === "en" ? "fa" : "en")}
+                  onClick={() =>
+                    onLanguageChange(language === "en" ? "fa" : "en")
+                  }
                   size="small"
                   sx={{
                     width: 28,
@@ -571,7 +679,7 @@ const Sidebar = ({
                 </IconButton>
               </Tooltip>
             )}
-            
+
             {onDarkModeToggle && (
               <Tooltip title={darkMode ? "Light Mode" : "Dark Mode"}>
                 <IconButton
@@ -589,7 +697,11 @@ const Sidebar = ({
                     },
                   }}
                 >
-                  {darkMode ? <LightModeIcon sx={{ fontSize: 14 }} /> : <DarkModeIcon sx={{ fontSize: 14 }} />}
+                  {darkMode ? (
+                    <LightModeIcon sx={{ fontSize: 14 }} />
+                  ) : (
+                    <DarkModeIcon sx={{ fontSize: 14 }} />
+                  )}
                 </IconButton>
               </Tooltip>
             )}
@@ -601,12 +713,24 @@ const Sidebar = ({
           fullWidth={!collapsed}
           variant="text"
           onClick={handleLogout}
-          startIcon={(!collapsed && !isRTL) ? <LogoutIcon sx={{ fontSize: 16 }} /> : undefined}
-          endIcon={(!collapsed && isRTL) ? <LogoutIcon sx={{ fontSize: 16 }} /> : undefined}
+          startIcon={
+            !collapsed && !isRTL ? (
+              <LogoutIcon sx={{ fontSize: 16 }} />
+            ) : undefined
+          }
+          endIcon={
+            !collapsed && isRTL ? (
+              <LogoutIcon sx={{ fontSize: 16 }} />
+            ) : undefined
+          }
           sx={{
             minHeight: 36,
             color: "#dc2626",
-            justifyContent: collapsed ? "center" : isRTL ? "flex-end" : "flex-start",
+            justifyContent: collapsed
+              ? "center"
+              : isRTL
+              ? "flex-end"
+              : "flex-start",
             fontSize: collapsed ? 0 : "12px",
             fontWeight: 500,
             borderRadius: "6px",
@@ -618,7 +742,11 @@ const Sidebar = ({
             transition: "all 0.15s ease",
           }}
         >
-          {collapsed ? <LogoutIcon sx={{ fontSize: 16 }} /> : (t.logout || "Sign Out")}
+          {collapsed ? (
+            <LogoutIcon sx={{ fontSize: 16 }} />
+          ) : (
+            t.logout || "Sign Out"
+          )}
         </Button>
       </Box>
     </Box>

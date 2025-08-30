@@ -7,7 +7,6 @@ import {
   ThemeProvider,
   createTheme,
   Avatar,
-  Stack,
   Drawer,
   AppBar,
   Toolbar,
@@ -34,7 +33,6 @@ import "./index.css";
 interface LayoutProps {
   children: React.ReactNode;
 }
-
 
 const Layout = ({ children }: LayoutProps) => {
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
@@ -84,6 +82,7 @@ const Layout = ({ children }: LayoutProps) => {
             direction: isRTL ? "rtl" : "ltr",
             fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
             backgroundColor: darkMode ? "#0f172a" : "#FCFCFD",
+            overflowX: "hidden", // Prevent horizontal scroll
           },
         },
       },
@@ -104,11 +103,11 @@ const Layout = ({ children }: LayoutProps) => {
     if (currentUser) {
       setUser(currentUser);
       setLanguageState(currentUser.language || "en");
-      
+
       // Load saved preferences
       const savedDarkMode = localStorage.getItem("darkMode");
       const savedCollapsed = localStorage.getItem("sidebarCollapsed");
-      
+
       if (savedDarkMode) {
         setDarkMode(JSON.parse(savedDarkMode));
       }
@@ -170,7 +169,6 @@ const Layout = ({ children }: LayoutProps) => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-
   if (!user) {
     return null;
   }
@@ -186,7 +184,7 @@ const Layout = ({ children }: LayoutProps) => {
     <LanguageContext.Provider value={contextValue}>
       <ThemeProvider theme={customTheme}>
         <CssBaseline />
-        
+
         {/* Mobile App Bar */}
         {isMobile && (
           <AppBar
@@ -212,20 +210,24 @@ const Layout = ({ children }: LayoutProps) => {
                   flexGrow: 1,
                   fontWeight: 600,
                   direction: isRTL ? "rtl" : "ltr",
-                  fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+                  fontFamily: isRTL
+                    ? "var(--font-persian)"
+                    : "var(--font-english)",
                 }}
               >
                 {t.title}
               </Typography>
-              
+
               {/* Mobile Language Toggle */}
               <IconButton
-                onClick={() => handleLanguageChange(language === "en" ? "fa" : "en")}
+                onClick={() =>
+                  handleLanguageChange(language === "en" ? "fa" : "en")
+                }
                 sx={{ mr: 1, color: "inherit" }}
               >
                 <LanguageIcon />
               </IconButton>
-              
+
               {/* Mobile Dark Mode Toggle */}
               <IconButton
                 onClick={handleDarkModeToggle}
@@ -233,7 +235,7 @@ const Layout = ({ children }: LayoutProps) => {
               >
                 {darkMode ? <LightModeIcon /> : <DarkModeIcon />}
               </IconButton>
-              
+
               <Avatar
                 sx={{
                   width: 32,
@@ -247,34 +249,38 @@ const Layout = ({ children }: LayoutProps) => {
           </AppBar>
         )}
 
-        {/* Use Stack layout like reference instead of Drawer */}
-        <Stack
-          className="home-layout"
-          direction={isMobile ? "column" : "row"}
+        {/* Main Layout Container */}
+        <Box
           sx={{
+            display: "flex",
             minHeight: "100vh",
-            maxWidth: "100%",
-            margin: "0 auto",
             bgcolor: "#FCFCFD",
-            pt: isMobile ? 8 : 0,
             direction: isRTL ? "rtl" : "ltr",
-            "&[dir='rtl']": {
-              "& > *": {
-                direction: "rtl",
-              },
-            },
+            overflow: "hidden", // Prevent body overflow
           }}
         >
-          {/* Sidebar - only show on desktop */}
+          {/* Desktop Sidebar - Fixed Position */}
           {!isMobile && (
-            <Sidebar 
-              collapsed={desktopDrawerCollapsed} 
-              onToggleCollapse={handleDesktopDrawerToggle}
-              language={language}
-              onLanguageChange={handleLanguageChange}
-              darkMode={darkMode}
-              onDarkModeToggle={handleDarkModeToggle}
-            />
+            <Box
+              sx={{
+                position: "fixed",
+                top: 0,
+                left: isRTL ? "auto" : 0,
+                right: isRTL ? 0 : "auto",
+                height: "100vh",
+                zIndex: 1200,
+                overflow: "hidden", // Prevent sidebar overflow
+              }}
+            >
+              <Sidebar
+                collapsed={desktopDrawerCollapsed}
+                onToggleCollapse={handleDesktopDrawerToggle}
+                language={language}
+                onLanguageChange={handleLanguageChange}
+                darkMode={darkMode}
+                onDarkModeToggle={handleDarkModeToggle}
+              />
+            </Box>
           )}
 
           {/* Mobile Drawer */}
@@ -292,15 +298,22 @@ const Layout = ({ children }: LayoutProps) => {
                   width: 280,
                   boxSizing: "border-box",
                   border: "none",
+                  overflow: "hidden", // Prevent drawer overflow
                 },
               }}
             >
-              <Box sx={{ display: "flex", justifyContent: isRTL ? "flex-start" : "flex-end", p: 1 }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: isRTL ? "flex-start" : "flex-end",
+                  p: 1,
+                }}
+              >
                 <IconButton onClick={handleMobileDrawerToggle}>
                   <CloseIcon />
                 </IconButton>
               </Box>
-              <Sidebar 
+              <Sidebar
                 collapsed={false}
                 language={language}
                 onLanguageChange={handleLanguageChange}
@@ -315,14 +328,35 @@ const Layout = ({ children }: LayoutProps) => {
             component="main"
             sx={{
               flex: 1,
-              padding: { xs: 2, sm: 3, md: 4 },
-              minHeight: "calc(100vh - 48px)",
+              marginLeft: isMobile
+                ? 0
+                : isRTL
+                ? 0
+                : desktopDrawerCollapsed
+                ? "64px"
+                : "260px",
+              marginRight: isMobile
+                ? 0
+                : isRTL
+                ? desktopDrawerCollapsed
+                  ? "64px"
+                  : "260px"
+                : 0,
+              minHeight: "100vh",
               direction: isRTL ? "rtl" : "ltr",
               bgcolor: "transparent",
-              overflow: "auto",
+              overflow: "auto", // Allow content to scroll
+              pt: isMobile ? 8 : 0, // Add top padding for mobile app bar
             }}
           >
-            {children}
+            <Box
+              sx={{
+                padding: { xs: 2, sm: 3, md: 4 },
+                minHeight: "100%",
+              }}
+            >
+              {children}
+            </Box>
           </Box>
 
           {/* Scroll to Top Button */}
@@ -342,7 +376,7 @@ const Layout = ({ children }: LayoutProps) => {
               <KeyboardArrowUpIcon />
             </Fab>
           </Zoom>
-        </Stack>
+        </Box>
       </ThemeProvider>
     </LanguageContext.Provider>
   );
