@@ -664,47 +664,71 @@ const Foods = () => {
   // Loading skeleton
   if (isLoading) {
     return (
-      <Box sx={{ py: 4, width: "100%" }}>
-        <Stack spacing={3}>
+      <Box sx={{ 
+        width: "100%", 
+        maxWidth: '1440px', 
+        mx: 'auto',
+        px: { xs: 2, sm: 3, md: 4, lg: 5 },
+        py: { xs: 3, sm: 4, md: 5, lg: 6 },
+      }}>
+        <Stack spacing={{ xs: 4, sm: 5, md: 6, lg: 7 }}>
           <Skeleton
             variant="rectangular"
-            height={200}
-            sx={{ borderRadius: 3 }}
+            height={250}
+            sx={{ borderRadius: 4, mb: 2 }}
+            animation="wave"
           />
           <Skeleton
             variant="rectangular"
-            height={120}
-            sx={{ borderRadius: 2 }}
+            height={140}
+            sx={{ borderRadius: 4 }}
+            animation="wave"
           />
-          <Stack 
-            direction="row" 
-            sx={{ 
-              flexWrap: 'wrap', 
-              gap: 3,
-              justifyContent: 'flex-start'
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: {
+                xs: 'repeat(auto-fit, minmax(280px, 1fr))',
+                sm: 'repeat(auto-fit, minmax(320px, 1fr))',
+                md: 'repeat(auto-fit, minmax(340px, 1fr))',
+                lg: 'repeat(auto-fit, minmax(360px, 1fr))'
+              },
+              gap: { xs: 2, sm: 2.5, md: 3, lg: 3.5 },
+              mt: { xs: 1, sm: 2 }
             }}
           >
             {Array.from({ length: 12 }).map((_, index) => (
-              <Box key={index} sx={{ flex: '1 1 300px', minWidth: '300px', maxWidth: '400px' }}>
-                <Card sx={{ borderRadius: 3 }}>
-                  <Skeleton variant="rectangular" height={200} />
-                  <CardContent>
-                    <Skeleton variant="text" height={30} />
-                    <Skeleton variant="text" height={20} />
-                    <Skeleton variant="text" height={20} width="60%" />
-                  </CardContent>
-                </Card>
-              </Box>
+              <Card key={index} elevation={4} sx={{ borderRadius: 4, overflow: 'hidden' }}>
+                <Skeleton variant="rectangular" height={240} animation="wave" />
+                <CardContent sx={{ p: { xs: 2, sm: 2.5, md: 3 } }}>
+                  <Skeleton variant="text" height={36} sx={{ mb: 1.5 }} animation="wave" />
+                  <Skeleton variant="text" height={24} sx={{ mb: 1 }} animation="wave" />
+                  <Skeleton variant="text" height={20} width="70%" sx={{ mb: 2 }} animation="wave" />
+                  <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
+                    <Skeleton variant="rounded" width={60} height={24} animation="wave" />
+                    <Skeleton variant="rounded" width={50} height={24} animation="wave" />
+                    <Skeleton variant="rounded" width={40} height={24} animation="wave" />
+                  </Stack>
+                  <Skeleton variant="rectangular" height={42} sx={{ borderRadius: 3, mb: 1 }} animation="wave" />
+                  <Skeleton variant="rounded" width={80} height={26} animation="wave" />
+                </CardContent>
+              </Card>
             ))}
-          </Stack>
+          </Box>
         </Stack>
       </Box>
     );
   }
 
   return (
-    <Box sx={{ py: 4, width: "100%" }}>
-      <Stack spacing={3}>
+    <Box sx={{ 
+      width: "100%", 
+      maxWidth: '1440px', 
+      mx: 'auto',
+      px: { xs: 2, sm: 3, md: 4, lg: 5 },
+      py: { xs: 3, sm: 4, md: 5, lg: 6 },
+    }}>
+      <Stack spacing={{ xs: 4, sm: 5, md: 6, lg: 7 }}>
         {/* Header */}
         <Box
           sx={{
@@ -712,17 +736,24 @@ const Foods = () => {
             justifyContent: "space-between",
             alignItems: "center",
             flexDirection: isRTL ? "row-reverse" : "row",
-            mb: 2,
+            mb: { xs: 3, md: 4 },
+            py: 2,
           }}
         >
           <Typography
-            variant="h4"
+            variant="h3"
             component="h1"
             color="primary"
             sx={{
               direction: isRTL ? "rtl" : "ltr",
               fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
               textAlign: isRTL ? "right" : "left",
+              fontWeight: 700,
+              fontSize: { xs: '2rem', md: '3rem' },
+              background: 'linear-gradient(135deg, #1976d2 0%, #42a5f5 100%)',
+              backgroundClip: 'text',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
             }}
           >
             {language === "fa" ? "منوی غذاها" : "Food Menu"}
@@ -730,111 +761,152 @@ const Foods = () => {
         </Box>
 
         {/* Statistics Cards */}
-        <Stack direction={{ xs: "column", sm: "row" }} spacing={3} sx={{ flexWrap: "wrap" }}>
-          <Stack sx={{ flex: { xs: "1 1 100%", sm: "1 1 calc(50% - 12px)", md: "1 1 calc(25% - 18px)" } }}>
-            <Card
-              sx={{
-                background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
-                color: "white",
-              }}
-            >
-              <CardContent>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                  <RestaurantIcon sx={{ fontSize: 40 }} />
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: {
+              xs: '1fr',
+              sm: 'repeat(2, 1fr)',
+              md: 'repeat(4, 1fr)'
+            },
+            gap: { xs: 2, sm: 2.5, md: 3 },
+            mb: { xs: 1, sm: 2 }
+          }}
+        >
+          <Card
+            elevation={4}
+            sx={{
+              background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+              color: "white",
+              borderRadius: 3,
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                transform: 'translateY(-4px)',
+                boxShadow: '0 12px 40px rgba(16, 185, 129, 0.3)'
+              }
+            }}
+          >
+              <CardContent sx={{ p: { xs: 2, md: 3 } }}>
+                <Box sx={{ display: "flex", alignItems: "center", gap: { xs: 1.5, md: 2 } }}>
+                  <RestaurantIcon sx={{ fontSize: { xs: 32, md: 40 } }} />
                   <Box>
-                    <Typography variant="h4" sx={{ fontWeight: 700 }}>
+                    <Typography variant="h4" sx={{ fontWeight: 700, fontSize: { xs: '1.75rem', md: '2.125rem' } }}>
                       {allFoods.length}
                     </Typography>
-                    <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                    <Typography variant="body2" sx={{ opacity: 0.9, fontSize: { xs: '0.8rem', md: '0.875rem' } }}>
                       {language === "fa" ? "کل غذاها" : "Total Foods"}
                     </Typography>
                   </Box>
                 </Box>
               </CardContent>
             </Card>
-          </Stack>
           
-          <Stack sx={{ flex: { xs: "1 1 100%", sm: "1 1 calc(50% - 12px)", md: "1 1 calc(25% - 18px)" } }}>
-            <Card
-              sx={{
-                background: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
-                color: "white",
-              }}
-            >
-              <CardContent>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                  <StarIcon sx={{ fontSize: 40 }} />
+          <Card
+            elevation={4}
+            sx={{
+              background: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
+              color: "white",
+              borderRadius: 3,
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                transform: 'translateY(-4px)',
+                boxShadow: '0 12px 40px rgba(245, 158, 11, 0.3)'
+              }
+            }}
+          >
+              <CardContent sx={{ p: { xs: 2, md: 3 } }}>
+                <Box sx={{ display: "flex", alignItems: "center", gap: { xs: 1.5, md: 2 } }}>
+                  <StarIcon sx={{ fontSize: { xs: 32, md: 40 } }} />
                   <Box>
-                    <Typography variant="h4" sx={{ fontWeight: 700 }}>
+                    <Typography variant="h4" sx={{ fontWeight: 700, fontSize: { xs: '1.75rem', md: '2.125rem' } }}>
                       {allFoods.filter((f) => f.isPopular).length}
                     </Typography>
-                    <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                    <Typography variant="body2" sx={{ opacity: 0.9, fontSize: { xs: '0.8rem', md: '0.875rem' } }}>
                       {language === "fa" ? "محبوب" : "Popular"}
                     </Typography>
                   </Box>
                 </Box>
               </CardContent>
             </Card>
-          </Stack>
           
-          <Stack sx={{ flex: { xs: "1 1 100%", sm: "1 1 calc(50% - 12px)", md: "1 1 calc(25% - 18px)" } }}>
-            <Card
-              sx={{
-                background: "linear-gradient(135deg, #4caf50 0%, #2e7d32 100%)",
-                color: "white",
-              }}
-            >
-              <CardContent>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                  <EcoIcon sx={{ fontSize: 40 }} />
+          <Card
+            elevation={4}
+            sx={{
+              background: "linear-gradient(135deg, #4caf50 0%, #2e7d32 100%)",
+              color: "white",
+              borderRadius: 3,
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                transform: 'translateY(-4px)',
+                boxShadow: '0 12px 40px rgba(76, 175, 80, 0.3)'
+              }
+            }}
+          >
+              <CardContent sx={{ p: { xs: 2, md: 3 } }}>
+                <Box sx={{ display: "flex", alignItems: "center", gap: { xs: 1.5, md: 2 } }}>
+                  <EcoIcon sx={{ fontSize: { xs: 32, md: 40 } }} />
                   <Box>
-                    <Typography variant="h4" sx={{ fontWeight: 700 }}>
+                    <Typography variant="h4" sx={{ fontWeight: 700, fontSize: { xs: '1.75rem', md: '2.125rem' } }}>
                       {allFoods.filter((f) => f.isVegetarian).length}
                     </Typography>
-                    <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                    <Typography variant="body2" sx={{ opacity: 0.9, fontSize: { xs: '0.8rem', md: '0.875rem' } }}>
                       {language === "fa" ? "گیاهی" : "Vegetarian"}
                     </Typography>
                   </Box>
                 </Box>
               </CardContent>
             </Card>
-          </Stack>
           
-          <Stack sx={{ flex: { xs: "1 1 100%", sm: "1 1 calc(50% - 12px)", md: "1 1 calc(25% - 18px)" } }}>
-            <Card
-              sx={{
-                background: "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)",
-                color: "white",
-              }}
-            >
-              <CardContent>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                  <StarIcon sx={{ fontSize: 40 }} />
+          <Card
+            elevation={4}
+            sx={{
+              background: "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)",
+              color: "white",
+              borderRadius: 3,
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                transform: 'translateY(-4px)',
+                boxShadow: '0 12px 40px rgba(59, 130, 246, 0.3)'
+              }
+            }}
+          >
+              <CardContent sx={{ p: { xs: 2, md: 3 } }}>
+                <Box sx={{ display: "flex", alignItems: "center", gap: { xs: 1.5, md: 2 } }}>
+                  <StarIcon sx={{ fontSize: { xs: 32, md: 40 } }} />
                   <Box>
-                    <Typography variant="h4" sx={{ fontWeight: 700 }}>
+                    <Typography variant="h4" sx={{ fontWeight: 700, fontSize: { xs: '1.75rem', md: '2.125rem' } }}>
                       4.6
                     </Typography>
-                    <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                    <Typography variant="body2" sx={{ opacity: 0.9, fontSize: { xs: '0.8rem', md: '0.875rem' } }}>
                       {language === "fa" ? "امتیاز متوسط" : "Avg Rating"}
                     </Typography>
                   </Box>
                 </Box>
               </CardContent>
             </Card>
-          </Stack>
-        </Stack>
+        </Box>
 
         {/* Search and Controls */}
-        <Paper elevation={3} sx={{ p: { xs: 3, md: 4 } }}>
-          <Stack spacing={3}>
+        <Paper 
+          elevation={6} 
+          sx={{ 
+            p: { xs: 3, md: 4 }, 
+            borderRadius: 4,
+            background: 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(248,250,252,0.9) 100%)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255,255,255,0.2)'
+          }}
+        >
+          <Stack spacing={{ xs: 2.5, md: 3.5 }}>
             {/* Main Search and View Controls */}
             <Box
               sx={{
                 display: "flex",
-                gap: 2,
+                gap: { xs: 1.5, md: 2.5 },
                 flexWrap: "wrap",
                 alignItems: "center",
                 justifyContent: "space-between",
+                mb: 1
               }}
             >
               {/* Search Bar */}
@@ -854,15 +926,25 @@ const Foods = () => {
                   onChange={(e) => setSearchTerm(e.target.value)}
                   sx={{
                     flexGrow: 1,
-                    maxWidth: { xs: "100%", sm: 400 },
+                    maxWidth: { xs: "100%", sm: 450 },
                     "& .MuiOutlinedInput-root": {
-                      borderRadius: 3,
+                      borderRadius: 4,
+                      backgroundColor: 'rgba(255,255,255,0.8)',
+                      backdropFilter: 'blur(10px)',
+                      '&:hover': {
+                        backgroundColor: 'rgba(255,255,255,0.9)',
+                      },
+                      '&.Mui-focused': {
+                        backgroundColor: 'rgba(255,255,255,1)',
+                        boxShadow: '0 0 0 2px rgba(25, 118, 210, 0.2)'
+                      }
                     },
                     "& .MuiInputBase-input": {
                       direction: isRTL ? "rtl" : "ltr",
                       fontFamily: isRTL
                         ? "var(--font-persian)"
                         : "var(--font-english)",
+                      py: { xs: 1.5, md: 2 }
                     },
                   }}
                   InputProps={{
@@ -1108,32 +1190,27 @@ const Foods = () => {
         </Paper>
 
         {/* Food Cards */}
-        <Stack
-          direction="row"
-          spacing={3}
+        <Box
           sx={{
+            display: 'grid',
+            gridTemplateColumns: 
+              viewMode === "list" 
+                ? '1fr'
+                : {
+                    xs: 'repeat(auto-fit, minmax(280px, 1fr))',
+                    sm: 'repeat(auto-fit, minmax(320px, 1fr))',
+                    md: 'repeat(auto-fit, minmax(340px, 1fr))',
+                    lg: 'repeat(auto-fit, minmax(360px, 1fr))'
+                  },
+            gap: { xs: 2, sm: 2.5, md: 3, lg: 3.5 },
             direction: isRTL ? "rtl" : "ltr",
-            flexWrap: "wrap",
+            mt: { xs: 1, sm: 2 }
           }}
         >
           {filteredAndSortedFoods.map((food, index) => (
-            <Stack
-              key={food.id}
-              sx={{
-                flex:
-                  viewMode === "list"
-                    ? "1 1 100%"
-                    : {
-                        xs: "1 1 100%",
-                        sm: "1 1 calc(50% - 12px)",
-                        md: "1 1 calc(33.333% - 16px)",
-                        lg: "1 1 calc(25% - 18px)",
-                      },
-              }}
-            >
               <Fade in={true} timeout={300 + index * 50}>
                 <Card
-                  elevation={food.isPopular ? 6 : 2}
+                  elevation={food.isPopular ? 8 : 4}
                   sx={{
                     height: "100%",
                     display: "flex",
@@ -1141,16 +1218,20 @@ const Foods = () => {
                     position: "relative",
                     overflow: "hidden",
                     cursor: "pointer",
-                    transition: "all 0.3s ease-in-out",
+                    borderRadius: 4,
+                    transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
                     "&:hover": {
-                      transform: food.isAvailable ? "translateY(-4px)" : "none",
+                      transform: food.isAvailable ? "translateY(-8px) scale(1.02)" : "none",
                       boxShadow: food.isAvailable
-                        ? "0 8px 24px rgba(0,0,0,0.12)"
+                        ? "0 20px 40px rgba(0,0,0,0.15), 0 0 0 1px rgba(255,255,255,0.1)"
                         : "none",
                     },
-                    border: food.isPopular ? "2px solid #ff6b35" : "none",
+                    border: food.isPopular ? "2px solid #ff6b35" : "1px solid rgba(0,0,0,0.08)",
                     filter: !food.isAvailable ? "grayscale(30%)" : "none",
                     opacity: !food.isAvailable ? 0.7 : 1,
+                    background: food.isPopular 
+                      ? 'linear-gradient(135deg, rgba(255,107,53,0.05) 0%, rgba(255,255,255,1) 100%)'
+                      : 'linear-gradient(135deg, rgba(255,255,255,1) 0%, rgba(248,250,252,1) 100%)',
                   }}
                   onClick={() => handleFoodClick(food)}
                 >
@@ -1258,11 +1339,11 @@ const Foods = () => {
                     alt={language === "fa" ? food.name : food.nameEn}
                     sx={{
                       width:
-                        viewMode === "list" ? { xs: "100%", sm: 300 } : "100%",
+                        viewMode === "list" ? { xs: "100%", sm: 320 } : "100%",
                       objectFit: "cover",
-                      transition: "transform 0.3s ease",
+                      transition: "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
                       "&:hover": {
-                        transform: food.isAvailable ? "scale(1.05)" : "none",
+                        transform: food.isAvailable ? "scale(1.03)" : "none",
                       },
                     }}
                   />
@@ -1272,9 +1353,13 @@ const Foods = () => {
                       flexGrow: 1,
                       display: "flex",
                       flexDirection: "column",
+                      p: { xs: 2, sm: 2.5, md: 3 },
+                      '&:last-child': {
+                        pb: { xs: 2, sm: 2.5, md: 3 }
+                      }
                     }}
                   >
-                    <Stack spacing={2.5} sx={{ height: "100%" }}>
+                    <Stack spacing={{ xs: 1.5, sm: 2, md: 2.5 }} sx={{ height: "100%" }}>
                       {/* Title and Rating */}
                       <Box>
                         <Typography
@@ -1282,14 +1367,20 @@ const Foods = () => {
                           component="h3"
                           sx={{
                             fontWeight: 700,
-                            mb: 1,
+                            mb: 1.5,
                             direction: isRTL ? "rtl" : "ltr",
                             textAlign: isRTL ? "right" : "left",
                             fontFamily: isRTL
                               ? "var(--font-persian)"
                               : "var(--font-english)",
                             lineHeight: 1.3,
-                            fontSize: { xs: "1rem", md: "1.25rem" },
+                            fontSize: { xs: "1.1rem", md: "1.35rem" },
+                            background: food.isPopular 
+                              ? 'linear-gradient(135deg, #ff6b35 0%, #f12711 100%)'
+                              : 'linear-gradient(135deg, #1976d2 0%, #42a5f5 100%)',
+                            backgroundClip: 'text',
+                            WebkitBackgroundClip: 'text',
+                            WebkitTextFillColor: 'transparent',
                           }}
                         >
                           {language === "fa" ? food.name : food.nameEn}
@@ -1298,8 +1389,9 @@ const Foods = () => {
                           sx={{
                             display: "flex",
                             alignItems: "center",
-                            gap: 1,
+                            gap: 1.5,
                             justifyContent: isRTL ? "flex-end" : "flex-start",
+                            mb: 1
                           }}
                         >
                           <Rating
@@ -1307,8 +1399,24 @@ const Foods = () => {
                             precision={0.1}
                             size="small"
                             readOnly
+                            sx={{
+                              '& .MuiRating-iconFilled': {
+                                color: '#ffa726'
+                              }
+                            }}
                           />
-                          <Typography variant="body2" color="text.secondary">
+                          <Typography 
+                            variant="body2" 
+                            color="text.secondary"
+                            sx={{ 
+                              fontWeight: 600,
+                              bgcolor: 'rgba(255, 167, 38, 0.1)',
+                              px: 1,
+                              py: 0.5,
+                              borderRadius: 1,
+                              fontSize: '0.75rem'
+                            }}
+                          >
                             ({food.rating})
                           </Typography>
                         </Box>
@@ -1317,17 +1425,26 @@ const Foods = () => {
                       {/* Price */}
                       <Box>
                         <Box
-                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                          sx={{ 
+                            display: "flex", 
+                            alignItems: "center", 
+                            gap: 1.5,
+                            mb: 1.5
+                          }}
                         >
                           <Typography
                             variant="h6"
-                            color="primary"
                             sx={{
                               fontWeight: 700,
                               direction: isRTL ? "rtl" : "ltr",
                               fontFamily: isRTL
                                 ? "var(--font-persian)"
                                 : "var(--font-english)",
+                              background: 'linear-gradient(135deg, #2e7d32 0%, #4caf50 100%)',
+                              backgroundClip: 'text',
+                              WebkitBackgroundClip: 'text',
+                              WebkitTextFillColor: 'transparent',
+                              fontSize: { xs: '1rem', md: '1.25rem' }
                             }}
                           >
                             {formatCurrency(food.price, language)}
@@ -1342,6 +1459,11 @@ const Foods = () => {
                                 fontFamily: isRTL
                                   ? "var(--font-persian)"
                                   : "var(--font-english)",
+                                bgcolor: 'rgba(239, 68, 68, 0.1)',
+                                px: 1,
+                                py: 0.5,
+                                borderRadius: 1,
+                                fontSize: '0.8rem'
                               }}
                             >
                               {formatCurrency(food.originalPrice, language)}
@@ -1354,10 +1476,11 @@ const Foods = () => {
                       <Box
                         sx={{
                           display: "flex",
-                          gap: 2,
+                          gap: { xs: 1.5, md: 2 },
                           justifyContent: isRTL ? "flex-end" : "flex-start",
                           direction: isRTL ? "rtl" : "ltr",
                           flexWrap: "wrap",
+                          mb: 0.5
                         }}
                       >
                         <Box
@@ -1436,8 +1559,9 @@ const Foods = () => {
                           sx={{
                             display: "flex",
                             flexWrap: "wrap",
-                            gap: 0.5,
+                            gap: { xs: 0.5, md: 0.75 },
                             justifyContent: isRTL ? "flex-end" : "flex-start",
+                            mb: 1
                           }}
                         >
                           {(language === "fa"
@@ -1452,12 +1576,17 @@ const Foods = () => {
                                 size="small"
                                 variant="outlined"
                                 sx={{
-                                  borderRadius: 2,
-                                  fontSize: "0.7rem",
+                                  borderRadius: 3,
+                                  fontSize: { xs: "0.65rem", md: "0.7rem" },
+                                  height: { xs: 24, md: 26 },
                                   fontFamily: isRTL
                                     ? "var(--font-persian)"
                                     : "var(--font-english)",
-                                  bgcolor: "rgba(0,0,0,0.02)",
+                                  bgcolor: "rgba(25, 118, 210, 0.04)",
+                                  borderColor: "rgba(25, 118, 210, 0.2)",
+                                  '&:hover': {
+                                    bgcolor: "rgba(25, 118, 210, 0.08)",
+                                  }
                                 }}
                               />
                             ))}
@@ -1469,12 +1598,17 @@ const Foods = () => {
                               size="small"
                               variant="outlined"
                               sx={{
-                                borderRadius: 2,
-                                fontSize: "0.7rem",
+                                borderRadius: 3,
+                                fontSize: { xs: "0.65rem", md: "0.7rem" },
+                                height: { xs: 24, md: 26 },
                                 fontFamily: isRTL
                                   ? "var(--font-persian)"
                                   : "var(--font-english)",
-                                bgcolor: "rgba(0,0,0,0.02)",
+                                bgcolor: "rgba(156, 163, 175, 0.1)",
+                                borderColor: "rgba(156, 163, 175, 0.3)",
+                                '&:hover': {
+                                  bgcolor: "rgba(156, 163, 175, 0.2)",
+                                }
                               }}
                             />
                           )}
@@ -1485,9 +1619,10 @@ const Foods = () => {
                       <Box
                         sx={{
                           display: "flex",
-                          gap: 1,
-                          pt: 1,
+                          gap: { xs: 1, md: 1.5 },
+                          pt: { xs: 1, md: 1.5 },
                           justifyContent: isRTL ? "flex-end" : "flex-start",
+                          alignItems: "center"
                         }}
                         onClick={(e) => e.stopPropagation()}
                       >
@@ -1498,11 +1633,26 @@ const Foods = () => {
                           startIcon={<ShoppingCartIcon />}
                           onClick={() => handleAddToCart(food.id)}
                           sx={{
-                            borderRadius: 2,
+                            borderRadius: 3,
                             fontFamily: isRTL
                               ? "var(--font-persian)"
                               : "var(--font-english)",
-                            minWidth: 120,
+                            minWidth: 140,
+                            py: 1.2,
+                            px: 2.5,
+                            fontWeight: 600,
+                            background: 'linear-gradient(135deg, #1976d2 0%, #42a5f5 100%)',
+                            boxShadow: '0 4px 12px rgba(25, 118, 210, 0.3)',
+                            transition: 'all 0.3s ease',
+                            '&:hover': {
+                              transform: 'translateY(-2px)',
+                              boxShadow: '0 6px 20px rgba(25, 118, 210, 0.4)',
+                              background: 'linear-gradient(135deg, #1565c0 0%, #1976d2 100%)'
+                            },
+                            '&:disabled': {
+                              background: 'rgba(0,0,0,0.12)',
+                              color: 'rgba(0,0,0,0.26)'
+                            }
                           }}
                         >
                           {language === "fa" ? "افزودن به سبد" : "Add to Cart"}
@@ -1518,11 +1668,19 @@ const Foods = () => {
                             <IconButton
                               size="small"
                               onClick={() => handleRemoveFromCart(food.id)}
-                              sx={{ bgcolor: "rgba(0,0,0,0.04)" }}
+                              sx={{ 
+                                bgcolor: "rgba(239, 68, 68, 0.1)",
+                                color: '#ef4444',
+                                '&:hover': {
+                                  bgcolor: "rgba(239, 68, 68, 0.2)",
+                                  transform: 'scale(1.1)'
+                                },
+                                transition: 'all 0.2s ease'
+                              }}
                             >
                               <Typography
                                 variant="body2"
-                                sx={{ fontWeight: 600 }}
+                                sx={{ fontWeight: 700, fontSize: '1rem' }}
                               >
                                 -
                               </Typography>
@@ -1536,11 +1694,19 @@ const Foods = () => {
                             <IconButton
                               size="small"
                               onClick={() => handleAddToCart(food.id)}
-                              sx={{ bgcolor: "rgba(0,0,0,0.04)" }}
+                              sx={{ 
+                                bgcolor: "rgba(76, 175, 80, 0.1)",
+                                color: '#4caf50',
+                                '&:hover': {
+                                  bgcolor: "rgba(76, 175, 80, 0.2)",
+                                  transform: 'scale(1.1)'
+                                },
+                                transition: 'all 0.2s ease'
+                              }}
                             >
                               <Typography
                                 variant="body2"
-                                sx={{ fontWeight: 600 }}
+                                sx={{ fontWeight: 700, fontSize: '1rem' }}
                               >
                                 +
                               </Typography>
@@ -1554,6 +1720,8 @@ const Foods = () => {
                         sx={{
                           display: "flex",
                           justifyContent: isRTL ? "flex-end" : "flex-start",
+                          mt: 'auto',
+                          pt: { xs: 1, md: 1.5 }
                         }}
                       >
                         <Chip
@@ -1565,6 +1733,12 @@ const Foods = () => {
                               ? "var(--font-persian)"
                               : "var(--font-english)",
                             fontWeight: 500,
+                            borderRadius: 2,
+                            bgcolor: 'rgba(156, 39, 176, 0.1)',
+                            color: 'rgb(156, 39, 176)',
+                            border: '1px solid rgba(156, 39, 176, 0.2)',
+                            fontSize: { xs: '0.7rem', md: '0.75rem' },
+                            height: { xs: 24, md: 26 }
                           }}
                         />
                       </Box>
@@ -1572,20 +1746,22 @@ const Foods = () => {
                   </CardContent>
                 </Card>
               </Fade>
-            </Stack>
           ))}
-        </Stack>
+        </Box>
 
         {/* No Results */}
         {filteredAndSortedFoods.length === 0 && (
           <Paper
-            elevation={0}
+            elevation={4}
             sx={{
               textAlign: "center",
-              py: 8,
-              bgcolor: "grey.50",
-              borderRadius: 3,
+              py: { xs: 6, md: 10 },
+              px: { xs: 3, md: 5 },
+              background: 'linear-gradient(135deg, rgba(248,250,252,0.8) 0%, rgba(255,255,255,0.9) 100%)',
+              backdropFilter: 'blur(10px)',
+              borderRadius: 4,
               direction: isRTL ? "rtl" : "ltr",
+              border: '1px solid rgba(0,0,0,0.05)',
             }}
           >
             <RestaurantIcon
@@ -1839,7 +2015,7 @@ const Foods = () => {
                     : "var(--font-english)",
                 }}
               >
-                {language === "fa" ? selectedFood.name : selectedFood.nameEn}
+                {language === "fa" ? selectedFood?.name || '' : selectedFood?.nameEn || ''}
               </Typography>
               <IconButton onClick={() => setFoodDetailOpen(false)}>
                 <CloseIcon />
@@ -1851,11 +2027,11 @@ const Foods = () => {
                   <CardMedia
                     component="img"
                     height={300}
-                    image={selectedFood.imageUrl}
+                    image={selectedFood?.imageUrl || ''}
                     alt={
                       language === "fa"
-                        ? selectedFood.name
-                        : selectedFood.nameEn
+                        ? selectedFood?.name || ''
+                        : selectedFood?.nameEn || ''
                     }
                     sx={{ borderRadius: 2, objectFit: "cover" }}
                   />
@@ -1894,13 +2070,13 @@ const Foods = () => {
 
                 <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                   <Rating
-                    value={selectedFood.rating}
+                    value={selectedFood?.rating || 0}
                     precision={0.1}
                     size="large"
                     readOnly
                   />
                   <Typography variant="h6" color="text.secondary">
-                    ({selectedFood.rating})
+                    ({selectedFood?.rating || 0})
                   </Typography>
                 </Box>
 
@@ -1915,8 +2091,8 @@ const Foods = () => {
                       : "var(--font-english)",
                   }}
                 >
-                  {formatCurrency(selectedFood.price, language)}
-                  {selectedFood.originalPrice && (
+                  {formatCurrency(selectedFood?.price || 0, language)}
+                  {selectedFood?.originalPrice && (
                     <Typography
                       component="span"
                       variant="h6"
@@ -1943,8 +2119,8 @@ const Foods = () => {
                   }}
                 >
                   {language === "fa"
-                    ? selectedFood.description
-                    : selectedFood.descriptionEn}
+                    ? selectedFood?.description || ''
+                    : selectedFood?.descriptionEn || ''}
                 </Typography>
 
                 <Stack direction="row" spacing={2}>
@@ -1961,7 +2137,7 @@ const Foods = () => {
                         sx={{ fontSize: 32, color: "primary.main", mb: 1 }}
                       />
                       <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                        {selectedFood.prepTime}
+                        {selectedFood?.prepTime || 0}
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
                         {language === "fa" ? "دقیقه" : "minutes"}
@@ -1981,7 +2157,7 @@ const Foods = () => {
                         sx={{ fontSize: 32, color: "primary.main", mb: 1 }}
                       />
                       <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                        {selectedFood.calories}
+                        {selectedFood?.calories || 0}
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
                         {language === "fa" ? "کالری" : "calories"}
@@ -2007,8 +2183,8 @@ const Foods = () => {
                   </Typography>
                   <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
                     {(language === "fa"
-                      ? selectedFood.ingredients
-                      : selectedFood.ingredientsEn
+                      ? selectedFood?.ingredients || []
+                      : selectedFood?.ingredientsEn || []
                     ).map((ingredient, index) => (
                       <Chip
                         key={index}
@@ -2025,7 +2201,7 @@ const Foods = () => {
                   </Box>
                 </Box>
 
-                {selectedFood.nutritionFacts && (
+                {selectedFood?.nutritionFacts && (
                   <Box>
                     <Typography
                       variant="h6"
@@ -2055,7 +2231,7 @@ const Foods = () => {
                             {language === "fa" ? "پروتئین" : "Protein"}
                           </Typography>
                           <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                            {selectedFood.nutritionFacts.protein}g
+                            {selectedFood.nutritionFacts?.protein || 0}g
                           </Typography>
                         </Box>
                       </Stack>
@@ -2072,7 +2248,7 @@ const Foods = () => {
                             {language === "fa" ? "کربوهیدرات" : "Carbs"}
                           </Typography>
                           <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                            {selectedFood.nutritionFacts.carbs}g
+                            {selectedFood.nutritionFacts?.carbs || 0}g
                           </Typography>
                         </Box>
                       </Stack>
@@ -2089,7 +2265,7 @@ const Foods = () => {
                             {language === "fa" ? "چربی" : "Fat"}
                           </Typography>
                           <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                            {selectedFood.nutritionFacts.fat}g
+                            {selectedFood.nutritionFacts?.fat || 0}g
                           </Typography>
                         </Box>
                       </Stack>
@@ -2106,7 +2282,7 @@ const Foods = () => {
                             {language === "fa" ? "فیبر" : "Fiber"}
                           </Typography>
                           <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                            {selectedFood.nutritionFacts.fiber}g
+                            {selectedFood.nutritionFacts?.fiber || 0}g
                           </Typography>
                         </Box>
                       </Stack>
@@ -2114,7 +2290,7 @@ const Foods = () => {
                   </Box>
                 )}
 
-                {selectedFood.allergens &&
+                {selectedFood?.allergens &&
                   selectedFood.allergens.length > 0 && (
                     <Alert
                       severity="warning"
@@ -2128,8 +2304,8 @@ const Foods = () => {
                       </Typography>
                       <Typography variant="body2">
                         {(language === "fa"
-                          ? selectedFood.allergens
-                          : selectedFood.allergensEn
+                          ? selectedFood?.allergens
+                          : selectedFood?.allergensEn
                         )?.join(", ")}
                       </Typography>
                     </Alert>
@@ -2139,12 +2315,12 @@ const Foods = () => {
             <DialogActions sx={{ p: 3, pt: 0 }}>
               <Box sx={{ display: "flex", gap: 1, width: "100%" }}>
                 <IconButton
-                  onClick={() => handleFavoriteToggle(selectedFood.id)}
+                  onClick={() => selectedFood && handleFavoriteToggle(selectedFood.id)}
                   color={
-                    favorites.includes(selectedFood.id) ? "error" : "default"
+                    selectedFood && favorites.includes(selectedFood.id) ? "error" : "default"
                   }
                 >
-                  {favorites.includes(selectedFood.id) ? (
+                  {selectedFood && favorites.includes(selectedFood.id) ? (
                     <FavoriteIcon />
                   ) : (
                     <FavoriteBorderIcon />
@@ -2154,11 +2330,13 @@ const Foods = () => {
                   variant="contained"
                   fullWidth
                   size="large"
-                  disabled={!selectedFood.isAvailable}
+                  disabled={!selectedFood?.isAvailable}
                   startIcon={<ShoppingCartIcon />}
                   onClick={() => {
-                    handleAddToCart(selectedFood.id);
-                    setFoodDetailOpen(false);
+                    if (selectedFood) {
+                      handleAddToCart(selectedFood.id);
+                      setFoodDetailOpen(false);
+                    }
                   }}
                   sx={{
                     borderRadius: 2,
@@ -2167,7 +2345,7 @@ const Foods = () => {
                       : "var(--font-english)",
                   }}
                 >
-                  {selectedFood.isAvailable
+                  {selectedFood?.isAvailable
                     ? language === "fa"
                       ? "افزودن به سبد خرید"
                       : "Add to Cart"
