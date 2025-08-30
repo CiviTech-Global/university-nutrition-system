@@ -7,32 +7,25 @@ import {
   Card,
   CardContent,
   Alert,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   Button,
-  IconButton,
   Chip,
-  Pagination,
   FormControl,
   Select,
   MenuItem,
   Tooltip,
   Snackbar,
+  IconButton,
 } from "@mui/material";
 import {
   Restaurant as RestaurantIcon,
   TrendingUp as TrendingUpIcon,
   Notifications as NotificationsIcon,
   Schedule as ScheduleIcon,
-  NavigateBefore as NavigateBeforeIcon,
-  NavigateNext as NavigateNextIcon,
   Save as SaveIcon,
   Refresh as RefreshIcon,
-  Warning as WarningIcon,
+  NavigateBefore as NavigateBeforeIcon,
+  NavigateNext as NavigateNextIcon,
+  Today as TodayIcon,
 } from "@mui/icons-material";
 import type { SelectChangeEvent } from "@mui/material";
 import { getCurrentUser } from "../../utils/userUtils";
@@ -63,19 +56,75 @@ interface DashboardStats {
   attendanceRate: number;
 }
 
+interface Restaurant {
+  id: string;
+  name: string;
+  nameEn: string;
+  location: string;
+  locationEn: string;
+}
+
+interface MealReservation {
+  food: string;
+  restaurant: string;
+}
+
+interface DayReservations {
+  breakfast: MealReservation;
+  lunch: MealReservation;
+  dinner: MealReservation;
+}
+
 const Dashboard = () => {
   const { language, t, isRTL } = useLanguage();
   const componentStyles = createComponentStyles(language);
   const [user, setUser] = useState<any>(null);
-  const [currentWeek, setCurrentWeek] = useState(0);
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
   const [reservations, setReservations] = useState<
-    Record<string, Record<string, string>>
+    Record<string, Record<string, MealReservation>>
   >({});
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [todayReservations, setTodayReservations] = useState<DayReservations>({
+    breakfast: { food: "", restaurant: "" },
+    lunch: { food: "", restaurant: "" },
+    dinner: { food: "", restaurant: "" },
+  });
   const [showSaveSuccess, setShowSaveSuccess] = useState(false);
   const [showSaveError, setShowSaveError] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Restaurant options
+  const restaurants: Restaurant[] = [
+    {
+      id: "selaf1",
+      name: "سلف دانشجوئی شماره ۱",
+      nameEn: "Student Cafeteria No. 1",
+      location: "ساختمان مرکزی",
+      locationEn: "Main Building",
+    },
+    {
+      id: "selaf2", 
+      name: "سلف دانشجوئی شماره ۲",
+      nameEn: "Student Cafeteria No. 2",
+      location: "ساختمان مهندسی",
+      locationEn: "Engineering Building",
+    },
+    {
+      id: "selaf3",
+      name: "سلف دانشجوئی شماره ۳",
+      nameEn: "Student Cafeteria No. 3",
+      location: "خوابگاه",
+      locationEn: "Dormitory",
+    },
+    {
+      id: "selafvip",
+      name: "سلف ویژه اساتید",
+      nameEn: "Faculty Special Cafeteria",
+      location: "ساختمان اداری",
+      locationEn: "Administrative Building",
+    },
+  ];
 
   // Update current date and time every second
   useEffect(() => {
@@ -97,6 +146,13 @@ const Dashboard = () => {
     setIsLoading(false);
   }, []);
 
+  // Load reservations when selected date changes
+  useEffect(() => {
+    if (user) {
+      loadSelectedDateReservations(user.id, selectedDate);
+    }
+  }, [selectedDate, user]);
+
   // Load reservations from localStorage
   const loadReservations = (userId: string) => {
     try {
@@ -109,41 +165,39 @@ const Dashboard = () => {
     }
   };
 
-  // Save reservations to localStorage
-  const saveReservations = async () => {
-    if (!user) return;
-
-    setIsSaving(true);
+  // Load reservations for selected date
+  const loadSelectedDateReservations = (userId: string, date: Date) => {
     try {
-      localStorage.setItem(
-        `reservations_${user.id}`,
-        JSON.stringify(reservations)
-      );
-      setShowSaveSuccess(true);
+      const dateString = getCurrentDayString(date);
+      
+      // Load restaurant reservations for the selected date
+      const savedRestaurantReservations = localStorage.getItem(`restaurant_reservations_${userId}`);
+      if (savedRestaurantReservations) {
+        const restaurantReservations = JSON.parse(savedRestaurantReservations);
+        if (restaurantReservations[dateString]) {
+          setTodayReservations(restaurantReservations[dateString]);
+        } else {
+          // Reset to empty if no data for this date
+          setTodayReservations({
+            breakfast: { food: "", restaurant: "" },
+            lunch: { food: "", restaurant: "" },
+            dinner: { food: "", restaurant: "" },
+          });
+        }
+      } else {
+        // Reset to empty if no restaurant reservations exist
+        setTodayReservations({
+          breakfast: { food: "", restaurant: "" },
+          lunch: { food: "", restaurant: "" },
+          dinner: { food: "", restaurant: "" },
+        });
+      }
     } catch (error) {
-      console.error("Error saving reservations:", error);
-      setShowSaveError(true);
-    } finally {
-      setIsSaving(false);
+      console.error("Error loading selected date reservations:", error);
     }
   };
 
-  // Get week dates
-  const getWeekDates = (weekOffset: number) => {
-    const today = new Date();
-    const startOfWeek = new Date(today);
-    startOfWeek.setDate(today.getDate() - today.getDay() + weekOffset * 7);
 
-    const weekDates = [];
-    for (let i = 0; i < 7; i++) {
-      const date = new Date(startOfWeek);
-      date.setDate(startOfWeek.getDate() + i);
-      weekDates.push(date);
-    }
-    return weekDates;
-  };
-
-  const weekDates = getWeekDates(currentWeek);
 
   // Calculate dashboard statistics
   const dashboardStats: DashboardStats = useMemo(() => {
@@ -151,19 +205,21 @@ const Dashboard = () => {
       (acc, dayReservations) => {
         return (
           acc +
-          Object.values(dayReservations).filter((meal) => meal !== "").length
+          Object.values(dayReservations).filter((meal) => typeof meal === 'string' && meal !== "").length
         );
       },
       0
     );
 
-    const currentWeekReservations = weekDates.reduce((acc, date) => {
-      const dayReservations = reservations[date.toISOString()] || {};
-      return (
-        acc +
-        Object.values(dayReservations).filter((meal) => meal !== "").length
-      );
-    }, 0);
+    const currentWeekReservations = Object.values(reservations).reduce(
+      (acc, dayReservations) => {
+        return (
+          acc +
+          Object.values(dayReservations).filter((meal) => typeof meal === 'string' && meal !== "").length
+        );
+      },
+      0
+    );
 
     const userCredit = user?.credit || 1250000;
     const notifications = Math.floor(Math.random() * 5) + 1;
@@ -176,7 +232,7 @@ const Dashboard = () => {
       notifications,
       attendanceRate,
     };
-  }, [reservations, user, weekDates]);
+  }, [reservations, user]);
 
   // Persian food options with prices, ingredients, and descriptions (in Toman, multiples of 1000)
   const persianFoods: Record<string, FoodItem[]> = {
@@ -367,41 +423,35 @@ const Dashboard = () => {
     ],
   };
 
-  const handleReservation = (date: string, meal: string, food: string) => {
-    setReservations((prev) => ({
+
+  const handleTodayReservation = (meal: string, field: 'food' | 'restaurant', value: string) => {
+    setTodayReservations((prev) => ({
       ...prev,
-      [date]: {
-        ...prev[date],
-        [meal]: food,
+      [meal]: {
+        ...prev[meal as keyof DayReservations],
+        [field]: value,
       },
     }));
   };
 
-  const handleWeekChange = (
-    _event: React.ChangeEvent<unknown>,
-    value: number
-  ) => {
-    setCurrentWeek(value - 1);
+  const getCurrentDayString = (date: Date = selectedDate) => {
+    return date.toISOString().split('T')[0];
   };
 
-  const handlePreviousWeek = () => {
-    if (currentWeek > -2) {
-      setCurrentWeek(currentWeek - 1);
-    }
+  const handlePreviousDay = () => {
+    const previousDay = new Date(selectedDate);
+    previousDay.setDate(selectedDate.getDate() - 1);
+    setSelectedDate(previousDay);
   };
 
-  const handleNextWeek = () => {
-    if (currentWeek < 2) {
-      setCurrentWeek(currentWeek + 1);
-    }
+  const handleNextDay = () => {
+    const nextDay = new Date(selectedDate);
+    nextDay.setDate(selectedDate.getDate() + 1);
+    setSelectedDate(nextDay);
   };
 
-  const formatDateDisplay = (date: Date) => {
-    return formatDate(date, language, {
-      weekday: "long",
-      month: "short",
-      day: "numeric",
-    });
+  const handleToday = () => {
+    setSelectedDate(new Date());
   };
 
   const isToday = (date: Date) => {
@@ -412,24 +462,75 @@ const Dashboard = () => {
   const isPastDate = (date: Date) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    date.setHours(0, 0, 0, 0);
-    return date < today;
+    const compareDate = new Date(date);
+    compareDate.setHours(0, 0, 0, 0);
+    return compareDate < today;
   };
 
-  const getFoodPrice = (meal: string, foodName: string) => {
-    const mealFoods = persianFoods[meal];
-    const food = mealFoods.find((f) => f.name === foodName);
-    return food?.price || 0;
-  };
-
-  const calculateTotalCost = () => {
-    return Object.values(reservations).reduce((total, dayReservations) => {
-      return (
-        total +
-        Object.entries(dayReservations).reduce((dayTotal, [meal, food]) => {
-          return dayTotal + getFoodPrice(meal, food);
-        }, 0)
+  const saveSelectedDateReservations = async () => {
+    if (!user) return;
+    
+    const selectedDateString = getCurrentDayString();
+    setIsSaving(true);
+    try {
+      // Convert selected date reservations to old format for storage
+      const oldFormatReservations = {
+        breakfast: todayReservations.breakfast.food,
+        lunch: todayReservations.lunch.food,
+        dinner: todayReservations.dinner.food,
+      };
+      
+      const updatedReservations = {
+        ...reservations,
+        [selectedDateString]: oldFormatReservations,
+      };
+      
+      localStorage.setItem(
+        `reservations_${user.id}`,
+        JSON.stringify(updatedReservations)
       );
+      
+      // Also save restaurant selections separately
+      const existingRestaurantReservations = JSON.parse(
+        localStorage.getItem(`restaurant_reservations_${user.id}`) || "{}"
+      );
+      const updatedRestaurantReservations = {
+        ...existingRestaurantReservations,
+        [selectedDateString]: todayReservations,
+      };
+      localStorage.setItem(
+        `restaurant_reservations_${user.id}`,
+        JSON.stringify(updatedRestaurantReservations)
+      );
+      
+      // Update the reservations state by converting old format reservations to MealReservation objects
+      const convertedReservations: Record<string, Record<string, MealReservation>> = {};
+      Object.entries(updatedReservations).forEach(([date, dayMeals]) => {
+        convertedReservations[date] = {};
+        Object.entries(dayMeals).forEach(([meal, food]) => {
+          convertedReservations[date][meal] = { food: food as string, restaurant: "" };
+        });
+      });
+      
+      setReservations(convertedReservations);
+      setShowSaveSuccess(true);
+    } catch (error) {
+      console.error("Error saving selected date reservations:", error);
+      setShowSaveError(true);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+
+
+  const calculateTodayTotalCost = () => {
+    return Object.entries(todayReservations).reduce((total, [meal, mealData]) => {
+      if (mealData.food) {
+        const food = persianFoods[meal]?.find(f => f.name === mealData.food);
+        return total + (food?.price || 0);
+      }
+      return total;
     }, 0);
   };
 
@@ -622,7 +723,7 @@ const Dashboard = () => {
           </Typography>
         </Paper>
 
-        {/* Meal Reservation Table */}
+        {/* Today's Meal Reservation Cards */}
         <Paper elevation={3} sx={componentStyles.card}>
           <Box
             sx={{
@@ -634,39 +735,61 @@ const Dashboard = () => {
             }}
           >
             <Typography variant="h5" sx={getTypographyStyles(language, "h5")}>
-              {t.mealReservation}
+              {language === "fa" ? "رزرو غذا" : "Meal Reservation"}
             </Typography>
             <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
-              <Tooltip title={t.previousWeek}>
-                <IconButton
-                  onClick={handlePreviousWeek}
-                  disabled={currentWeek <= -2}
-                  color="primary"
-                >
-                  <NavigateBeforeIcon />
-                </IconButton>
-              </Tooltip>
-              <Pagination
-                count={5}
-                page={currentWeek + 3}
-                onChange={handleWeekChange}
-                color="primary"
-                size="large"
-              />
-              <Tooltip title={t.nextWeek}>
-                <IconButton
-                  onClick={handleNextWeek}
-                  disabled={currentWeek >= 2}
-                  color="primary"
-                >
-                  <NavigateNextIcon />
-                </IconButton>
-              </Tooltip>
+              {/* Date Navigation */}
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <Tooltip title={language === "fa" ? "روز قبل" : "Previous Day"}>
+                  <IconButton
+                    onClick={handlePreviousDay}
+                    color="primary"
+                    sx={{
+                      borderRadius: 2,
+                      border: "1px solid",
+                      borderColor: "primary.main",
+                    }}
+                  >
+                    <NavigateBeforeIcon />
+                  </IconButton>
+                </Tooltip>
+                
+                <Tooltip title={language === "fa" ? "روز بعد" : "Next Day"}>
+                  <IconButton
+                    onClick={handleNextDay}
+                    color="primary"
+                    sx={{
+                      borderRadius: 2,
+                      border: "1px solid",
+                      borderColor: "primary.main",
+                    }}
+                  >
+                    <NavigateNextIcon />
+                  </IconButton>
+                </Tooltip>
+                
+                {!isToday(selectedDate) && (
+                  <Tooltip title={language === "fa" ? "برگشت به امروز" : "Go to Today"}>
+                    <IconButton
+                      onClick={handleToday}
+                      color="secondary"
+                      sx={{
+                        borderRadius: 2,
+                        border: "1px solid",
+                        borderColor: "secondary.main",
+                      }}
+                    >
+                      <TodayIcon />
+                    </IconButton>
+                  </Tooltip>
+                )}
+              </Box>
+              
               <Tooltip title={t.saveReservations}>
                 <Button
                   variant="contained"
                   startIcon={isSaving ? <RefreshIcon /> : <SaveIcon />}
-                  onClick={saveReservations}
+                  onClick={saveSelectedDateReservations}
                   disabled={isSaving}
                   sx={{
                     fontFamily: isRTL
@@ -681,393 +804,313 @@ const Dashboard = () => {
             </Box>
           </Box>
 
-          <TableContainer sx={componentStyles.table.container}>
-            <Table sx={componentStyles.table.table}>
-              <TableHead>
-                <TableRow>
-                  <TableCell sx={componentStyles.table.head}>{t.day}</TableCell>
-                  <TableCell sx={componentStyles.table.head}>
-                    {t.breakfast}
-                  </TableCell>
-                  <TableCell sx={componentStyles.table.head}>
-                    {t.lunch}
-                  </TableCell>
-                  <TableCell sx={componentStyles.table.head}>
-                    {t.dinner}
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {weekDates.map((date) => (
-                  <TableRow
-                    key={date.toISOString()}
-                    sx={{
-                      ...componentStyles.table.row,
-                      backgroundColor: isToday(date) ? "primary.50" : "inherit",
-                    }}
-                  >
-                    <TableCell
+          {/* Selected Date Display */}
+          <Box sx={{ mb: 3, textAlign: "center" }}>
+            <Chip
+              label={formatDate(selectedDate, language, {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+                weekday: "long",
+              })}
+              color={isToday(selectedDate) ? "primary" : "secondary"}
+              variant={isToday(selectedDate) ? "filled" : "outlined"}
+              icon={isToday(selectedDate) ? <TodayIcon /> : undefined}
+              sx={{
+                fontSize: "1rem",
+                py: 2,
+                px: 3,
+                height: "auto",
+                fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+                direction: isRTL ? "rtl" : "ltr",
+                ...(isPastDate(selectedDate) && {
+                  opacity: 0.7,
+                  backgroundColor: "grey.100",
+                  borderColor: "grey.300",
+                }),
+              }}
+            />
+            {isPastDate(selectedDate) && (
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{
+                  display: "block",
+                  mt: 1,
+                  fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+                }}
+              >
+                {language === "fa" ? "روز گذشته" : "Past Date"}
+              </Typography>
+            )}
+          </Box>
+
+          {/* Meal Cards Grid */}
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: { xs: "1fr", md: "repeat(3, 1fr)" },
+              gap: 3,
+              mb: 3,
+            }}
+          >
+            {["breakfast", "lunch", "dinner"].map((meal) => {
+              const mealTitle = meal === "breakfast" ? t.breakfast : meal === "lunch" ? t.lunch : t.dinner;
+              const selectedFood = todayReservations[meal as keyof DayReservations].food;
+              const selectedRestaurant = todayReservations[meal as keyof DayReservations].restaurant;
+              const selectedFoodData = selectedFood ? persianFoods[meal].find(f => f.name === selectedFood) : null;
+              const selectedRestaurantData = selectedRestaurant ? restaurants.find(r => r.id === selectedRestaurant) : null;
+              
+              return (
+                <Card
+                  key={meal}
+                  sx={{
+                    border: "2px solid",
+                    borderColor: selectedFood ? "primary.main" : "grey.200",
+                    borderRadius: 3,
+                    transition: "all 0.3s ease",
+                    "&:hover": {
+                      boxShadow: "0 8px 25px rgba(0,0,0,0.15)",
+                      transform: "translateY(-2px)",
+                    },
+                    background: selectedFood 
+                      ? "linear-gradient(135deg, rgba(37, 99, 235, 0.05) 0%, rgba(59, 130, 246, 0.05) 100%)"
+                      : "rgba(248, 250, 252, 0.8)",
+                  }}
+                >
+                  <CardContent sx={{ p: 3 }}>
+                    {/* Meal Header */}
+                    <Box
                       sx={{
-                        ...componentStyles.table.cell,
-                        fontWeight: isToday(date) ? "bold" : "normal",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        mb: 3,
                       }}
                     >
-                      <Box>
-                        <Typography variant="body1">
-                          {formatDateDisplay(date)}
-                        </Typography>
-                        {isToday(date) && (
-                          <Chip
-                            label={t.today}
-                            color="primary"
-                            size="small"
-                            sx={{
-                              fontFamily: isRTL
-                                ? "var(--font-persian)"
-                                : "var(--font-english)",
-                              direction: isRTL ? "rtl" : "ltr",
-                            }}
-                          />
-                        )}
-                        {isPastDate(date) && (
-                          <Chip
-                            icon={<WarningIcon />}
-                            label={t.past}
-                            color="error"
-                            size="small"
-                            sx={{
-                              fontFamily: isRTL
-                                ? "var(--font-persian)"
-                                : "var(--font-english)",
-                              direction: isRTL ? "rtl" : "ltr",
-                            }}
-                          />
-                        )}
-                      </Box>
-                    </TableCell>
-                    {["breakfast", "lunch", "dinner"].map((meal) => (
-                      <TableCell key={meal} sx={componentStyles.table.cell}>
-                        <FormControl fullWidth size="small">
-                          <Select
-                            value={
-                              reservations[date.toISOString()]?.[meal] || ""
-                            }
-                            onChange={(e: SelectChangeEvent) =>
-                              handleReservation(
-                                date.toISOString(),
-                                meal,
-                                e.target.value
-                              )
-                            }
-                            displayEmpty
-                            disabled={isPastDate(date)}
-                            sx={componentStyles.form.field}
-                          >
-                            <MenuItem value="">
-                              <em>{t.selectMeal}</em>
-                            </MenuItem>
-                            {persianFoods[meal].map((food) => (
-                              <Tooltip
-                                key={food.name}
-                                title={
-                                  <Box
-                                    sx={{
-                                      p: 2,
-                                      maxWidth: 320,
-                                      background:
-                                        "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                                      borderRadius: 2,
-                                      border: "1px solid rgba(255,255,255,0.2)",
-                                      boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
-                                      backdropFilter: "blur(10px)",
-                                    }}
-                                  >
-                                    {/* Header with Price */}
-                                    <Box
-                                      sx={{
-                                        display: "flex",
-                                        justifyContent: "space-between",
-                                        alignItems: "center",
-                                        mb: 2,
-                                        pb: 1,
-                                        borderBottom:
-                                          "1px solid rgba(255,255,255,0.2)",
-                                      }}
-                                    >
-                                      <Typography
-                                        variant="subtitle1"
-                                        sx={{
-                                          fontWeight: 700,
-                                          color: "white",
-                                          fontSize: "1rem",
-                                          direction: isRTL ? "rtl" : "ltr",
-                                          fontFamily: isRTL
-                                            ? "var(--font-persian)"
-                                            : "var(--font-english)",
-                                        }}
-                                      >
-                                        {language === "fa"
-                                          ? food.name
-                                          : food.nameEn}
-                                      </Typography>
-                                      <Chip
-                                        label={formatCurrency(
-                                          food.price,
-                                          language
-                                        )}
-                                        size="small"
-                                        sx={{
-                                          bgcolor: "rgba(255,255,255,0.2)",
-                                          color: "white",
-                                          fontWeight: 600,
-                                          fontSize: "0.7rem",
-                                          height: 24,
-                                          fontFamily: isRTL
-                                            ? "var(--font-persian)"
-                                            : "var(--font-english)",
-                                        }}
-                                      />
-                                    </Box>
+                      <Typography
+                        variant="h6"
+                        sx={{
+                          ...getTypographyStyles(language, "h6"),
+                          fontWeight: 600,
+                          color: "primary.main",
+                        }}
+                      >
+                        {mealTitle}
+                      </Typography>
+                      <RestaurantIcon color="primary" />
+                    </Box>
 
-                                    {/* Description */}
-                                    <Typography
-                                      variant="body2"
-                                      sx={{
-                                        mb: 2,
-                                        color: "rgba(255,255,255,0.9)",
-                                        lineHeight: 1.5,
-                                        fontSize: "0.8rem",
-                                        direction: isRTL ? "rtl" : "ltr",
-                                        fontFamily: isRTL
-                                          ? "var(--font-persian)"
-                                          : "var(--font-english)",
-                                      }}
-                                    >
-                                      {language === "fa"
-                                        ? food.description
-                                        : food.descriptionEn}
-                                    </Typography>
-
-                                    {/* Ingredients Section */}
-                                    <Box>
-                                      <Typography
-                                        variant="caption"
-                                        sx={{
-                                          fontWeight: 600,
-                                          color: "rgba(255,255,255,0.8)",
-                                          display: "block",
-                                          mb: 1,
-                                          fontSize: "0.75rem",
-                                          direction: isRTL ? "rtl" : "ltr",
-                                          fontFamily: isRTL
-                                            ? "var(--font-persian)"
-                                            : "var(--font-english)",
-                                        }}
-                                      >
-                                        {language === "fa"
-                                          ? "مواد تشکیل دهنده:"
-                                          : "Ingredients:"}
-                                      </Typography>
-                                      <Box
-                                        sx={{
-                                          display: "flex",
-                                          flexWrap: "wrap",
-                                          gap: 0.5,
-                                        }}
-                                      >
-                                        {(language === "fa"
-                                          ? food.ingredients
-                                          : food.ingredientsEn
-                                        )
-                                          .slice(0, 4)
-                                          .map((ingredient, index) => (
-                                            <Chip
-                                              key={index}
-                                              label={ingredient}
-                                              size="small"
-                                              sx={{
-                                                fontSize: "0.65rem",
-                                                height: 22,
-                                                bgcolor:
-                                                  "rgba(255,255,255,0.15)",
-                                                color: "white",
-                                                border:
-                                                  "1px solid rgba(255,255,255,0.3)",
-                                                borderRadius: 1.5,
-                                                fontFamily: isRTL
-                                                  ? "var(--font-persian)"
-                                                  : "var(--font-english)",
-                                                "&:hover": {
-                                                  bgcolor:
-                                                    "rgba(255,255,255,0.25)",
-                                                },
-                                              }}
-                                            />
-                                          ))}
-                                        {food.ingredients.length > 4 && (
-                                          <Chip
-                                            label={
-                                              language === "fa"
-                                                ? `+${
-                                                    food.ingredients.length - 4
-                                                  } بیشتر`
-                                                : `+${
-                                                    food.ingredients.length - 4
-                                                  } more`
-                                            }
-                                            size="small"
-                                            sx={{
-                                              fontSize: "0.65rem",
-                                              height: 22,
-                                              bgcolor: "rgba(255,255,255,0.1)",
-                                              color: "rgba(255,255,255,0.7)",
-                                              border:
-                                                "1px solid rgba(255,255,255,0.2)",
-                                              borderRadius: 1.5,
-                                              fontFamily: isRTL
-                                                ? "var(--font-persian)"
-                                                : "var(--font-english)",
-                                            }}
-                                          />
-                                        )}
-                                      </Box>
-                                    </Box>
-
-                                    {/* Nutritional Info */}
-                                    <Box
-                                      sx={{
-                                        mt: 2,
-                                        pt: 1,
-                                        borderTop:
-                                          "1px solid rgba(255,255,255,0.2)",
-                                        display: "flex",
-                                        justifyContent: "space-between",
-                                        direction: isRTL ? "rtl" : "ltr",
-                                      }}
-                                    >
-                                      <Box sx={{ textAlign: "center" }}>
-                                        <Typography
-                                          variant="caption"
-                                          sx={{
-                                            display: "block",
-                                            color: "rgba(255,255,255,0.7)",
-                                            fontSize: "0.65rem",
-                                            fontFamily: isRTL
-                                              ? "var(--font-persian)"
-                                              : "var(--font-english)",
-                                          }}
-                                        >
-                                          {language === "fa"
-                                            ? "زمان آماده‌سازی"
-                                            : "Prep Time"}
-                                        </Typography>
-                                        <Typography
-                                          variant="body2"
-                                          sx={{
-                                            color: "white",
-                                            fontWeight: 600,
-                                            fontSize: "0.8rem",
-                                            fontFamily: isRTL
-                                              ? "var(--font-persian)"
-                                              : "var(--font-english)",
-                                          }}
-                                        >
-                                          {Math.floor(food.price / 1000)}{" "}
-                                          {language === "fa" ? "دقیقه" : "min"}
-                                        </Typography>
-                                      </Box>
-                                      <Box sx={{ textAlign: "center" }}>
-                                        <Typography
-                                          variant="caption"
-                                          sx={{
-                                            display: "block",
-                                            color: "rgba(255,255,255,0.7)",
-                                            fontSize: "0.65rem",
-                                            fontFamily: isRTL
-                                              ? "var(--font-persian)"
-                                              : "var(--font-english)",
-                                          }}
-                                        >
-                                          {language === "fa"
-                                            ? "سطح دشواری"
-                                            : "Difficulty"}
-                                        </Typography>
-                                        <Typography
-                                          variant="body2"
-                                          sx={{
-                                            color: "white",
-                                            fontWeight: 600,
-                                            fontSize: "0.8rem",
-                                            fontFamily: isRTL
-                                              ? "var(--font-persian)"
-                                              : "var(--font-english)",
-                                          }}
-                                        >
-                                          {language === "fa"
-                                            ? "متوسط"
-                                            : "Medium"}
-                                        </Typography>
-                                      </Box>
-                                    </Box>
-                                  </Box>
-                                }
-                                arrow
-                                placement="right"
-                                PopperProps={{
-                                  sx: {
-                                    "& .MuiTooltip-arrow": {
-                                      color: "#667eea",
-                                    },
-                                  },
-                                }}
+                    {/* Food Selection */}
+                    <Box sx={{ mb: 3 }}>
+                      <Typography
+                        variant="subtitle2"
+                        sx={{
+                          ...getTypographyStyles(language, "body2"),
+                          mb: 1,
+                          fontWeight: 600,
+                          color: "text.primary",
+                        }}
+                      >
+                        {language === "fa" ? "انتخاب غذا" : "Select Food"}
+                      </Typography>
+                      <FormControl fullWidth>
+                        <Select
+                          value={selectedFood}
+                          onChange={(e: SelectChangeEvent) =>
+                            handleTodayReservation(meal, 'food', e.target.value)
+                          }
+                          displayEmpty
+                          sx={{
+                            ...componentStyles.form.field,
+                            borderRadius: 2,
+                            "& .MuiOutlinedInput-notchedOutline": {
+                              borderColor: "grey.300",
+                            },
+                          }}
+                        >
+                          <MenuItem value="">
+                            <em>{language === "fa" ? "غذا انتخاب کنید" : "Select a meal"}</em>
+                          </MenuItem>
+                          {persianFoods[meal].map((food) => (
+                            <MenuItem key={food.name} value={food.name}>
+                              <Box
                                 sx={{
-                                  "& .MuiTooltip-tooltip": {
-                                    backgroundColor: "transparent",
-                                    padding: 0,
-                                    maxWidth: "none",
-                                    boxShadow: "none",
-                                  },
+                                  display: "flex",
+                                  justifyContent: "space-between",
+                                  width: "100%",
+                                  alignItems: "center",
                                 }}
                               >
-                                <MenuItem value={food.name}>
-                                  <Box
-                                    sx={{
-                                      display: "flex",
-                                      justifyContent: "space-between",
-                                      width: "100%",
-                                      direction: isRTL ? "rtl" : "ltr",
-                                    }}
-                                  >
-                                    <span>{food.name}</span>
-                                    <Chip
-                                      label={formatCurrency(
-                                        food.price,
-                                        language
-                                      )}
-                                      size="small"
-                                      color="primary"
-                                      variant="outlined"
-                                    />
-                                  </Box>
-                                </MenuItem>
-                              </Tooltip>
-                            ))}
-                          </Select>
-                        </FormControl>
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                                <Typography
+                                  sx={{
+                                    fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+                                  }}
+                                >
+                                  {language === "fa" ? food.name : food.nameEn}
+                                </Typography>
+                                <Chip
+                                  label={formatCurrency(food.price, language)}
+                                  size="small"
+                                  color="primary"
+                                  variant="outlined"
+                                  sx={{
+                                    fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+                                  }}
+                                />
+                              </Box>
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Box>
+
+                    {/* Restaurant Selection */}
+                    <Box sx={{ mb: 3 }}>
+                      <Typography
+                        variant="subtitle2"
+                        sx={{
+                          ...getTypographyStyles(language, "body2"),
+                          mb: 1,
+                          fontWeight: 600,
+                          color: "text.primary",
+                        }}
+                      >
+                        {language === "fa" ? "انتخاب سلف" : "Select Cafeteria"}
+                      </Typography>
+                      <FormControl fullWidth>
+                        <Select
+                          value={selectedRestaurant}
+                          onChange={(e: SelectChangeEvent) =>
+                            handleTodayReservation(meal, 'restaurant', e.target.value)
+                          }
+                          displayEmpty
+                          sx={{
+                            ...componentStyles.form.field,
+                            borderRadius: 2,
+                            "& .MuiOutlinedInput-notchedOutline": {
+                              borderColor: "grey.300",
+                            },
+                          }}
+                        >
+                          <MenuItem value="">
+                            <em>{language === "fa" ? "سلف انتخاب کنید" : "Select a cafeteria"}</em>
+                          </MenuItem>
+                          {restaurants.map((restaurant) => (
+                            <MenuItem key={restaurant.id} value={restaurant.id}>
+                              <Box sx={{ direction: isRTL ? "rtl" : "ltr" }}>
+                                <Typography
+                                  variant="body1"
+                                  sx={{
+                                    fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+                                    fontWeight: 500,
+                                  }}
+                                >
+                                  {language === "fa" ? restaurant.name : restaurant.nameEn}
+                                </Typography>
+                                <Typography
+                                  variant="caption"
+                                  color="text.secondary"
+                                  sx={{
+                                    fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+                                  }}
+                                >
+                                  {language === "fa" ? restaurant.location : restaurant.locationEn}
+                                </Typography>
+                              </Box>
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Box>
+
+                    {/* Selected Summary */}
+                    {(selectedFood || selectedRestaurant) && (
+                      <Box
+                        sx={{
+                          p: 2,
+                          backgroundColor: "rgba(37, 99, 235, 0.05)",
+                          borderRadius: 2,
+                          border: "1px solid rgba(37, 99, 235, 0.1)",
+                        }}
+                      >
+                        {selectedFoodData && (
+                          <Box sx={{ mb: selectedRestaurantData ? 2 : 0 }}>
+                            <Typography
+                              variant="body2"
+                              sx={{
+                                fontWeight: 600,
+                                color: "primary.main",
+                                mb: 0.5,
+                                fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+                              }}
+                            >
+                              {language === "fa" ? "غذا انتخابی:" : "Selected Food:"}
+                            </Typography>
+                            <Typography
+                              variant="body2"
+                              sx={{
+                                fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+                                color: "text.primary",
+                              }}
+                            >
+                              {language === "fa" ? selectedFoodData.name : selectedFoodData.nameEn} - {formatCurrency(selectedFoodData.price, language)}
+                            </Typography>
+                          </Box>
+                        )}
+                        {selectedRestaurantData && (
+                          <Box>
+                            <Typography
+                              variant="body2"
+                              sx={{
+                                fontWeight: 600,
+                                color: "primary.main",
+                                mb: 0.5,
+                                fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+                              }}
+                            >
+                              {language === "fa" ? "سلف انتخابی:" : "Selected Cafeteria:"}
+                            </Typography>
+                            <Typography
+                              variant="body2"
+                              sx={{
+                                fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+                                color: "text.primary",
+                              }}
+                            >
+                              {language === "fa" ? selectedRestaurantData.name : selectedRestaurantData.nameEn}
+                            </Typography>
+                            <Typography
+                              variant="caption"
+                              sx={{
+                                fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+                                color: "text.secondary",
+                              }}
+                            >
+                              {language === "fa" ? selectedRestaurantData.location : selectedRestaurantData.locationEn}
+                            </Typography>
+                          </Box>
+                        )}
+                      </Box>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </Box>
 
           {/* Total Cost Summary */}
           <Box
-            sx={{ mt: 3, p: 2, backgroundColor: "grey.50", borderRadius: 0 }}
+            sx={{
+              p: 3,
+              backgroundColor: "primary.50",
+              borderRadius: 2,
+              textAlign: "center",
+            }}
           >
             <Typography variant="h6" sx={getTypographyStyles(language, "h6")}>
-              {t.totalCost}: {formatCurrency(calculateTotalCost(), language)}
+              {language === "fa" ? "هزینه کل امروز:" : "Today's Total Cost:"} {" "}
+              {formatCurrency(calculateTodayTotalCost(), language)}
             </Typography>
           </Box>
         </Paper>
