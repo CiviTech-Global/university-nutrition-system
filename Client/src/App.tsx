@@ -9,14 +9,36 @@ import Foods from "./presentation/pages/Foods";
 import SaleDay from "./presentation/pages/SaleDay";
 import TestLanguage from "./presentation/pages/TestLanguage";
 import Layout from "./presentation/components/Layout";
+import AuthLayout from "./presentation/components/AuthLayout";
 import "./presentation/assets/persian-rtl.css";
 
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<Register />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/login" element={<Login />} />
+      <Route
+        path="/"
+        element={
+          <AuthLayout>
+            <Register />
+          </AuthLayout>
+        }
+      />
+      <Route
+        path="/register"
+        element={
+          <AuthLayout>
+            <Register />
+          </AuthLayout>
+        }
+      />
+      <Route
+        path="/login"
+        element={
+          <AuthLayout>
+            <Login />
+          </AuthLayout>
+        }
+      />
       <Route
         path="/dashboard"
         element={
@@ -60,9 +82,9 @@ function App() {
       <Route
         path="/forgot-password"
         element={
-          <Layout>
+          <AuthLayout>
             <ForgotPassword />
-          </Layout>
+          </AuthLayout>
         }
       />
       <Route

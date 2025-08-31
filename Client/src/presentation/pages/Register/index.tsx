@@ -13,6 +13,11 @@ import {
   ToggleButtonGroup,
   Alert,
   CircularProgress,
+  Card,
+  CardContent,
+  Avatar,
+  Fade,
+  Slide,
 } from "@mui/material";
 import {
   Visibility,
@@ -21,13 +26,63 @@ import {
   Email,
   Lock,
   Language,
+  School,
+  Security,
+  CheckCircle,
+  Restaurant,
+  TrendingUp,
 } from "@mui/icons-material";
-import { translations } from "../../locales";
 import type { Language as LanguageType } from "../../locales";
 import { isUsernameTaken, isEmailTaken } from "../../utils/userUtils";
+import { useLanguage } from "../../contexts/LanguageContext";
+import {
+  createComponentStyles,
+  getTypographyStyles,
+} from "../../utils/languageUtils";
+
+// Benefits interface for registration
+interface Benefit {
+  id: string;
+  icon: React.ReactNode;
+  title: string;
+  titleEn: string;
+  description: string;
+  descriptionEn: string;
+}
+
+// Sample benefits data
+const sampleBenefits: Benefit[] = [
+  {
+    id: "1",
+    icon: <Restaurant color="primary" />,
+    title: "دسترسی به منوی متنوع",
+    titleEn: "Access to Diverse Menu",
+    description: "انواع غذاهای ایرانی و بین‌المللی",
+    descriptionEn: "Various Iranian and international dishes",
+  },
+  {
+    id: "2",
+    icon: <TrendingUp color="primary" />,
+    title: "رزرو آسان و سریع",
+    titleEn: "Easy & Quick Reservation",
+    description: "رزرو وعده‌های غذایی در چند ثانیه",
+    descriptionEn: "Reserve meals in seconds",
+  },
+  {
+    id: "3",
+    icon: <Security color="primary" />,
+    title: "امنیت بالا",
+    titleEn: "High Security",
+    description: "حفاظت کامل از اطلاعات شخصی",
+    descriptionEn: "Complete protection of personal data",
+  },
+];
 
 const Register = () => {
-  const [language, setLanguage] = useState<LanguageType>("en");
+  const { language, t, setLanguage } = useLanguage();
+  const componentStyles = createComponentStyles(language);
+  const typographyStyles = getTypographyStyles(language, "body1");
+
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -46,16 +101,24 @@ const Register = () => {
     text: string;
   } | null>(null);
 
-  const t = translations[language];
+  // Get benefits for current language
+  const benefits = sampleBenefits.map((benefit) => ({
+    ...benefit,
+    title: language === "fa" ? benefit.title : benefit.titleEn,
+    description:
+      language === "fa" ? benefit.description : benefit.descriptionEn,
+  }));
 
   const handleLanguageChange = (
     _event: React.MouseEvent<HTMLElement>,
     newLanguage: LanguageType | null
   ) => {
     if (newLanguage !== null) {
+      // Update language in context
       setLanguage(newLanguage);
       // Clear errors when language changes
       setErrors({});
+      setSubmitMessage(null);
     }
   };
 
@@ -71,6 +134,10 @@ const Register = () => {
           ...errors,
           [field]: "",
         });
+      }
+      // Clear submit message when user starts typing
+      if (submitMessage) {
+        setSubmitMessage(null);
       }
     };
 
@@ -121,6 +188,9 @@ const Register = () => {
       setIsSubmitting(true);
 
       try {
+        // Simulate network delay
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+
         // Check for duplicate username
         if (isUsernameTaken(formData.username)) {
           setErrors((prev) => ({
@@ -195,359 +265,598 @@ const Register = () => {
   };
 
   return (
-    <Container maxWidth="sm" sx={{ py: 4 }}>
-      <Paper elevation={3} sx={{ p: 4, borderRadius: 0 }}>
-        <Box component="form" onSubmit={handleSubmit}>
-          <Stack spacing={3}>
-            {/* Header with Language Switcher */}
-            <Box textAlign="center">
-              <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
-                <ToggleButtonGroup
-                  value={language}
-                  exclusive
-                  onChange={handleLanguageChange}
-                  size="small"
-                  sx={{
-                    "& .MuiToggleButton-root": {
-                      px: 2,
-                      py: 0.5,
-                      fontSize: "0.875rem",
-                    },
-                  }}
-                >
-                  <ToggleButton value="en">
-                    <Language sx={{ mr: 0.5, fontSize: "1rem" }} />
-                    EN
-                  </ToggleButton>
-                  <ToggleButton value="fa">
-                    <Language sx={{ mr: 0.5, fontSize: "1rem" }} />
-                    فارسی
-                  </ToggleButton>
-                </ToggleButtonGroup>
-              </Box>
-
-              <Typography
-                variant="h4"
-                component="h1"
-                gutterBottom
-                color="primary"
+    <Box
+      sx={{
+        minHeight: "100vh",
+        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+        display: "flex",
+        alignItems: "center",
+        py: 4,
+      }}
+    >
+      <Container maxWidth="lg">
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: { xs: "column", md: "row" },
+            gap: 4,
+          }}
+        >
+          {/* Left Side - Registration Form */}
+          <Box sx={{ flex: 1 }}>
+            <Fade in timeout={800}>
+              <Paper
+                elevation={8}
                 sx={{
-                  direction: language === "fa" ? "rtl" : "ltr",
-                  fontFamily:
-                    language === "fa"
-                      ? "var(--font-persian)"
-                      : "var(--font-english)",
+                  p: 4,
+                  borderRadius: 3,
+                  background: "rgba(255, 255, 255, 0.95)",
+                  backdropFilter: "blur(10px)",
                 }}
               >
-                {t.title}
-              </Typography>
-              <Typography
-                variant="h6"
-                color="text.secondary"
-                sx={{
-                  direction: language === "fa" ? "rtl" : "ltr",
-                  fontFamily:
-                    language === "fa"
-                      ? "var(--font-persian)"
-                      : "var(--font-english)",
-                }}
-              >
-                {t.subtitle}
-              </Typography>
-            </Box>
+                <Box component="form" onSubmit={handleSubmit}>
+                  <Stack spacing={3}>
+                    {/* Header with Language Switcher */}
+                    <Box textAlign="center">
+                      <Box
+                        sx={{
+                          display: "flex",
+                          justifyContent:
+                            language === "fa" ? "flex-start" : "flex-end",
+                          mb: 2,
+                        }}
+                      >
+                        <ToggleButtonGroup
+                          value={language}
+                          exclusive
+                          onChange={handleLanguageChange}
+                          size="small"
+                          sx={{
+                            "& .MuiToggleButton-root": {
+                              px: 2,
+                              py: 0.5,
+                              fontSize: "0.875rem",
+                              borderRadius: 2,
+                            },
+                          }}
+                        >
+                          <ToggleButton value="en">
+                            <Language sx={{ mr: 0.5, fontSize: "1rem" }} />
+                            EN
+                          </ToggleButton>
+                          <ToggleButton value="fa">
+                            <Language sx={{ mr: 0.5, fontSize: "1rem" }} />
+                            فارسی
+                          </ToggleButton>
+                        </ToggleButtonGroup>
+                      </Box>
 
-            {/* Name Fields */}
-            <Stack direction="row" spacing={2}>
-              <TextField
-                fullWidth
-                label={t.firstName}
-                value={formData.firstName}
-                onChange={handleChange("firstName")}
-                error={!!errors.firstName}
-                helperText={errors.firstName}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Person color="action" />
-                    </InputAdornment>
-                  ),
-                }}
-                sx={{
-                  direction: language === "fa" ? "rtl" : "ltr",
-                  "& .MuiInputLabel-root": {
-                    fontFamily:
-                      language === "fa"
-                        ? "var(--font-persian)"
-                        : "var(--font-english)",
-                  },
-                  "& .MuiInputBase-input": {
-                    fontFamily:
-                      language === "fa"
-                        ? "var(--font-persian)"
-                        : "var(--font-english)",
-                  },
-                }}
-              />
-              <TextField
-                fullWidth
-                label={t.lastName}
-                value={formData.lastName}
-                onChange={handleChange("lastName")}
-                error={!!errors.lastName}
-                helperText={errors.lastName}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Person color="action" />
-                    </InputAdornment>
-                  ),
-                }}
-                sx={{
-                  direction: language === "fa" ? "rtl" : "ltr",
-                  "& .MuiInputLabel-root": {
-                    fontFamily:
-                      language === "fa"
-                        ? "var(--font-persian)"
-                        : "var(--font-english)",
-                  },
-                  "& .MuiInputBase-input": {
-                    fontFamily:
-                      language === "fa"
-                        ? "var(--font-persian)"
-                        : "var(--font-english)",
-                  },
-                }}
-              />
-            </Stack>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          justifyContent: "center",
+                          mb: 2,
+                        }}
+                      >
+                        <Avatar
+                          sx={{
+                            width: 80,
+                            height: 80,
+                            bgcolor: "primary.main",
+                            mb: 2,
+                          }}
+                        >
+                          <School sx={{ fontSize: 40 }} />
+                        </Avatar>
+                      </Box>
 
-            {/* Email */}
-            <TextField
-              fullWidth
-              label={t.email}
-              type="email"
-              value={formData.email}
-              onChange={handleChange("email")}
-              error={!!errors.email}
-              helperText={errors.email}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Email color="action" />
-                  </InputAdornment>
-                ),
-              }}
-              sx={{
-                direction: language === "fa" ? "rtl" : "ltr",
-                "& .MuiInputLabel-root": {
-                  fontFamily:
-                    language === "fa"
-                      ? "var(--font-persian)"
-                      : "var(--font-english)",
-                },
-                "& .MuiInputBase-input": {
-                  fontFamily:
-                    language === "fa"
-                      ? "var(--font-persian)"
-                      : "var(--font-english)",
-                },
-              }}
-            />
+                      <Typography
+                        variant="h3"
+                        component="h1"
+                        gutterBottom
+                        color="primary"
+                        sx={{
+                          ...typographyStyles,
+                          fontWeight: 700,
+                          fontSize: "2.5rem",
+                          mb: 1,
+                        }}
+                      >
+                        {t.title}
+                      </Typography>
+                      <Typography
+                        variant="h6"
+                        color="text.secondary"
+                        sx={{
+                          ...typographyStyles,
+                          mb: 3,
+                        }}
+                      >
+                        {t.subtitle}
+                      </Typography>
+                    </Box>
 
-            {/* Username */}
-            <TextField
-              fullWidth
-              label={t.username}
-              value={formData.username}
-              onChange={handleChange("username")}
-              error={!!errors.username}
-              helperText={errors.username}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Person color="action" />
-                  </InputAdornment>
-                ),
-              }}
-              sx={{
-                direction: language === "fa" ? "rtl" : "ltr",
-                "& .MuiInputLabel-root": {
-                  fontFamily:
-                    language === "fa"
-                      ? "var(--font-persian)"
-                      : "var(--font-english)",
-                },
-                "& .MuiInputBase-input": {
-                  fontFamily:
-                    language === "fa"
-                      ? "var(--font-persian)"
-                      : "var(--font-english)",
-                },
-              }}
-            />
+                    {/* Name Fields */}
+                    <Stack direction="row" spacing={2}>
+                      <TextField
+                        fullWidth
+                        label={t.firstName}
+                        value={formData.firstName}
+                        onChange={handleChange("firstName")}
+                        error={!!errors.firstName}
+                        helperText={errors.firstName}
+                        InputProps={{
+                          [language === "fa"
+                            ? "endAdornment"
+                            : "startAdornment"]: (
+                            <InputAdornment
+                              position={language === "fa" ? "end" : "start"}
+                            >
+                              <Person color="action" />
+                            </InputAdornment>
+                          ),
+                        }}
+                        sx={{
+                          ...componentStyles.form.field,
+                          "& .MuiOutlinedInput-root": {
+                            borderRadius: 2,
+                          },
+                        }}
+                      />
+                      <TextField
+                        fullWidth
+                        label={t.lastName}
+                        value={formData.lastName}
+                        onChange={handleChange("lastName")}
+                        error={!!errors.lastName}
+                        helperText={errors.lastName}
+                        InputProps={{
+                          [language === "fa"
+                            ? "endAdornment"
+                            : "startAdornment"]: (
+                            <InputAdornment
+                              position={language === "fa" ? "end" : "start"}
+                            >
+                              <Person color="action" />
+                            </InputAdornment>
+                          ),
+                        }}
+                        sx={{
+                          ...componentStyles.form.field,
+                          "& .MuiOutlinedInput-root": {
+                            borderRadius: 2,
+                          },
+                        }}
+                      />
+                    </Stack>
 
-            {/* Password */}
-            <TextField
-              fullWidth
-              label={t.password}
-              type={showPassword ? "text" : "password"}
-              value={formData.password}
-              onChange={handleChange("password")}
-              error={!!errors.password}
-              helperText={errors.password}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Lock color="action" />
-                  </InputAdornment>
-                ),
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton
-                      onClick={() => setShowPassword(!showPassword)}
-                      edge="end"
+                    {/* Email */}
+                    <TextField
+                      fullWidth
+                      label={t.email}
+                      type="email"
+                      value={formData.email}
+                      onChange={handleChange("email")}
+                      error={!!errors.email}
+                      helperText={errors.email}
+                      InputProps={{
+                        [language === "fa" ? "endAdornment" : "startAdornment"]:
+                          (
+                            <InputAdornment
+                              position={language === "fa" ? "end" : "start"}
+                            >
+                              <Email color="action" />
+                            </InputAdornment>
+                          ),
+                      }}
+                      sx={{
+                        ...componentStyles.form.field,
+                        "& .MuiOutlinedInput-root": {
+                          borderRadius: 2,
+                        },
+                      }}
+                    />
+
+                    {/* Username */}
+                    <TextField
+                      fullWidth
+                      label={t.username}
+                      value={formData.username}
+                      onChange={handleChange("username")}
+                      error={!!errors.username}
+                      helperText={errors.username}
+                      InputProps={{
+                        [language === "fa" ? "endAdornment" : "startAdornment"]:
+                          (
+                            <InputAdornment
+                              position={language === "fa" ? "end" : "start"}
+                            >
+                              <Person color="action" />
+                            </InputAdornment>
+                          ),
+                      }}
+                      sx={{
+                        ...componentStyles.form.field,
+                        "& .MuiOutlinedInput-root": {
+                          borderRadius: 2,
+                        },
+                      }}
+                    />
+
+                    {/* Password */}
+                    <TextField
+                      fullWidth
+                      label={t.password}
+                      type={showPassword ? "text" : "password"}
+                      value={formData.password}
+                      onChange={handleChange("password")}
+                      error={!!errors.password}
+                      helperText={errors.password}
+                      InputProps={{
+                        [language === "fa" ? "endAdornment" : "startAdornment"]:
+                          (
+                            <InputAdornment
+                              position={language === "fa" ? "end" : "start"}
+                            >
+                              <Lock color="action" />
+                            </InputAdornment>
+                          ),
+                        [language === "fa" ? "startAdornment" : "endAdornment"]:
+                          (
+                            <InputAdornment
+                              position={language === "fa" ? "start" : "end"}
+                            >
+                              <IconButton
+                                onClick={() => setShowPassword(!showPassword)}
+                                edge={language === "fa" ? "start" : "end"}
+                              >
+                                {showPassword ? (
+                                  <VisibilityOff />
+                                ) : (
+                                  <Visibility />
+                                )}
+                              </IconButton>
+                            </InputAdornment>
+                          ),
+                      }}
+                      sx={{
+                        ...componentStyles.form.field,
+                        "& .MuiOutlinedInput-root": {
+                          borderRadius: 2,
+                        },
+                      }}
+                    />
+
+                    {/* Re-enter Password */}
+                    <TextField
+                      fullWidth
+                      label={t.confirmPassword}
+                      type={showRePassword ? "text" : "password"}
+                      value={formData.rePassword}
+                      onChange={handleChange("rePassword")}
+                      error={!!errors.rePassword}
+                      helperText={errors.rePassword}
+                      InputProps={{
+                        [language === "fa" ? "endAdornment" : "startAdornment"]:
+                          (
+                            <InputAdornment
+                              position={language === "fa" ? "end" : "start"}
+                            >
+                              <Lock color="action" />
+                            </InputAdornment>
+                          ),
+                        [language === "fa" ? "startAdornment" : "endAdornment"]:
+                          (
+                            <InputAdornment
+                              position={language === "fa" ? "start" : "end"}
+                            >
+                              <IconButton
+                                onClick={() =>
+                                  setShowRePassword(!showRePassword)
+                                }
+                                edge={language === "fa" ? "start" : "end"}
+                              >
+                                {showRePassword ? (
+                                  <VisibilityOff />
+                                ) : (
+                                  <Visibility />
+                                )}
+                              </IconButton>
+                            </InputAdornment>
+                          ),
+                      }}
+                      sx={{
+                        ...componentStyles.form.field,
+                        "& .MuiOutlinedInput-root": {
+                          borderRadius: 2,
+                        },
+                      }}
+                    />
+
+                    {/* Success/Error Message */}
+                    {submitMessage && (
+                      <Slide direction="up" in timeout={300}>
+                        <Alert
+                          severity={submitMessage.type}
+                          sx={{
+                            ...typographyStyles,
+                            borderRadius: 2,
+                            "& .MuiAlert-icon": {
+                              fontSize: "1.5rem",
+                            },
+                          }}
+                        >
+                          {submitMessage.text}
+                        </Alert>
+                      </Slide>
+                    )}
+
+                    {/* Submit Button */}
+                    <Button
+                      type="submit"
+                      variant="contained"
+                      size="large"
+                      disabled={isSubmitting}
+                      sx={{
+                        py: 1.5,
+                        fontSize: "1.1rem",
+                        borderRadius: 2,
+                        background:
+                          "linear-gradient(45deg, #667eea 30%, #764ba2 90%)",
+                        boxShadow: "0 3px 5px 2px rgba(102, 126, 234, .3)",
+                        "&:hover": {
+                          background:
+                            "linear-gradient(45deg, #5a6fd8 30%, #6a4190 90%)",
+                        },
+                      }}
                     >
-                      {showPassword ? <VisibilityOff /> : <Visibility />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
-              sx={{
-                direction: language === "fa" ? "rtl" : "ltr",
-                "& .MuiInputLabel-root": {
-                  fontFamily:
-                    language === "fa"
-                      ? "var(--font-persian)"
-                      : "var(--font-english)",
-                },
-                "& .MuiInputBase-input": {
-                  fontFamily:
-                    language === "fa"
-                      ? "var(--font-persian)"
-                      : "var(--font-english)",
-                },
-              }}
-            />
+                      {isSubmitting ? (
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                        >
+                          <CircularProgress size={20} color="inherit" />
+                          {t.creatingAccount}
+                        </Box>
+                      ) : (
+                        t.createAccount
+                      )}
+                    </Button>
 
-            {/* Re-enter Password */}
-            <TextField
-              fullWidth
-              label={t.confirmPassword}
-              type={showRePassword ? "text" : "password"}
-              value={formData.rePassword}
-              onChange={handleChange("rePassword")}
-              error={!!errors.rePassword}
-              helperText={errors.rePassword}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Lock color="action" />
-                  </InputAdornment>
-                ),
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton
-                      onClick={() => setShowRePassword(!showRePassword)}
-                      edge="end"
-                    >
-                      {showRePassword ? <VisibilityOff /> : <Visibility />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
-              sx={{
-                direction: language === "fa" ? "rtl" : "ltr",
-                "& .MuiInputLabel-root": {
-                  fontFamily:
-                    language === "fa"
-                      ? "var(--font-persian)"
-                      : "var(--font-english)",
-                },
-                "& .MuiInputBase-input": {
-                  fontFamily:
-                    language === "fa"
-                      ? "var(--font-persian)"
-                      : "var(--font-english)",
-                },
-              }}
-            />
-
-            {/* Success/Error Message */}
-            {submitMessage && (
-              <Alert
-                severity={submitMessage.type}
-                sx={{
-                  fontFamily:
-                    language === "fa"
-                      ? "var(--font-persian)"
-                      : "var(--font-english)",
-                  direction: language === "fa" ? "rtl" : "ltr",
-                }}
-              >
-                {submitMessage.text}
-              </Alert>
-            )}
-
-            {/* Submit Button */}
-            <Button
-              type="submit"
-              variant="contained"
-              size="large"
-              disabled={isSubmitting}
-              sx={{
-                py: 1.5,
-                fontSize: "1.1rem",
-                fontFamily:
-                  language === "fa"
-                    ? "var(--font-persian)"
-                    : "var(--font-english)",
-              }}
-            >
-              {isSubmitting ? (
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <CircularProgress size={20} color="inherit" />
-                  {t.creatingAccount}
+                    {/* Login Link */}
+                    <Box textAlign="center">
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{
+                          ...typographyStyles,
+                        }}
+                      >
+                        {t.alreadyHaveAccount}{" "}
+                        <Typography
+                          component="span"
+                          variant="body2"
+                          color="primary"
+                          onClick={() => (window.location.href = "/login")}
+                          sx={{
+                            cursor: "pointer",
+                            textDecoration: "underline",
+                            ...typographyStyles,
+                            "&:hover": {
+                              color: "primary.dark",
+                            },
+                          }}
+                        >
+                          {t.signInHere}
+                        </Typography>
+                      </Typography>
+                    </Box>
+                  </Stack>
                 </Box>
-              ) : (
-                t.createAccount
-              )}
-            </Button>
+              </Paper>
+            </Fade>
+          </Box>
 
-            {/* Login Link */}
-            <Box textAlign="center">
-              <Typography
-                variant="body2"
-                color="text.secondary"
-                sx={{
-                  direction: language === "fa" ? "rtl" : "ltr",
-                  fontFamily:
-                    language === "fa"
-                      ? "var(--font-persian)"
-                      : "var(--font-english)",
-                }}
-              >
-                {t.alreadyHaveAccount}{" "}
-                <Typography
-                  component="span"
-                  variant="body2"
-                  color="primary"
-                  onClick={() => (window.location.href = "/login")}
+          {/* Right Side - Benefits and Info */}
+          <Box sx={{ flex: 1 }}>
+            <Stack spacing={3}>
+              {/* Welcome Image */}
+              <Fade in timeout={1000}>
+                <Paper
+                  elevation={4}
                   sx={{
-                    cursor: "pointer",
-                    textDecoration: "underline",
-                    fontFamily:
-                      language === "fa"
-                        ? "var(--font-persian)"
-                        : "var(--font-english)",
+                    borderRadius: 3,
+                    overflow: "hidden",
+                    position: "relative",
+                    height: 200,
+                    background:
+                      "linear-gradient(45deg, #667eea 30%, #764ba2 90%)",
                   }}
                 >
-                  {t.signInHere}
-                </Typography>
-              </Typography>
-            </Box>
-          </Stack>
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      background: `url('/src/presentation/assets/images/چلو جوجه کباب و ته چین.jpg')`,
+                      backgroundSize: "cover",
+                      backgroundPosition: "center",
+                      opacity: 0.3,
+                    }}
+                  />
+                  <Box
+                    sx={{
+                      position: "relative",
+                      zIndex: 1,
+                      p: 3,
+                      height: "100%",
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      color: "white",
+                    }}
+                  >
+                    <Restaurant sx={{ fontSize: 48, mb: 2 }} />
+                    <Typography
+                      variant="h4"
+                      sx={{
+                        ...typographyStyles,
+                        fontWeight: 700,
+                        textAlign: "center",
+                      }}
+                    >
+                      {language === "fa"
+                        ? "به جمع ما بپیوندید"
+                        : "Join Our Community"}
+                    </Typography>
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        ...typographyStyles,
+                        textAlign: "center",
+                        opacity: 0.9,
+                      }}
+                    >
+                      {language === "fa"
+                        ? "تجربه غذایی بهتر"
+                        : "Better Dining Experience"}
+                    </Typography>
+                  </Box>
+                </Paper>
+              </Fade>
+
+              {/* Benefits */}
+              <Fade in timeout={1200}>
+                <Paper
+                  elevation={4}
+                  sx={{
+                    p: 3,
+                    borderRadius: 3,
+                    background: "rgba(255, 255, 255, 0.95)",
+                    backdropFilter: "blur(10px)",
+                  }}
+                >
+                  <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+                    <CheckCircle color="primary" sx={{ mr: 1 }} />
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        ...typographyStyles,
+                        fontWeight: 600,
+                      }}
+                    >
+                      {language === "fa"
+                        ? "مزایای عضویت"
+                        : "Membership Benefits"}
+                    </Typography>
+                  </Box>
+
+                  <Stack spacing={2}>
+                    {benefits.map((benefit) => (
+                      <Card
+                        key={benefit.id}
+                        sx={{
+                          borderRadius: 2,
+                          border: "1px solid",
+                          borderColor: "primary.light",
+                          background: "primary.50",
+                        }}
+                      >
+                        <CardContent sx={{ p: 2 }}>
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "flex-start",
+                              gap: 1,
+                            }}
+                          >
+                            {benefit.icon}
+                            <Box sx={{ flex: 1 }}>
+                              <Typography
+                                variant="subtitle2"
+                                sx={{
+                                  ...typographyStyles,
+                                  fontWeight: 600,
+                                  mb: 0.5,
+                                }}
+                              >
+                                {benefit.title}
+                              </Typography>
+                              <Typography
+                                variant="body2"
+                                color="text.secondary"
+                                sx={{
+                                  ...typographyStyles,
+                                }}
+                              >
+                                {benefit.description}
+                              </Typography>
+                            </Box>
+                          </Box>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </Stack>
+                </Paper>
+              </Fade>
+
+              {/* Security Info */}
+              <Fade in timeout={1400}>
+                <Paper
+                  elevation={4}
+                  sx={{
+                    p: 3,
+                    borderRadius: 3,
+                    background: "rgba(255, 255, 255, 0.95)",
+                    backdropFilter: "blur(10px)",
+                  }}
+                >
+                  <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+                    <Security color="primary" sx={{ mr: 1 }} />
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        ...typographyStyles,
+                        fontWeight: 600,
+                      }}
+                    >
+                      {language === "fa" ? "امنیت اطلاعات" : "Data Security"}
+                    </Typography>
+                  </Box>
+
+                  <Stack spacing={1}>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <CheckCircle color="success" fontSize="small" />
+                      <Typography variant="body2" sx={{ ...typographyStyles }}>
+                        {language === "fa" ? "رمزگذاری SSL" : "SSL Encryption"}
+                      </Typography>
+                    </Box>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <CheckCircle color="success" fontSize="small" />
+                      <Typography variant="body2" sx={{ ...typographyStyles }}>
+                        {language === "fa"
+                          ? "حفاظت از حریم خصوصی"
+                          : "Privacy Protection"}
+                      </Typography>
+                    </Box>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <CheckCircle color="success" fontSize="small" />
+                      <Typography variant="body2" sx={{ ...typographyStyles }}>
+                        {language === "fa"
+                          ? "ذخیره‌سازی امن"
+                          : "Secure Storage"}
+                      </Typography>
+                    </Box>
+                  </Stack>
+                </Paper>
+              </Fade>
+            </Stack>
+          </Box>
         </Box>
-      </Paper>
-    </Container>
+      </Container>
+    </Box>
   );
 };
 

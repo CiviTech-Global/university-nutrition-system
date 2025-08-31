@@ -582,6 +582,22 @@ export const createComponentStyles = (language: LanguageType) => {
         "& .MuiInputBase-input": {
           ...baseStyles.typography,
         },
+        "& .MuiFormHelperText-root": {
+          ...baseStyles.typography,
+          fontSize: "0.75rem",
+        },
+        "& .MuiInputAdornment-root": {
+          color: "action.active",
+        },
+        "& .MuiOutlinedInput-root": {
+          "&:hover .MuiOutlinedInput-notchedOutline": {
+            borderColor: "primary.main",
+          },
+          "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+            borderColor: "primary.main",
+            borderWidth: 2,
+          },
+        },
       },
       button: {
         ...baseStyles.button,

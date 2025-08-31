@@ -1,5 +1,7 @@
 /* Import Persian fonts */
 @import url("./presentation/assets/fonts/fonts.css");
+/* Import Persian RTL styles */
+@import url("./presentation/assets/persian-rtl.css");
 
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;

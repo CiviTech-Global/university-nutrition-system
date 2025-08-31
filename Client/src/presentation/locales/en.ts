@@ -216,4 +216,43 @@ export const en = {
   typography: "Typography",
   formatting: "Formatting",
   components: "Components",
+  // Announcements translations
+  announcements: "Announcements",
+  noAnnouncements: "No announcements at this time",
+  holidayNotice: "Holiday Notice",
+  serviceSuspension: "Service Suspension",
+  maintenanceNotice: "Maintenance Notice",
+  specialOffer: "Special Offer",
+  importantUpdate: "Important Update",
+  systemMaintenance: "System Maintenance",
+  // Enhanced authentication translations
+  welcomeBack: "Welcome Back",
+  signInToContinue: "Sign in to continue to your account",
+  secureLogin: "Secure Login",
+  loginWithConfidence: "Login with confidence",
+  systemStatus: "System Status",
+  allSystemsOperational: "All systems operational",
+  maintenanceScheduled: "Maintenance scheduled",
+  // Error messages
+  networkError: "Network error. Please check your connection.",
+  serverError: "Server error. Please try again later.",
+  accountLocked: "Account temporarily locked due to multiple failed attempts.",
+  accountDisabled: "Account has been disabled. Please contact support.",
+  sessionExpired: "Your session has expired. Please log in again.",
+  // Success messages
+  loginRedirecting: "Login successful! Redirecting to dashboard...",
+  // Additional UI elements
+  rememberMe: "Remember me",
+  staySignedIn: "Stay signed in",
+  loginOptions: "Login Options",
+  quickLogin: "Quick Login",
+  biometricLogin: "Biometric Login",
+  twoFactorAuth: "Two-Factor Authentication",
+  // System information
+  lastLogin: "Last login",
+  accountActivity: "Account Activity",
+  securitySettings: "Security Settings",
+  privacyNotice: "Privacy Notice",
+  termsOfUse: "Terms of Use",
+  supportContact: "Support Contact",
 };

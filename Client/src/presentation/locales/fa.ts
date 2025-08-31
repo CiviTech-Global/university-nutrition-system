@@ -215,4 +215,44 @@ export const fa = {
   typography: "تایپوگرافی",
   formatting: "قالب‌بندی",
   components: "اجزا",
+  // Announcements translations
+  announcements: "اعلان‌ها",
+  noAnnouncements: "در حال حاضر اعلانی وجود ندارد",
+  holidayNotice: "اعلان تعطیلات",
+  serviceSuspension: "تعلیق خدمات",
+  maintenanceNotice: "اعلان نگهداری",
+  specialOffer: "پیشنهاد ویژه",
+  importantUpdate: "به‌روزرسانی مهم",
+  systemMaintenance: "نگهداری سیستم",
+  // Enhanced authentication translations
+  welcomeBack: "خوش آمدید",
+  signInToContinue: "برای ادامه به حساب کاربری خود وارد شوید",
+  secureLogin: "ورود امن",
+  loginWithConfidence: "با اطمینان وارد شوید",
+  systemStatus: "وضعیت سیستم",
+  allSystemsOperational: "تمام سیستم‌ها فعال هستند",
+  maintenanceScheduled: "نگهداری برنامه‌ریزی شده",
+  // Error messages
+  networkError: "خطای شبکه. لطفاً اتصال خود را بررسی کنید.",
+  serverError: "خطای سرور. لطفاً دوباره تلاش کنید.",
+  accountLocked: "حساب کاربری به دلیل تلاش‌های مکرر ناموفق موقتاً قفل شده است.",
+  accountDisabled:
+    "حساب کاربری غیرفعال شده است. لطفاً با پشتیبانی تماس بگیرید.",
+  sessionExpired: "جلسه شما منقضی شده است. لطفاً دوباره وارد شوید.",
+  // Success messages
+  loginRedirecting: "ورود موفقیت‌آمیز بود! در حال انتقال به داشبورد...",
+  // Additional UI elements
+  rememberMe: "مرا به خاطر بسپار",
+  staySignedIn: "وارد بمان",
+  loginOptions: "گزینه‌های ورود",
+  quickLogin: "ورود سریع",
+  biometricLogin: "ورود بیومتریک",
+  twoFactorAuth: "احراز هویت دو مرحله‌ای",
+  // System information
+  lastLogin: "آخرین ورود",
+  accountActivity: "فعالیت حساب کاربری",
+  securitySettings: "تنظیمات امنیتی",
+  privacyNotice: "اعلان حریم خصوصی",
+  termsOfUse: "شرایط استفاده",
+  supportContact: "تماس با پشتیبانی",
 };

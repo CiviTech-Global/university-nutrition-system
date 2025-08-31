@@ -12,6 +12,9 @@ import {
   Alert,
   CircularProgress,
   Divider,
+  Avatar,
+  Fade,
+  Slide,
 } from "@mui/material";
 import {
   Email,
@@ -20,6 +23,8 @@ import {
   Visibility,
   VisibilityOff,
   LockReset,
+  Security,
+  CheckCircle,
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { getUserByEmail } from "../../utils/userUtils";
@@ -30,10 +35,10 @@ import {
 } from "../../utils/languageUtils";
 
 const ForgotPassword = () => {
-  const { language, t, isRTL } = useLanguage();
+  const { language, t } = useLanguage();
   const navigate = useNavigate();
   const componentStyles = createComponentStyles(language);
-  const typographyStyles = getTypographyStyles(language);
+  const typographyStyles = getTypographyStyles(language, "body1");
 
   const [formData, setFormData] = useState({
     email: "",
@@ -151,225 +156,432 @@ const ForgotPassword = () => {
   };
 
   return (
-    <Container maxWidth="md">
-      <Stack spacing={4}>
-        {/* Header Section */}
-        <Paper
-          elevation={0}
+    <Box
+      sx={{
+        minHeight: "100vh",
+        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+        display: "flex",
+        alignItems: "center",
+        py: 4,
+      }}
+    >
+      <Container maxWidth="lg">
+        <Box
           sx={{
-            ...componentStyles.card,
-            p: 4,
-            textAlign: "center",
-            background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-            color: "white",
+            display: "flex",
+            flexDirection: { xs: "column", md: "row" },
+            gap: 4,
           }}
         >
-          <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
-            <LockReset sx={{ fontSize: 48, opacity: 0.9 }} />
-          </Box>
-          <Typography
-            variant="h4"
-            component="h1"
-            gutterBottom
-            sx={{
-              ...typographyStyles.title,
-              color: "white",
-              fontWeight: 700,
-            }}
-          >
-            {t.forgotPasswordTitle}
-          </Typography>
-          <Typography
-            variant="h6"
-            sx={{
-              ...typographyStyles.subtitle,
-              color: "rgba(255, 255, 255, 0.9)",
-              fontWeight: 400,
-            }}
-          >
-            {t.forgotPasswordSubtitle}
-          </Typography>
-        </Paper>
-
-        {/* Main Form Section */}
-        <Paper elevation={0} sx={{ ...componentStyles.card, p: 4 }}>
-          <Box component="form" onSubmit={handleSubmit}>
-            <Stack spacing={3}>
-              {/* Success/Error Message */}
-              {submitMessage && (
-                <Alert
-                  severity={submitMessage.type}
-                  sx={{
-                    ...typographyStyles.body,
-                    borderRadius: 0,
-                  }}
-                >
-                  {submitMessage.text}
-                </Alert>
-              )}
-
-              {/* Email Field */}
-              <TextField
-                fullWidth
-                label={t.email}
-                type="email"
-                value={formData.email}
-                onChange={handleChange("email")}
-                error={!!errors.email}
-                helperText={errors.email}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Email color="action" />
-                    </InputAdornment>
-                  ),
-                }}
+          {/* Left Side - Password Reset Form */}
+          <Box sx={{ flex: 1 }}>
+            <Fade in timeout={800}>
+              <Paper
+                elevation={8}
                 sx={{
-                  ...componentStyles.form.field,
-                  ...typographyStyles.body,
+                  p: 4,
+                  borderRadius: 3,
+                  background: "rgba(255, 255, 255, 0.95)",
+                  backdropFilter: "blur(10px)",
                 }}
-              />
-
-              <Divider sx={{ my: 2 }} />
-
-              {/* New Password Field */}
-              <TextField
-                fullWidth
-                label={t.newPassword}
-                type={showPassword ? "text" : "password"}
-                value={formData.newPassword}
-                onChange={handleChange("newPassword")}
-                error={!!errors.newPassword}
-                helperText={errors.newPassword}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Lock color="action" />
-                    </InputAdornment>
-                  ),
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        onClick={() => setShowPassword(!showPassword)}
-                        edge="end"
+              >
+                <Box component="form" onSubmit={handleSubmit}>
+                  <Stack spacing={3}>
+                    {/* Header */}
+                    <Box textAlign="center">
+                      <Box
+                        sx={{
+                          display: "flex",
+                          justifyContent: "center",
+                          mb: 2,
+                        }}
                       >
-                        {showPassword ? <VisibilityOff /> : <Visibility />}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                }}
-                sx={{
-                  ...componentStyles.form.field,
-                  ...typographyStyles.body,
-                }}
-              />
+                        <Avatar
+                          sx={{
+                            width: 80,
+                            height: 80,
+                            bgcolor: "primary.main",
+                            mb: 2,
+                          }}
+                        >
+                          <LockReset sx={{ fontSize: 40 }} />
+                        </Avatar>
+                      </Box>
 
-              {/* Confirm New Password Field */}
-              <TextField
-                fullWidth
-                label={t.confirmPassword}
-                type={showConfirmPassword ? "text" : "password"}
-                value={formData.confirmPassword}
-                onChange={handleChange("confirmPassword")}
-                error={!!errors.confirmPassword}
-                helperText={errors.confirmPassword}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Lock color="action" />
-                    </InputAdornment>
-                  ),
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        onClick={() =>
-                          setShowConfirmPassword(!showConfirmPassword)
-                        }
-                        edge="end"
+                      <Typography
+                        variant="h3"
+                        component="h1"
+                        gutterBottom
+                        color="primary"
+                        sx={{
+                          ...typographyStyles,
+                          fontWeight: 700,
+                          fontSize: "2.5rem",
+                          mb: 1,
+                        }}
                       >
-                        {showConfirmPassword ? (
-                          <VisibilityOff />
-                        ) : (
-                          <Visibility />
-                        )}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                }}
-                sx={{
-                  ...componentStyles.form.field,
-                  ...typographyStyles.body,
-                }}
-              />
-
-              {/* Action Buttons */}
-              <Stack spacing={2} direction={isRTL ? "row-reverse" : "row"}>
-                <Button
-                  variant="outlined"
-                  startIcon={isRTL ? undefined : <ArrowBack />}
-                  endIcon={isRTL ? <ArrowBack /> : undefined}
-                  onClick={handleBackToLogin}
-                  sx={{
-                    ...componentStyles.button,
-                    ...typographyStyles.button,
-                    flex: 1,
-                  }}
-                >
-                  {t.backToLogin}
-                </Button>
-
-                <Button
-                  type="submit"
-                  variant="contained"
-                  disabled={isSubmitting}
-                  sx={{
-                    ...componentStyles.button,
-                    ...typographyStyles.button,
-                    flex: 2,
-                    py: 1.5,
-                    fontSize: "1.1rem",
-                  }}
-                >
-                  {isSubmitting ? (
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      <CircularProgress size={20} color="inherit" />
-                      {t.resettingPassword}
+                        {t.forgotPasswordTitle}
+                      </Typography>
+                      <Typography
+                        variant="h6"
+                        color="text.secondary"
+                        sx={{
+                          ...typographyStyles,
+                          mb: 3,
+                        }}
+                      >
+                        {t.forgotPasswordSubtitle}
+                      </Typography>
                     </Box>
-                  ) : (
-                    t.resetPasswordButton
-                  )}
-                </Button>
-              </Stack>
+
+                    {/* Success/Error Message */}
+                    {submitMessage && (
+                      <Slide direction="up" in timeout={300}>
+                        <Alert
+                          severity={submitMessage.type}
+                          sx={{
+                            ...typographyStyles,
+                            borderRadius: 2,
+                            "& .MuiAlert-icon": {
+                              fontSize: "1.5rem",
+                            },
+                          }}
+                        >
+                          {submitMessage.text}
+                        </Alert>
+                      </Slide>
+                    )}
+
+                    {/* Email Field */}
+                    <TextField
+                      fullWidth
+                      label={t.email}
+                      type="email"
+                      value={formData.email}
+                      onChange={handleChange("email")}
+                      error={!!errors.email}
+                      helperText={errors.email}
+                      InputProps={{
+                        [language === "fa" ? "endAdornment" : "startAdornment"]:
+                          (
+                            <InputAdornment
+                              position={language === "fa" ? "end" : "start"}
+                            >
+                              <Email color="action" />
+                            </InputAdornment>
+                          ),
+                      }}
+                      sx={{
+                        ...componentStyles.form.field,
+                        "& .MuiOutlinedInput-root": {
+                          borderRadius: 2,
+                        },
+                      }}
+                    />
+
+                    <Divider sx={{ my: 2 }} />
+
+                    {/* New Password Field */}
+                    <TextField
+                      fullWidth
+                      label={t.newPassword}
+                      type={showPassword ? "text" : "password"}
+                      value={formData.newPassword}
+                      onChange={handleChange("newPassword")}
+                      error={!!errors.newPassword}
+                      helperText={errors.newPassword}
+                      InputProps={{
+                        [language === "fa" ? "endAdornment" : "startAdornment"]:
+                          (
+                            <InputAdornment
+                              position={language === "fa" ? "end" : "start"}
+                            >
+                              <Lock color="action" />
+                            </InputAdornment>
+                          ),
+                        [language === "fa" ? "startAdornment" : "endAdornment"]:
+                          (
+                            <InputAdornment
+                              position={language === "fa" ? "start" : "end"}
+                            >
+                              <IconButton
+                                onClick={() => setShowPassword(!showPassword)}
+                                edge={language === "fa" ? "start" : "end"}
+                              >
+                                {showPassword ? (
+                                  <VisibilityOff />
+                                ) : (
+                                  <Visibility />
+                                )}
+                              </IconButton>
+                            </InputAdornment>
+                          ),
+                      }}
+                      sx={{
+                        ...componentStyles.form.field,
+                        "& .MuiOutlinedInput-root": {
+                          borderRadius: 2,
+                        },
+                      }}
+                    />
+
+                    {/* Confirm New Password Field */}
+                    <TextField
+                      fullWidth
+                      label={t.confirmPassword}
+                      type={showConfirmPassword ? "text" : "password"}
+                      value={formData.confirmPassword}
+                      onChange={handleChange("confirmPassword")}
+                      error={!!errors.confirmPassword}
+                      helperText={errors.confirmPassword}
+                      InputProps={{
+                        [language === "fa" ? "endAdornment" : "startAdornment"]:
+                          (
+                            <InputAdornment
+                              position={language === "fa" ? "end" : "start"}
+                            >
+                              <Lock color="action" />
+                            </InputAdornment>
+                          ),
+                        [language === "fa" ? "startAdornment" : "endAdornment"]:
+                          (
+                            <InputAdornment
+                              position={language === "fa" ? "start" : "end"}
+                            >
+                              <IconButton
+                                onClick={() =>
+                                  setShowConfirmPassword(!showConfirmPassword)
+                                }
+                                edge={language === "fa" ? "start" : "end"}
+                              >
+                                {showConfirmPassword ? (
+                                  <VisibilityOff />
+                                ) : (
+                                  <Visibility />
+                                )}
+                              </IconButton>
+                            </InputAdornment>
+                          ),
+                      }}
+                      sx={{
+                        ...componentStyles.form.field,
+                        "& .MuiOutlinedInput-root": {
+                          borderRadius: 2,
+                        },
+                      }}
+                    />
+
+                    {/* Action Buttons */}
+                    <Stack spacing={2} direction="row">
+                      <Button
+                        variant="outlined"
+                        startIcon={
+                          language === "fa" ? undefined : <ArrowBack />
+                        }
+                        endIcon={language === "fa" ? <ArrowBack /> : undefined}
+                        onClick={handleBackToLogin}
+                        sx={{
+                          flex: 1,
+                          borderRadius: 2,
+                          py: 1.5,
+                        }}
+                      >
+                        {t.backToLogin}
+                      </Button>
+
+                      <Button
+                        type="submit"
+                        variant="contained"
+                        disabled={isSubmitting}
+                        sx={{
+                          flex: 2,
+                          py: 1.5,
+                          fontSize: "1.1rem",
+                          borderRadius: 2,
+                          background:
+                            "linear-gradient(45deg, #667eea 30%, #764ba2 90%)",
+                          boxShadow: "0 3px 5px 2px rgba(102, 126, 234, .3)",
+                          "&:hover": {
+                            background:
+                              "linear-gradient(45deg, #5a6fd8 30%, #6a4190 90%)",
+                          },
+                        }}
+                      >
+                        {isSubmitting ? (
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 1,
+                            }}
+                          >
+                            <CircularProgress size={20} color="inherit" />
+                            {t.resettingPassword}
+                          </Box>
+                        ) : (
+                          t.resetPasswordButton
+                        )}
+                      </Button>
+                    </Stack>
+                  </Stack>
+                </Box>
+              </Paper>
+            </Fade>
+          </Box>
+
+          {/* Right Side - Info and Help */}
+          <Box sx={{ flex: 1 }}>
+            <Stack spacing={3}>
+              {/* Welcome Image */}
+              <Fade in timeout={1000}>
+                <Paper
+                  elevation={4}
+                  sx={{
+                    borderRadius: 3,
+                    overflow: "hidden",
+                    position: "relative",
+                    height: 200,
+                    background:
+                      "linear-gradient(45deg, #667eea 30%, #764ba2 90%)",
+                  }}
+                >
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      background: `url('/src/presentation/assets/images/قیمه_بادمجان_غذای_روز_تمامی_گروه_های_سنی_1024x1005.jpg')`,
+                      backgroundSize: "cover",
+                      backgroundPosition: "center",
+                      opacity: 0.3,
+                    }}
+                  />
+                  <Box
+                    sx={{
+                      position: "relative",
+                      zIndex: 1,
+                      p: 3,
+                      height: "100%",
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      color: "white",
+                    }}
+                  >
+                    <Security sx={{ fontSize: 48, mb: 2 }} />
+                    <Typography
+                      variant="h4"
+                      sx={{
+                        ...typographyStyles,
+                        fontWeight: 700,
+                        textAlign: "center",
+                      }}
+                    >
+                      {language === "fa"
+                        ? "بازیابی رمز عبور"
+                        : "Password Recovery"}
+                    </Typography>
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        ...typographyStyles,
+                        textAlign: "center",
+                        opacity: 0.9,
+                      }}
+                    >
+                      {language === "fa" ? "امن و سریع" : "Secure & Fast"}
+                    </Typography>
+                  </Box>
+                </Paper>
+              </Fade>
+
+              {/* Security Info */}
+              <Fade in timeout={1200}>
+                <Paper
+                  elevation={4}
+                  sx={{
+                    p: 3,
+                    borderRadius: 3,
+                    background: "rgba(255, 255, 255, 0.95)",
+                    backdropFilter: "blur(10px)",
+                  }}
+                >
+                  <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+                    <Security color="primary" sx={{ mr: 1 }} />
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        ...typographyStyles,
+                        fontWeight: 600,
+                      }}
+                    >
+                      {language === "fa" ? "امنیت بالا" : "High Security"}
+                    </Typography>
+                  </Box>
+
+                  <Stack spacing={1}>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <CheckCircle color="success" fontSize="small" />
+                      <Typography variant="body2" sx={{ ...typographyStyles }}>
+                        {language === "fa" ? "رمزگذاری SSL" : "SSL Encryption"}
+                      </Typography>
+                    </Box>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <CheckCircle color="success" fontSize="small" />
+                      <Typography variant="body2" sx={{ ...typographyStyles }}>
+                        {language === "fa"
+                          ? "تأیید ایمیل"
+                          : "Email Verification"}
+                      </Typography>
+                    </Box>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <CheckCircle color="success" fontSize="small" />
+                      <Typography variant="body2" sx={{ ...typographyStyles }}>
+                        {language === "fa"
+                          ? "حفاظت از داده‌ها"
+                          : "Data Protection"}
+                      </Typography>
+                    </Box>
+                  </Stack>
+                </Paper>
+              </Fade>
+
+              {/* Help Section */}
+              <Fade in timeout={1400}>
+                <Paper
+                  elevation={4}
+                  sx={{
+                    p: 3,
+                    borderRadius: 3,
+                    background: "rgba(255, 255, 255, 0.95)",
+                    backdropFilter: "blur(10px)",
+                    backgroundColor: "rgba(102, 126, 234, 0.05)",
+                    border: "1px solid rgba(102, 126, 234, 0.2)",
+                  }}
+                >
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{
+                      ...typographyStyles,
+                      textAlign: "center",
+                      lineHeight: 1.6,
+                    }}
+                  >
+                    {language === "fa"
+                      ? "پس از تغییر رمز عبور، از رمز جدید برای ورود به سیستم استفاده کنید. در صورت بروز مشکل، با پشتیبانی تماس بگیرید."
+                      : "After resetting your password, use the new password to log into the system. If you encounter any issues, please contact support."}
+                  </Typography>
+                </Paper>
+              </Fade>
             </Stack>
           </Box>
-        </Paper>
-
-        {/* Additional Help Section */}
-        <Paper
-          elevation={0}
-          sx={{
-            ...componentStyles.card,
-            p: 3,
-            backgroundColor: "rgba(102, 126, 234, 0.05)",
-            border: "1px solid rgba(102, 126, 234, 0.2)",
-          }}
-        >
-          <Typography
-            variant="body2"
-            color="text.secondary"
-            sx={{
-              ...typographyStyles.body,
-              textAlign: "center",
-              lineHeight: 1.6,
-            }}
-          >
-            {language === "fa"
-              ? "پس از تغییر رمز عبور، از رمز جدید برای ورود به سیستم استفاده کنید. در صورت بروز مشکل، با پشتیبانی تماس بگیرید."
-              : "After resetting your password, use the new password to log into the system. If you encounter any issues, please contact support."}
-          </Typography>
-        </Paper>
-      </Stack>
-    </Container>
+        </Box>
+      </Container>
+    </Box>
   );
 };
 

@@ -98,6 +98,52 @@
   text-align: right;
 }
 
+/* Enhanced RTL Form Field Styling */
+[dir="rtl"] .MuiTextField-root {
+  direction: rtl;
+}
+
+[dir="rtl"] .MuiTextField-root .MuiInputBase-input {
+  text-align: right;
+  direction: rtl;
+}
+
+[dir="rtl"] .MuiTextField-root .MuiInputLabel-root {
+  text-align: right;
+  direction: rtl;
+}
+
+[dir="rtl"] .MuiTextField-root .MuiFormHelperText-root {
+  text-align: right;
+  direction: rtl;
+}
+
+/* RTL Input Adornment Positioning */
+[dir="rtl"] .MuiInputAdornment-root {
+  direction: rtl;
+}
+
+[dir="rtl"] .MuiInputAdornment-positionStart {
+  margin-left: 0;
+  margin-right: 8px;
+}
+
+[dir="rtl"] .MuiInputAdornment-positionEnd {
+  margin-right: 0;
+  margin-left: 8px;
+}
+
+/* RTL Button Icon Positioning */
+[dir="rtl"] .MuiButton-startIcon {
+  margin-right: 0;
+  margin-left: 8px;
+}
+
+[dir="rtl"] .MuiButton-endIcon {
+  margin-left: 0;
+  margin-right: 8px;
+}
+
 /* RTL Button Adjustments */
 [dir="rtl"] .MuiButton-startIcon {
   margin-right: 0;
