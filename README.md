@@ -10,12 +10,12 @@ The meal reservation system is a software platform where users (students) can re
 ---
 Login Page:
 
-- [ ] Login page with two inputs: **username** and **password**.
+- [x] Login page with two inputs: **username** and **password**.
 - [ ] Must support **authentication** and include a **password recovery process**.
-- [ ] If incorrect information is entered (username/password), a **clear and well-styled error message** must be displayed.
+- [x] If incorrect information is entered (username/password), a **clear and well-styled error message** must be displayed.
 - [ ] Announcements related to the meal system (e.g., holidays, service suspensions) must be visible on this page.
 - [ ] Page should contain **relevant images** and have a clean layout.
-- [ ] Since there is no backend/database, user information and other entities will be **hardcoded in the source code**.
+- [x] Since there is no backend/database, user information and other entities will be **hardcoded in the source code**.
 ---
 Reservation Features:
 - [ ] Users can view the **weekly meal schedule**.
