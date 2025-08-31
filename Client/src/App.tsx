@@ -7,6 +7,8 @@ import Credit from "./presentation/pages/Credit";
 import Profile from "./presentation/pages/Profile";
 import Foods from "./presentation/pages/Foods";
 import SaleDay from "./presentation/pages/SaleDay";
+import WeeklySchedule from "./presentation/pages/WeeklySchedule";
+import MyReservations from "./presentation/pages/MyReservations";
 import TestLanguage from "./presentation/pages/TestLanguage";
 import Layout from "./presentation/components/Layout";
 import AuthLayout from "./presentation/components/AuthLayout";
@@ -76,6 +78,22 @@ function App() {
         element={
           <Layout>
             <SaleDay />
+          </Layout>
+        }
+      />
+      <Route
+        path="/weekly-schedule"
+        element={
+          <Layout>
+            <WeeklySchedule />
+          </Layout>
+        }
+      />
+      <Route
+        path="/my-reservations"
+        element={
+          <Layout>
+            <MyReservations />
           </Layout>
         }
       />

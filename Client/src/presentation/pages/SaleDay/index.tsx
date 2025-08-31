@@ -166,6 +166,9 @@ const SaleDay = () => {
       isAvailable: true,
       emergencyFee: 2000,
       isLimitedTime: false,
+      ingredients: ["سبزی قورمه", "لوبیا", "گوشت", "برنج"],
+      ingredientsEn: ["Herbs", "Beans", "Meat", "Rice"],
+      calories: 520,
     },
     {
       id: "emergency-3",
@@ -203,6 +206,9 @@ const SaleDay = () => {
       isAvailable: true,
       emergencyFee: 2000,
       isLimitedTime: false,
+      ingredients: ["مرغ", "ادویه", "برنج", "کره"],
+      ingredientsEn: ["Chicken", "Spices", "Rice", "Butter"],
+      calories: 480,
     },
     {
       id: "emergency-5",
@@ -221,6 +227,9 @@ const SaleDay = () => {
       isAvailable: false,
       emergencyFee: 1500,
       isLimitedTime: false,
+      ingredients: ["نان", "گوشت رست", "سبزیجات", "پنیر"],
+      ingredientsEn: ["Bread", "Roast beef", "Vegetables", "Cheese"],
+      calories: 420,
     },
     {
       id: "emergency-6",
@@ -885,6 +894,207 @@ const SaleDay = () => {
             </Typography>
           </Paper>
         )}
+
+        {/* Payment Dialog */}
+        <Dialog 
+          open={paymentDialog} 
+          onClose={() => setPaymentDialog(false)}
+          maxWidth="sm"
+          fullWidth
+        >
+          <DialogTitle sx={{
+            direction: isRTL ? "rtl" : "ltr",
+            fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+          }}>
+            {language === "fa" ? "تأیید رزرو اضطراری" : "Confirm Emergency Reservation"}
+          </DialogTitle>
+          <DialogContent>
+            {selectedFood && (
+              <Stack spacing={3}>
+                <Box>
+                  <Typography variant="h6" gutterBottom>
+                    {language === "fa" ? "جزئیات رزرو" : "Reservation Details"}
+                  </Typography>
+                  <Paper sx={{ p: 2, bgcolor: "grey.50" }}>
+                    <Typography variant="body2">
+                      <strong>{language === "fa" ? "غذا:" : "Food:"}</strong> {selectedFood.name}
+                    </Typography>
+                    <Typography variant="body2">
+                      <strong>{language === "fa" ? "کالری:" : "Calories:"}</strong> {selectedFood.calories} cal
+                    </Typography>
+                    <Typography variant="body2">
+                      <strong>{language === "fa" ? "مواد:" : "Ingredients:"}</strong> {
+                        language === "fa" 
+                          ? selectedFood.ingredients.join("، ")
+                          : selectedFood.ingredientsEn.join(", ")
+                      }
+                    </Typography>
+                  </Paper>
+                </Box>
+
+                <FormControl fullWidth>
+                  <Typography variant="subtitle2" gutterBottom>
+                    {language === "fa" ? "انتخاب رستوران" : "Select Restaurant"}
+                  </Typography>
+                  <Select
+                    value={selectedRestaurant}
+                    onChange={(e) => setSelectedRestaurant(e.target.value)}
+                    displayEmpty
+                  >
+                    <MenuItem value="">
+                      <em>{language === "fa" ? "رستوران انتخاب کنید" : "Select a restaurant"}</em>
+                    </MenuItem>
+                    {restaurants.map((restaurant) => (
+                      <MenuItem key={restaurant.id} value={restaurant.id}>
+                        {language === "fa" ? restaurant.name : restaurant.nameEn}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+
+                <Box>
+                  <Typography variant="h6" gutterBottom>
+                    {language === "fa" ? "محاسبه قیمت" : "Price Calculation"}
+                  </Typography>
+                  <Paper sx={{ p: 2, bgcolor: "grey.50" }}>
+                    <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                      <Typography variant="body2">
+                        {language === "fa" ? "قیمت پایه:" : "Base Price:"}
+                      </Typography>
+                      <Typography variant="body2">
+                        {formatCurrency(selectedFood.price, language)}
+                      </Typography>
+                    </Box>
+                    <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                      <Typography variant="body2">
+                        {language === "fa" ? "هزینه اضطراری:" : "Emergency Fee:"}
+                      </Typography>
+                      <Typography variant="body2">
+                        {formatCurrency(selectedFood.emergencyFee, language)}
+                      </Typography>
+                    </Box>
+                    {appliedDiscount > 0 && (
+                      <Box sx={{ display: "flex", justifyContent: "space-between", color: "success.main" }}>
+                        <Typography variant="body2">
+                          {language === "fa" ? `تخفیف (${appliedDiscount}%):` : `Discount (${appliedDiscount}%):`}
+                        </Typography>
+                        <Typography variant="body2">
+                          -{formatCurrency(
+                            (selectedFood.price + selectedFood.emergencyFee) * (appliedDiscount / 100), 
+                            language
+                          )}
+                        </Typography>
+                      </Box>
+                    )}
+                    <Divider sx={{ my: 1 }} />
+                    <Box sx={{ display: "flex", justifyContent: "space-between", fontWeight: "bold" }}>
+                      <Typography variant="h6">
+                        {language === "fa" ? "مبلغ نهایی:" : "Final Amount:"}
+                      </Typography>
+                      <Typography variant="h6" color="primary">
+                        {formatCurrency(
+                          (selectedFood.price + selectedFood.emergencyFee) * 
+                          (1 - appliedDiscount / 100), 
+                          language
+                        )}
+                      </Typography>
+                    </Box>
+                  </Paper>
+                </Box>
+
+                <Box>
+                  <Grid container spacing={2}>
+                    <Grid item xs={8}>
+                      <TextField
+                        fullWidth
+                        label={language === "fa" ? "کد تخفیف" : "Discount Code"}
+                        value={discountCode}
+                        onChange={(e) => setDiscountCode(e.target.value.toUpperCase())}
+                        size="small"
+                      />
+                    </Grid>
+                    <Grid item xs={4}>
+                      <Button
+                        fullWidth
+                        variant="outlined"
+                        onClick={applyDiscountCode}
+                        disabled={!discountCode}
+                        size="small"
+                        sx={{ height: "40px" }}
+                      >
+                        {language === "fa" ? "اعمال" : "Apply"}
+                      </Button>
+                    </Grid>
+                  </Grid>
+                  <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: "block" }}>
+                    {language === "fa" 
+                      ? "کدهای موجود: EMERGENCY10, TODAY15, QUICK20, STUDENT25"
+                      : "Available codes: EMERGENCY10, TODAY15, QUICK20, STUDENT25"
+                    }
+                  </Typography>
+                </Box>
+
+                <FormControl fullWidth>
+                  <Typography variant="subtitle2" gutterBottom>
+                    {language === "fa" ? "روش پرداخت" : "Payment Method"}
+                  </Typography>
+                  <Select
+                    value={paymentMethod}
+                    onChange={(e) => setPaymentMethod(e.target.value)}
+                  >
+                    <MenuItem value="wallet">
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                        <WalletIcon />
+                        {language === "fa" ? "کیف پول" : "Wallet"}
+                      </Box>
+                    </MenuItem>
+                    <MenuItem value="gateway">
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                        <PaymentIcon />
+                        {language === "fa" ? "درگاه آنلاین" : "Online Gateway"}
+                      </Box>
+                    </MenuItem>
+                  </Select>
+                </FormControl>
+              </Stack>
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button 
+              onClick={() => setPaymentDialog(false)}
+              sx={{ fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)" }}
+            >
+              {language === "fa" ? "انصراف" : "Cancel"}
+            </Button>
+            <Button 
+              onClick={handleConfirmReservation}
+              variant="contained"
+              disabled={!selectedRestaurant}
+              sx={{ fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)" }}
+            >
+              {language === "fa" ? "پرداخت و تأیید" : "Pay & Confirm"}
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Success Snackbar */}
+        <Snackbar
+          open={showSuccess}
+          autoHideDuration={4000}
+          onClose={() => setShowSuccess(false)}
+          message={successMessage}
+        />
+
+        {/* Error Snackbar */}
+        <Snackbar
+          open={showError}
+          autoHideDuration={4000}
+          onClose={() => setShowError(false)}
+        >
+          <Alert onClose={() => setShowError(false)} severity="error">
+            {errorMessage}
+          </Alert>
+        </Snackbar>
       </Stack>
     </Container>
   );

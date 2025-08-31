@@ -32,6 +32,8 @@ import {
   Language as LanguageIcon,
   Brightness4 as DarkModeIcon,
   Brightness7 as LightModeIcon,
+  Schedule as ScheduleIcon,
+  Receipt as ReceiptIcon,
 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useLanguage } from "../../contexts/LanguageContext";
@@ -100,6 +102,16 @@ const Sidebar = ({
       text: t.dashboard,
       icon: <DashboardIcon />,
       path: "/dashboard",
+    },
+    {
+      text: language === "fa" ? "برنامه هفتگی" : "Weekly Schedule",
+      icon: <ScheduleIcon />,
+      path: "/weekly-schedule",
+    },
+    {
+      text: language === "fa" ? "رزروهای من" : "My Reservations",
+      icon: <ReceiptIcon />,
+      path: "/my-reservations",
     },
     {
       text: t.foods,
