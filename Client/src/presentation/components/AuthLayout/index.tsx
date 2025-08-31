@@ -9,7 +9,7 @@ interface AuthLayoutProps {
 }
 
 const AuthLayout = ({ children }: AuthLayoutProps) => {
-  const [language, setLanguage] = useState<Language>("en");
+  const [language, setLanguage] = useState<Language>("fa");
 
   // Load language preference from localStorage
   useEffect(() => {
@@ -18,8 +18,8 @@ const AuthLayout = ({ children }: AuthLayoutProps) => {
       setLanguage(savedLanguage);
     } else {
       // Set default language if none is saved
-      setLanguage("en");
-      localStorage.setItem("language", "en");
+      setLanguage("fa");
+      localStorage.setItem("language", "fa");
     }
   }, []);
 

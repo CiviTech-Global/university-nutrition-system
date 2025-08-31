@@ -37,7 +37,7 @@ interface LayoutProps {
 const Layout = ({ children }: LayoutProps) => {
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [desktopDrawerCollapsed, setDesktopDrawerCollapsed] = useState(false);
-  const [language, setLanguageState] = useState<LanguageType>("en");
+  const [language, setLanguageState] = useState<LanguageType>("fa");
   const [user, setUser] = useState<any>(null);
   const [darkMode, setDarkMode] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
@@ -102,7 +102,7 @@ const Layout = ({ children }: LayoutProps) => {
     const currentUser = getCurrentUser();
     if (currentUser) {
       setUser(currentUser);
-      setLanguageState(currentUser.language || "en");
+      setLanguageState(currentUser.language || "fa");
 
       // Load saved preferences
       const savedDarkMode = localStorage.getItem("darkMode");

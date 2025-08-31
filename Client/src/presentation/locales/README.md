@@ -4,7 +4,7 @@ This document describes the complete dual language (English/Persian) implementat
 
 ## 🌐 Supported Languages
 
-- **English (EN)** - Default language
+- **Persian (فارسی)** - Default language
 - **Persian (فارسی)** - Complete RTL support with Vazir font
 
 ## 📁 File Structure

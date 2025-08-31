@@ -15,7 +15,7 @@ This is a modern, bilingual registration form for the University Nutrition Syste
 
 ### 🌐 Bilingual Support
 
-- **English (EN)** - Default language
+- **Persian (فارسی)** - Default language
 - **Persian (فارسی)** - Complete RTL support with Vazir font
 - **Language Toggle**: Easy switching between languages
 - **Translated Validation**: All error messages in both languages

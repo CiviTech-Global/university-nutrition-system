@@ -58,7 +58,7 @@ interface SidebarProps {
 const Sidebar = ({
   collapsed = false,
   onToggleCollapse,
-  language = "en",
+  language = "fa",
   onLanguageChange,
   darkMode = false,
   onDarkModeToggle,
