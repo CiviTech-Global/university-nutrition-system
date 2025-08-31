@@ -53,28 +53,16 @@ import {
   createComponentStyles,
   getTypographyStyles,
 } from "../../utils/languageUtils";
+import DataService, { type MealReservation } from "../../services/dataService";
 
-interface ReservedItem {
-  id: string;
-  date: string;
-  meal: "breakfast" | "lunch" | "dinner";
-  foodName: string;
-  restaurantId: string;
+type ReservedItem = MealReservation & {
   restaurantName: string;
-  price: number;
-  originalPrice?: number;
-  discountCode?: string;
-  discountAmount?: number;
-  faramushiCode: string;
-  status: "confirmed" | "completed" | "cancelled";
-  paymentMethod: "wallet" | "gateway";
-  paymentDate: string;
   ingredients: string[];
   calories: number;
   imageUrl: string;
   isVegetarian?: boolean;
   isPopular?: boolean;
-}
+};
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -114,30 +102,8 @@ const MyReservations = () => {
   const [filterStatus, setFilterStatus] = useState("all");
   const [dateRange, setDateRange] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
+  const [dataService] = useState(DataService.getInstance());
 
-  const restaurants = [
-    {
-      id: "selaf1",
-      name: "سلف دانشجوئی شماره ۱",
-      nameEn: "Student Cafeteria No. 1",
-      location: "ساختمان مرکزی",
-      locationEn: "Main Building",
-    },
-    {
-      id: "selaf2",
-      name: "سلف دانشجوئی شماره ۲",
-      nameEn: "Student Cafeteria No. 2", 
-      location: "ساختمان مهندسی",
-      locationEn: "Engineering Building",
-    },
-    {
-      id: "selaf3",
-      name: "سلف دانشجوئی شماره ۳",
-      nameEn: "Student Cafeteria No. 3",
-      location: "خوابگاه",
-      locationEn: "Dormitory",
-    },
-  ];
 
   useEffect(() => {
     const currentUser = getCurrentUser();
@@ -152,65 +118,29 @@ const MyReservations = () => {
 
   const loadReservations = (userId: string) => {
     try {
-      // Load from multiple sources: weekly reservations, dashboard reservations, emergency reservations
-      const reservations: ReservedItem[] = [];
-
-      // Load weekly reservations
-      const weeklyKeys = Object.keys(localStorage).filter(key => 
-        key.startsWith(`weekly_reservations_${userId}_`)
-      );
-
-      weeklyKeys.forEach(key => {
-        const date = key.split('_').pop();
-        const weeklyData = JSON.parse(localStorage.getItem(key) || '{}');
+      // Load all reservations from data service
+      const allReservations = dataService.getAllReservations(userId);
+      
+      // Transform reservations to include additional UI data
+      const enrichedReservations: ReservedItem[] = allReservations.map(reservation => {
+        const food = dataService.getFoodById(reservation.foodId);
+        const restaurant = dataService.getRestaurantById(reservation.restaurantId);
         
-        Object.entries(weeklyData).forEach(([meal, mealData]: [string, any]) => {
-          if (mealData.paid && mealData.food && mealData.restaurant) {
-            const restaurant = restaurants.find(r => r.id === mealData.restaurant);
-            reservations.push({
-              id: `weekly_${date}_${meal}`,
-              date: date!,
-              meal: meal as "breakfast" | "lunch" | "dinner",
-              foodName: mealData.food,
-              restaurantId: mealData.restaurant,
-              restaurantName: restaurant?.[language === "fa" ? "name" : "nameEn"] || "",
-              price: calculateMealPrice(meal, mealData.food, mealData.discountAmount),
-              originalPrice: getMealOriginalPrice(meal, mealData.food),
-              discountCode: mealData.discountCode,
-              discountAmount: mealData.discountAmount,
-              faramushiCode: mealData.faramushiCode || generateFaramushiCode(),
-              status: "confirmed",
-              paymentMethod: "wallet",
-              paymentDate: new Date().toISOString(),
-              ingredients: getMealIngredients(meal, mealData.food),
-              calories: getMealCalories(meal, mealData.food),
-              imageUrl: "/api/placeholder/300/200",
-              isVegetarian: isMealVegetarian(meal, mealData.food),
-              isPopular: isMealPopular(meal, mealData.food),
-            });
-          }
-        });
+        return {
+          ...reservation,
+          restaurantName: restaurant ? (language === "fa" ? restaurant.name : restaurant.nameEn) : reservation.restaurantName,
+          ingredients: food ? (language === "fa" ? food.ingredients : food.ingredientsEn) : [],
+          calories: food?.calories || reservation.nutritionalInfo?.calories || 0,
+          imageUrl: food?.imageUrl || "/api/placeholder/300/200",
+          isVegetarian: food?.isVegetarian || false,
+          isPopular: food?.isPopular || false,
+        };
       });
 
-      // Load emergency/same-day reservations
-      const emergencyData = localStorage.getItem(`emergency_reservations_${userId}`);
-      if (emergencyData) {
-        const emergencyReservations = JSON.parse(emergencyData);
-        emergencyReservations.forEach((res: any) => {
-          if (res.paid) {
-            reservations.push({
-              ...res,
-              id: `emergency_${res.id}`,
-              restaurantName: restaurants.find(r => r.id === res.restaurantId)?.[language === "fa" ? "name" : "nameEn"] || "",
-            });
-          }
-        });
-      }
-
-      // Sort by date (newest first)
-      reservations.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      // Sort by reservation date (newest first)
+      enrichedReservations.sort((a, b) => new Date(b.reservationDate).getTime() - new Date(a.reservationDate).getTime());
       
-      setReservations(reservations);
+      setReservations(enrichedReservations);
     } catch (error) {
       console.error("Error loading reservations:", error);
       setErrorMessage(language === "fa" ? "خطا در بارگذاری رزروها" : "Error loading reservations");
@@ -218,90 +148,6 @@ const MyReservations = () => {
     }
   };
 
-  const calculateMealPrice = (meal: string, foodName: string, discountAmount?: number) => {
-    const basePrice = getMealOriginalPrice(meal, foodName);
-    if (discountAmount) {
-      return basePrice * (1 - discountAmount / 100);
-    }
-    return basePrice;
-  };
-
-  const getMealOriginalPrice = (meal: string, foodName: string) => {
-    // Sample prices - in real app, this would come from API
-    const prices: Record<string, Record<string, number>> = {
-      breakfast: {
-        "نان و پنیر و چای": 15000,
-        "Bread, Cheese & Tea": 15000,
-        "تخم مرغ و نان": 25000,
-        "Eggs & Bread": 25000,
-      },
-      lunch: {
-        "چلو کباب": 45000,
-        "Rice & Kebab": 45000,
-        "قورمه سبزی": 40000,
-        "Ghormeh Sabzi": 40000,
-      },
-      dinner: {
-        "سوپ و سالاد": 22000,
-        "Soup & Salad": 22000,
-      }
-    };
-    return prices[meal]?.[foodName] || 20000;
-  };
-
-  const getMealIngredients = (meal: string, foodName: string) => {
-    const ingredients: Record<string, Record<string, string[]>> = {
-      breakfast: {
-        "نان و پنیر و چای": ["نان تازه", "پنیر سفید", "چای سیاه", "عسل"],
-        "Bread, Cheese & Tea": ["Fresh bread", "White cheese", "Black tea", "Honey"],
-      },
-      lunch: {
-        "چلو کباب": ["برنج", "گوشت کباب", "زعفران", "پیاز"],
-        "Rice & Kebab": ["Rice", "Kebab meat", "Saffron", "Onion"],
-      },
-      dinner: {
-        "سوپ و سالاد": ["سبزیجات", "آب مرغ", "کاهو", "گوجه"],
-        "Soup & Salad": ["Vegetables", "Chicken broth", "Lettuce", "Tomato"],
-      }
-    };
-    return ingredients[meal]?.[foodName] || [];
-  };
-
-  const getMealCalories = (meal: string, foodName: string) => {
-    const calories: Record<string, Record<string, number>> = {
-      breakfast: {
-        "نان و پنیر و چای": 320,
-        "Bread, Cheese & Tea": 320,
-        "تخم مرغ و نان": 280,
-        "Eggs & Bread": 280,
-      },
-      lunch: {
-        "چلو کباب": 650,
-        "Rice & Kebab": 650,
-        "قورمه سبزی": 520,
-        "Ghormeh Sabzi": 520,
-      },
-      dinner: {
-        "سوپ و سالاد": 180,
-        "Soup & Salad": 180,
-      }
-    };
-    return calories[meal]?.[foodName] || 300;
-  };
-
-  const isMealVegetarian = (meal: string, foodName: string) => {
-    const vegetarian = ["نان و پنیر و چای", "Bread, Cheese & Tea", "سوپ و سالاد", "Soup & Salad"];
-    return vegetarian.includes(foodName);
-  };
-
-  const isMealPopular = (meal: string, foodName: string) => {
-    const popular = ["چلو کباب", "Rice & Kebab", "نان و پنیر و چای", "Bread, Cheese & Tea"];
-    return popular.includes(foodName);
-  };
-
-  const generateFaramushiCode = () => {
-    return Math.floor(10000 + Math.random() * 90000).toString();
-  };
 
   const filteredReservations = useMemo(() => {
     return reservations.filter(reservation => {
@@ -411,7 +257,9 @@ const MyReservations = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "confirmed": return "primary";
+      case "pending": return "warning";
+      case "confirmed": return "info";
+      case "paid": return "primary";
       case "completed": return "success";
       case "cancelled": return "error";
       default: return "default";
@@ -420,7 +268,9 @@ const MyReservations = () => {
 
   const getStatusLabel = (status: string) => {
     switch (status) {
+      case "pending": return language === "fa" ? "در انتظار" : "Pending";
       case "confirmed": return language === "fa" ? "تأیید شده" : "Confirmed";
+      case "paid": return language === "fa" ? "پرداخت شده" : "Paid";
       case "completed": return language === "fa" ? "تکمیل شده" : "Completed";
       case "cancelled": return language === "fa" ? "لغو شده" : "Cancelled";
       default: return status;
@@ -650,6 +500,7 @@ const MyReservations = () => {
                   >
                     <MenuItem value="all">{language === "fa" ? "همه" : "All"}</MenuItem>
                     <MenuItem value="confirmed">{language === "fa" ? "تأیید شده" : "Confirmed"}</MenuItem>
+                    <MenuItem value="paid">{language === "fa" ? "پرداخت شده" : "Paid"}</MenuItem>
                     <MenuItem value="completed">{language === "fa" ? "تکمیل شده" : "Completed"}</MenuItem>
                     <MenuItem value="cancelled">{language === "fa" ? "لغو شده" : "Cancelled"}</MenuItem>
                   </Select>
