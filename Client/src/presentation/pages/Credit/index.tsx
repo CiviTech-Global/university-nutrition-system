@@ -237,6 +237,19 @@ const Credit = () => {
               </IconButton>
             </Tooltip>
             <Button
+              variant="outlined"
+              startIcon={<AddIcon />}
+              onClick={() => window.location.href = '/account-recharge'}
+              sx={{
+                fontFamily: isRTL
+                  ? "var(--font-persian)"
+                  : "var(--font-english)",
+                direction: isRTL ? "rtl" : "ltr",
+              }}
+            >
+              {language === "fa" ? "شارژ حساب" : "Recharge Account"}
+            </Button>
+            <Button
               variant="contained"
               startIcon={<AddIcon />}
               onClick={() => setOpenAddDialog(true)}

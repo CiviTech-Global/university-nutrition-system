@@ -4,6 +4,7 @@ import Login from "./presentation/pages/Login";
 import ForgotPassword from "./presentation/pages/ForgotPassword";
 import Dashboard from "./presentation/pages/Dashboard";
 import Credit from "./presentation/pages/Credit";
+import AccountRecharge from "./presentation/pages/AccountRecharge";
 import Profile from "./presentation/pages/Profile";
 import Foods from "./presentation/pages/Foods";
 import SaleDay from "./presentation/pages/SaleDay";
@@ -54,6 +55,14 @@ function App() {
         element={
           <Layout>
             <Credit />
+          </Layout>
+        }
+      />
+      <Route
+        path="/account-recharge"
+        element={
+          <Layout>
+            <AccountRecharge />
           </Layout>
         }
       />
