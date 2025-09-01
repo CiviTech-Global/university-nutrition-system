@@ -6,46 +6,166 @@ import {
   Stack,
   Card,
   CardContent,
-  CardMedia,
   Chip,
   Button,
-  Container,
-  Avatar,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Tooltip,
+  IconButton,
+  Divider,
   Alert,
+  Snackbar,
   LinearProgress,
   Fade,
+  Collapse,
+  Switch,
+  FormControlLabel,
+  InputAdornment,
+  Menu,
+  Grid,
 } from "@mui/material";
 import {
-  LocalOffer as SaleDayIcon,
   LocalOffer as LocalOfferIcon,
   Schedule as ScheduleIcon,
-  FlashOn as FlashOnIcon,
-  Warning as WarningIcon,
-  CheckCircle as CheckCircleIcon,
   Timer as TimerIcon,
-  Restaurant as RestaurantIcon,
   ShoppingCart as ShoppingCartIcon,
-  Inventory as InventoryIcon,
-  TrendingUp as TrendingUpIcon,
+  Add as AddIcon,
+  Edit as EditIcon,
+  Delete as DeleteIcon,
+  Visibility as VisibilityIcon,
+  Search as SearchIcon,
+  FilterList as FilterListIcon,
+  Analytics as AnalyticsIcon,
+  Campaign as CampaignIcon,
+  Event as EventIcon,
+  Refresh as RefreshIcon,
+  MoreVert as MoreVertIcon,
+  PlayArrow as PlayArrowIcon,
+  Pause as PauseIcon,
+  DateRange as DateRangeIcon,
 } from "@mui/icons-material";
+import { useNavigate } from "react-router-dom";
 import { useLanguage } from "../../contexts/LanguageContext";
-import { formatCurrency, formatTime } from "../../utils/languageUtils";
+import { 
+  formatCurrency, 
+  formatTime, 
+  formatDate,
+  createComponentStyles,
+  getTypographyStyles 
+} from "../../utils/languageUtils";
 import { getCurrentUser } from "../../utils/userUtils";
 import DataService, {
   type FoodItem,
   type Restaurant,
-  type MealReservation,
 } from "../../services/dataService";
+
+// Sale management interfaces
+interface Sale {
+  id: string;
+  name: string;
+  nameEn: string;
+  description: string;
+  descriptionEn: string;
+  foodIds: string[];
+  discountType: 'percentage' | 'fixed';
+  discountValue: number;
+  startDate: string;
+  endDate: string;
+  startTime: string;
+  endTime: string;
+  isActive: boolean;
+  targetAudience: 'all' | 'students' | 'faculty' | 'staff';
+  maxRedemptions?: number;
+  currentRedemptions: number;
+  restaurantIds: string[];
+  priority: number;
+  bannerImage?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface SaleFormData {
+  name: string;
+  nameEn: string;
+  description: string;
+  descriptionEn: string;
+  foodIds: string[];
+  discountType: 'percentage' | 'fixed';
+  discountValue: number;
+  startDate: string;
+  endDate: string;
+  startTime: string;
+  endTime: string;
+  targetAudience: 'all' | 'students' | 'faculty' | 'staff';
+  maxRedemptions?: number;
+  restaurantIds: string[];
+  priority: number;
+}
 
 const SaleDay = () => {
   const { language, t, isRTL } = useLanguage();
+  const componentStyles = createComponentStyles(language);
+  const navigate = useNavigate();
   const dataService = DataService.getInstance();
   const [user, setUser] = useState<any>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [reservations, setReservations] = useState<Record<string, boolean>>({});
   const [isLoading, setIsLoading] = useState(true);
-  const [saleDayFoods, setSaleDayFoods] = useState<FoodItem[]>([]);
+  const [isSaving, setIsSaving] = useState(false);
+  
+  // Data states
+  const [sales, setSales] = useState<Sale[]>([]);
+  const [foods, setFoods] = useState<FoodItem[]>([]);
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
+  const [filteredSales, setFilteredSales] = useState<Sale[]>([]);
+  
+  // UI states
+  const [selectedTab, setSelectedTab] = useState(0);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState<"all" | "active" | "upcoming" | "expired">("all");
+  const [showFilters, setShowFilters] = useState(false);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [selectedSaleId, setSelectedSaleId] = useState<string | null>(null);
+  
+  // Dialog states
+  const [openSaleDialog, setOpenSaleDialog] = useState(false);
+  const [editingSale, setEditingSale] = useState<Sale | null>(null);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [showError, setShowError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  
+  // Form states
+  const [formData, setFormData] = useState<SaleFormData>({
+    name: "",
+    nameEn: "",
+    description: "",
+    descriptionEn: "",
+    foodIds: [],
+    discountType: "percentage",
+    discountValue: 0,
+    startDate: "",
+    endDate: "",
+    startTime: "",
+    endTime: "",
+    targetAudience: "all",
+    maxRedemptions: undefined,
+    restaurantIds: [],
+    priority: 1
+  });
+  
+  const [validationErrors, setValidationErrors] = useState<{
+    name?: string;
+    discountValue?: string;
+    startDate?: string;
+    endDate?: string;
+    foodIds?: string;
+  }>({});
 
   // Update current time every second
   useEffect(() => {
@@ -60,793 +180,1078 @@ const SaleDay = () => {
     const currentUser = getCurrentUser();
     if (currentUser) {
       setUser(currentUser);
-      loadEmergencyReservations(currentUser.id);
+      loadSaleData();
     } else {
-      window.location.href = "/login";
+      navigate("/login");
     }
-
-    // Load data from DataService
-    const foods = dataService.getAllFoods();
-    const emergencyFoods = foods.filter(
-      (food) => food.isOnSale || (food.discount && food.discount > 0)
-    );
-    setSaleDayFoods(emergencyFoods);
-
-    const restaurantData = dataService.getAllRestaurants();
-    setRestaurants(restaurantData);
-
     setIsLoading(false);
-  }, []);
+  }, [navigate]);
+  
+  // Filter sales when search term or filter changes
+  useEffect(() => {
+    filterSales();
+  }, [sales, searchTerm, filterStatus]);
 
-  const loadEmergencyReservations = (userId: string) => {
+  const loadSaleData = () => {
     try {
-      const savedReservations = localStorage.getItem(
-        `emergency_reservations_${userId}`
-      );
-      if (savedReservations) {
-        setReservations(JSON.parse(savedReservations));
+      // Load foods and restaurants
+      const allFoods = dataService.getAllFoods();
+      const allRestaurants = dataService.getAllRestaurants();
+      setFoods(allFoods);
+      setRestaurants(allRestaurants);
+      
+      // Load sales from localStorage (in a real app, this would be from an API)
+      const savedSales = localStorage.getItem('sales_data');
+      if (savedSales) {
+        setSales(JSON.parse(savedSales));
+      } else {
+        // Initialize with sample sales data
+        const sampleSales: Sale[] = [
+          {
+            id: 'sale_001',
+            name: 'تخفیف ویژه صبحانه',
+            nameEn: 'Special Breakfast Discount',
+            description: 'تخفیف ۲۰٪ برای تمام صبحانه‌ها',
+            descriptionEn: '20% discount on all breakfast items',
+            foodIds: allFoods.filter(f => f.category === 'breakfast').slice(0, 3).map(f => f.id),
+            discountType: 'percentage',
+            discountValue: 20,
+            startDate: new Date().toISOString().split('T')[0],
+            endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            startTime: '07:00',
+            endTime: '10:00',
+            isActive: true,
+            targetAudience: 'all',
+            maxRedemptions: 100,
+            currentRedemptions: 23,
+            restaurantIds: allRestaurants.slice(0, 2).map(r => r.id),
+            priority: 1,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          },
+          {
+            id: 'sale_002',
+            name: 'پیشنهاد ناهار دانشجویی',
+            nameEn: 'Student Lunch Deal',
+            description: 'تخفیف ۱۵٪ برای دانشجویان',
+            descriptionEn: '15% discount for students',
+            foodIds: allFoods.filter(f => f.category === 'lunch').slice(0, 4).map(f => f.id),
+            discountType: 'percentage',
+            discountValue: 15,
+            startDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            endDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            startTime: '12:00',
+            endTime: '14:30',
+            isActive: false,
+            targetAudience: 'students',
+            currentRedemptions: 0,
+            restaurantIds: allRestaurants.map(r => r.id),
+            priority: 2,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          }
+        ];
+        setSales(sampleSales);
+        localStorage.setItem('sales_data', JSON.stringify(sampleSales));
       }
     } catch (error) {
-      console.error("Error loading emergency reservations:", error);
+      console.error('Error loading sale data:', error);
+      setErrorMessage(language === 'fa' ? 'خطا در بارگذاری داده‌ها' : 'Error loading data');
+      setShowError(true);
     }
   };
-
-  const saveEmergencyReservations = (
-    newReservations: Record<string, boolean>
-  ) => {
-    if (!user) return;
-    try {
-      localStorage.setItem(
-        `emergency_reservations_${user.id}`,
-        JSON.stringify(newReservations)
+  
+  const filterSales = () => {
+    let filtered = [...sales];
+    
+    // Apply search filter
+    if (searchTerm) {
+      filtered = filtered.filter(sale =>
+        sale.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        sale.nameEn.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        sale.description.toLowerCase().includes(searchTerm.toLowerCase())
       );
-    } catch (error) {
-      console.error("Error saving emergency reservations:", error);
     }
-  };
-
-  const availableFoods = useMemo(
-    () =>
-      saleDayFoods.filter(
-        (food) => food.isAvailable && (food.availableQuantity ?? 0) > 0
-      ),
-    [saleDayFoods]
-  );
-
-  const handleEmergencyReservation = (foodId: string) => {
-    if (!user) return;
-
-    const food = saleDayFoods.find((f) => f.id === foodId);
-    if (!food) return;
-
-    // Create emergency reservation
-    const reservation: MealReservation = {
-      id: `emergency_${Date.now()}`,
-      userId: user.id,
-      foodId: foodId,
-      restaurantId: restaurants[0]?.id || "default",
-      date: new Date().toISOString().split("T")[0],
-      meal: food.category as "breakfast" | "lunch" | "dinner",
-      foodName: language === "fa" ? food.name : food.nameEn,
-      restaurantName: restaurants[0]?.name || "Default",
-      price: food.price,
-      originalPrice: food.originalPrice || food.price,
-      faramushiCode: dataService.generateFaramushiCode(),
-      status: "pending",
-      isEmergency: true,
-      emergencyFee: food.emergencyFee || 0,
-      quantity: 1,
-      totalPrice: food.price,
-      createdAt: new Date().toISOString(),
-      reservationDate: new Date().toISOString(),
-    };
-
-    // Save to DataService
-    dataService.saveReservation(reservation);
-
-    const newReservations = {
-      ...reservations,
-      [foodId]: true,
-    };
-    setReservations(newReservations);
-    saveEmergencyReservations(newReservations);
-
-    // Show success message (in a real app, this would be a proper notification)
-    alert(
-      language === "fa"
-        ? "رزرو اضطراری تأیید شد!"
-        : "Emergency reservation confirmed!"
-    );
-  };
-
-  const getStockPercentage = (food: FoodItem) => {
-    return food.availableQuantity ? (food.availableQuantity / 100) * 100 : 50;
-  };
-
-  const getStockColor = (percentage: number) => {
-    if (percentage > 50) return "success";
-    if (percentage > 20) return "warning";
-    return "error";
-  };
-
-  const getTimeRemaining = (endTime: Date) => {
+    
+    // Apply status filter
     const now = new Date();
-    const diff = endTime.getTime() - now.getTime();
-
-    if (diff <= 0) return null;
-
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-
-    if (hours > 0) {
-      return language === "fa"
-        ? `${hours} ساعت و ${minutes} دقیقه`
-        : `${hours}h ${minutes}m`;
+    const currentDate = now.toISOString().split('T')[0];
+    const currentTime = now.toTimeString().slice(0, 5);
+    
+    if (filterStatus !== 'all') {
+      filtered = filtered.filter(sale => {
+        const isCurrentlyActive = sale.isActive && 
+                                 sale.startDate <= currentDate && 
+                                 sale.endDate >= currentDate &&
+                                 sale.startTime <= currentTime &&
+                                 sale.endTime >= currentTime;
+        const isUpcoming = sale.startDate > currentDate || 
+                          (sale.startDate === currentDate && sale.startTime > currentTime);
+        const isExpired = sale.endDate < currentDate ||
+                         (sale.endDate === currentDate && sale.endTime < currentTime);
+        
+        switch (filterStatus) {
+          case 'active': return isCurrentlyActive;
+          case 'upcoming': return isUpcoming;
+          case 'expired': return isExpired;
+          default: return true;
+        }
+      });
     }
-    return language === "fa" ? `${minutes} دقیقه` : `${minutes}m`;
+    
+    // Sort by priority and date
+    filtered.sort((a, b) => {
+      if (a.priority !== b.priority) {
+        return a.priority - b.priority;
+      }
+      return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+    });
+    
+    setFilteredSales(filtered);
   };
+
+  // Form validation
+  const validateSaleForm = (): boolean => {
+    const errors: any = {};
+    
+    if (!formData.name.trim()) {
+      errors.name = language === 'fa' ? 'نام فروش الزامی است' : 'Sale name is required';
+    }
+    
+    if (formData.discountValue <= 0) {
+      errors.discountValue = language === 'fa' ? 'مقدار تخفیف باید بزرگتر از صفر باشد' : 'Discount value must be greater than 0';
+    }
+    
+    if (formData.discountType === 'percentage' && formData.discountValue > 100) {
+      errors.discountValue = language === 'fa' ? 'درصد تخفیف نمی‌تواند بیشتر از ۱۰۰ باشد' : 'Percentage discount cannot exceed 100%';
+    }
+    
+    if (!formData.startDate) {
+      errors.startDate = language === 'fa' ? 'تاریخ شروع الزامی است' : 'Start date is required';
+    }
+    
+    if (!formData.endDate) {
+      errors.endDate = language === 'fa' ? 'تاریخ پایان الزامی است' : 'End date is required';
+    }
+    
+    if (formData.startDate && formData.endDate && formData.startDate > formData.endDate) {
+      errors.endDate = language === 'fa' ? 'تاریخ پایان باید بعد از تاریخ شروع باشد' : 'End date must be after start date';
+    }
+    
+    if (formData.foodIds.length === 0) {
+      errors.foodIds = language === 'fa' ? 'حداقل یک غذا انتخاب کنید' : 'Select at least one food item';
+    }
+    
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+  
+  const handleSaveSale = async () => {
+    if (!validateSaleForm()) return;
+    
+    setIsSaving(true);
+    try {
+      const saleData: Sale = {
+        id: editingSale ? editingSale.id : `sale_${Date.now()}`,
+        ...formData,
+        isActive: formData.startDate <= new Date().toISOString().split('T')[0],
+        currentRedemptions: editingSale ? editingSale.currentRedemptions : 0,
+        createdAt: editingSale ? editingSale.createdAt : new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      
+      let updatedSales;
+      if (editingSale) {
+        updatedSales = sales.map(s => s.id === editingSale.id ? saleData : s);
+      } else {
+        updatedSales = [saleData, ...sales];
+      }
+      
+      setSales(updatedSales);
+      localStorage.setItem('sales_data', JSON.stringify(updatedSales));
+      
+      setOpenSaleDialog(false);
+      setEditingSale(null);
+      resetForm();
+      setShowSuccess(true);
+      
+    } catch (error: any) {
+      setErrorMessage(error.message || (language === 'fa' ? 'خطا در ذخیره فروش' : 'Error saving sale'));
+      setShowError(true);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+  
+  const handleEditSale = (sale: Sale) => {
+    setEditingSale(sale);
+    setFormData({
+      name: sale.name,
+      nameEn: sale.nameEn,
+      description: sale.description,
+      descriptionEn: sale.descriptionEn,
+      foodIds: sale.foodIds,
+      discountType: sale.discountType,
+      discountValue: sale.discountValue,
+      startDate: sale.startDate,
+      endDate: sale.endDate,
+      startTime: sale.startTime,
+      endTime: sale.endTime,
+      targetAudience: sale.targetAudience,
+      maxRedemptions: sale.maxRedemptions,
+      restaurantIds: sale.restaurantIds,
+      priority: sale.priority
+    });
+    setOpenSaleDialog(true);
+  };
+  
+  const handleDeleteSale = (saleId: string) => {
+    const updatedSales = sales.filter(s => s.id !== saleId);
+    setSales(updatedSales);
+    localStorage.setItem('sales_data', JSON.stringify(updatedSales));
+  };
+  
+  const handleToggleSaleStatus = (saleId: string) => {
+    const updatedSales = sales.map(sale => 
+      sale.id === saleId ? { ...sale, isActive: !sale.isActive, updatedAt: new Date().toISOString() } : sale
+    );
+    setSales(updatedSales);
+    localStorage.setItem('sales_data', JSON.stringify(updatedSales));
+  };
+  
+  const resetForm = () => {
+    setFormData({
+      name: "",
+      nameEn: "",
+      description: "",
+      descriptionEn: "",
+      foodIds: [],
+      discountType: "percentage",
+      discountValue: 0,
+      startDate: "",
+      endDate: "",
+      startTime: "",
+      endTime: "",
+      targetAudience: "all",
+      maxRedemptions: undefined,
+      restaurantIds: [],
+      priority: 1
+    });
+    setValidationErrors({});
+  };
+  
+  const handleCloseDialog = () => {
+    setOpenSaleDialog(false);
+    setEditingSale(null);
+    resetForm();
+  };
+
+  const getSaleStatus = (sale: Sale) => {
+    const now = new Date();
+    const currentDate = now.toISOString().split('T')[0];
+    const currentTime = now.toTimeString().slice(0, 5);
+    
+    if (!sale.isActive) {
+      return { status: 'disabled', label: language === 'fa' ? 'غیرفعال' : 'Disabled', color: 'default' as const };
+    }
+    
+    if (sale.startDate > currentDate || (sale.startDate === currentDate && sale.startTime > currentTime)) {
+      return { status: 'upcoming', label: language === 'fa' ? 'آینده' : 'Upcoming', color: 'info' as const };
+    }
+    
+    if (sale.endDate < currentDate || (sale.endDate === currentDate && sale.endTime < currentTime)) {
+      return { status: 'expired', label: language === 'fa' ? 'منقضی' : 'Expired', color: 'error' as const };
+    }
+    
+    return { status: 'active', label: language === 'fa' ? 'فعال' : 'Active', color: 'success' as const };
+  };
+  
+  const getTimeRemaining = (endDate: string, endTime: string) => {
+    const now = new Date();
+    const end = new Date(`${endDate}T${endTime}`);
+    const diff = end.getTime() - now.getTime();
+    
+    if (diff <= 0) return null;
+    
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    
+    if (days > 0) {
+      return language === 'fa' ? `${days} روز باقی مانده` : `${days} days left`;
+    }
+    if (hours > 0) {
+      return language === 'fa' ? `${hours} ساعت باقی مانده` : `${hours} hours left`;
+    }
+    return language === 'fa' ? `${minutes} دقیقه باقی مانده` : `${minutes} minutes left`;
+  };
+
+  const saleStats = useMemo(() => {
+    const now = new Date();
+    const currentDate = now.toISOString().split('T')[0];
+    const currentTime = now.toTimeString().slice(0, 5);
+    
+    const activeSales = sales.filter(sale => 
+      sale.isActive && 
+      sale.startDate <= currentDate && 
+      sale.endDate >= currentDate &&
+      sale.startTime <= currentTime &&
+      sale.endTime >= currentTime
+    );
+    
+    const upcomingSales = sales.filter(sale => 
+      sale.startDate > currentDate || 
+      (sale.startDate === currentDate && sale.startTime > currentTime)
+    );
+    
+    const totalRedemptions = sales.reduce((sum, sale) => sum + sale.currentRedemptions, 0);
+    const avgDiscountPercentage = sales.length > 0 ? 
+      sales.reduce((sum, sale) => sum + (sale.discountType === 'percentage' ? sale.discountValue : 10), 0) / sales.length : 0;
+    
+    return {
+      totalSales: sales.length,
+      activeSales: activeSales.length,
+      upcomingSales: upcomingSales.length,
+      totalRedemptions,
+      avgDiscountPercentage: Math.round(avgDiscountPercentage)
+    };
+  }, [sales]);
 
   if (isLoading) {
     return (
-      <Box
-        sx={{ py: 4, width: "100%", display: "flex", justifyContent: "center" }}
-      >
-        <Alert severity="info">{t.loading}</Alert>
+      <Box sx={componentStyles.dashboard.container}>
+        <Stack spacing={3}>
+          <LinearProgress />
+          <Alert severity="info">{language === 'fa' ? 'در حال بارگذاری...' : 'Loading...'}</Alert>
+        </Stack>
       </Box>
     );
   }
 
   if (!user) {
     return (
-      <Box
-        sx={{ py: 4, width: "100%", display: "flex", justifyContent: "center" }}
-      >
-        <Alert severity="error">{t.userNotFound}</Alert>
+      <Box sx={componentStyles.dashboard.container}>
+        <Alert severity="error">{language === 'fa' ? 'کاربر یافت نشد' : 'User not found'}</Alert>
       </Box>
     );
   }
 
   return (
-    <Container maxWidth="xl" sx={{ py: 4 }}>
+    <Box sx={componentStyles.dashboard.container}>
       <Stack spacing={4}>
-        {/* Hero Section */}
-        <Paper
-          elevation={0}
+        {/* Modern Header */}
+        <Box
           sx={{
-            background: "linear-gradient(135deg, #ff6b35 0%, #f59e0b 100%)",
-            color: "white",
-            p: { xs: 3, md: 6 },
-            borderRadius: 3,
-            textAlign: "center",
-            position: "relative",
-            overflow: "hidden",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            flexDirection: isRTL ? "row-reverse" : "row",
+            flexWrap: "wrap",
+            gap: 2,
           }}
         >
-          {/* Animated background elements */}
-          <Box
-            sx={{
-              position: "absolute",
-              top: -20,
-              left: -20,
-              width: 80,
-              height: 80,
-              background: "rgba(255,255,255,0.1)",
-              borderRadius: "50%",
-              animation: "pulse 2s infinite",
-            }}
-          />
-          <Box
-            sx={{
-              position: "absolute",
-              bottom: -30,
-              right: -30,
-              width: 120,
-              height: 120,
-              background: "rgba(255,255,255,0.05)",
-              borderRadius: "50%",
-              animation: "pulse 3s infinite",
-            }}
-          />
-
-          <Avatar
-            sx={{
-              bgcolor: "rgba(255,255,255,0.2)",
-              width: 100,
-              height: 100,
-              margin: "0 auto 2rem",
-              fontSize: "2.5rem",
-            }}
-          >
-            <SaleDayIcon fontSize="large" />
-          </Avatar>
-
-          <Typography
-            variant="h3"
-            component="h1"
-            gutterBottom
-            sx={{
-              fontWeight: 700,
-              mb: 2,
-              direction: isRTL ? "rtl" : "ltr",
-              fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
-            }}
-          >
-            {t.saleDayTitle}
-          </Typography>
-
-          <Typography
-            variant="h6"
-            sx={{
-              opacity: 0.9,
-              fontWeight: 400,
-              direction: isRTL ? "rtl" : "ltr",
-              fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
-              mb: 3,
-            }}
-          >
-            {t.saleDaySubtitle}
-          </Typography>
-
-          {/* Current Time Display */}
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 2,
-              mt: 2,
-            }}
-          >
-            <TimerIcon />
-            <Typography
-              variant="h6"
-              sx={{
-                direction: isRTL ? "rtl" : "ltr",
-                fontFamily: isRTL
-                  ? "var(--font-persian)"
-                  : "var(--font-english)",
-              }}
-            >
-              {formatTime(currentTime, language)}
-            </Typography>
-          </Box>
-        </Paper>
-
-        {/* Stats Overview */}
-        <Stack
-          direction={{ xs: "column", sm: "row" }}
-          spacing={3}
-          sx={{ flexWrap: "wrap" }}
-        >
-          <Stack
-            sx={{
-              flex: {
-                xs: "1 1 100%",
-                sm: "1 1 calc(50% - 12px)",
-                md: "1 1 calc(25% - 18px)",
-              },
-            }}
-          >
-            <Card
-              sx={{
-                background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
-                color: "white",
-              }}
-            >
-              <CardContent>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                  <RestaurantIcon sx={{ fontSize: 40 }} />
-                  <Box>
-                    <Typography variant="h4" sx={{ fontWeight: 700 }}>
-                      {availableFoods.length}
-                    </Typography>
-                    <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                      {t.availableToday}
-                    </Typography>
-                  </Box>
-                </Box>
-              </CardContent>
-            </Card>
-          </Stack>
-
-          <Stack
-            sx={{
-              flex: {
-                xs: "1 1 100%",
-                sm: "1 1 calc(50% - 12px)",
-                md: "1 1 calc(25% - 18px)",
-              },
-            }}
-          >
-            <Card
-              sx={{
-                background: "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)",
-                color: "white",
-              }}
-            >
-              <CardContent>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                  <ShoppingCartIcon sx={{ fontSize: 40 }} />
-                  <Box>
-                    <Typography variant="h4" sx={{ fontWeight: 700 }}>
-                      {Object.keys(reservations).length}
-                    </Typography>
-                    <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                      {language === "fa" ? "رزروها" : "Reservations"}
-                    </Typography>
-                  </Box>
-                </Box>
-              </CardContent>
-            </Card>
-          </Stack>
-
-          <Stack
-            sx={{
-              flex: {
-                xs: "1 1 100%",
-                sm: "1 1 calc(50% - 12px)",
-                md: "1 1 calc(25% - 18px)",
-              },
-            }}
-          >
-            <Card
-              sx={{
-                background: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
-                color: "white",
-              }}
-            >
-              <CardContent>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                  <TrendingUpIcon sx={{ fontSize: 40 }} />
-                  <Box>
-                    <Typography variant="h4" sx={{ fontWeight: 700 }}>
-                      25%
-                    </Typography>
-                    <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                      {language === "fa" ? "متوسط تخفیف" : "Avg Discount"}
-                    </Typography>
-                  </Box>
-                </Box>
-              </CardContent>
-            </Card>
-          </Stack>
-
-          <Stack
-            sx={{
-              flex: {
-                xs: "1 1 100%",
-                sm: "1 1 calc(50% - 12px)",
-                md: "1 1 calc(25% - 18px)",
-              },
-            }}
-          >
-            <Card
-              sx={{
-                background: "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)",
-                color: "white",
-              }}
-            >
-              <CardContent>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                  <FlashOnIcon sx={{ fontSize: 40 }} />
-                  <Box>
-                    <Typography variant="h4" sx={{ fontWeight: 700 }}>
-                      3
-                    </Typography>
-                    <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                      {t.limitedAvailability}
-                    </Typography>
-                  </Box>
-                </Box>
-              </CardContent>
-            </Card>
-          </Stack>
-        </Stack>
-
-        {/* Emergency Alert */}
-        <Alert
-          severity="warning"
-          icon={<WarningIcon fontSize="inherit" />}
-          sx={{
-            borderRadius: 3,
-            direction: isRTL ? "rtl" : "ltr",
-            fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
-          }}
-        >
-          <Typography variant="body1" sx={{ fontWeight: 600 }}>
-            {t.emergencyReservationNote}
-          </Typography>
-        </Alert>
-
-        {/* Food Stack */}
-        <Stack direction="row" spacing={3} sx={{ flexWrap: "wrap" }}>
-          {saleDayFoods.map((food, index) => {
-            const stockPercentage = getStockPercentage(food);
-            const timeRemaining = food.endTime
-              ? getTimeRemaining(food.endTime)
-              : food.isOnSale
-              ? getTimeRemaining(new Date(Date.now() + 2 * 60 * 60 * 1000))
-              : null;
-            const isReserved = reservations[food.id];
-
-            return (
-              <Stack
-                key={food.id}
-                sx={{
-                  flex: {
-                    xs: "1 1 100%",
-                    sm: "1 1 calc(50% - 12px)",
-                    md: "1 1 calc(33.333% - 16px)",
-                  },
-                }}
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <CampaignIcon color="primary" sx={{ fontSize: 40 }} />
+            <Box>
+              <Typography
+                variant="h4"
+                component="h1"
+                color="primary"
+                sx={getTypographyStyles(language, "h4")}
               >
-                <Fade in={true} timeout={300 + index * 100}>
-                  <Card
+                {language === "fa" ? "مدیریت فروش‌ها و تخفیف‌ها" : "Sales & Promotions Management"}
+              </Typography>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={getTypographyStyles(language, "body2")}
+              >
+                {formatTime(currentTime, language)} • 
+                {language === "fa" ? `${saleStats.activeSales} فروش فعال` : `${saleStats.activeSales} active sales`}
+              </Typography>
+            </Box>
+          </Box>
+
+          <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
+            <Tooltip title={language === "fa" ? "بروزرسانی" : "Refresh"}>
+              <IconButton 
+                onClick={loadSaleData} 
+                color="primary"
+                sx={{ borderRadius: 2 }}
+              >
+                <RefreshIcon />
+              </IconButton>
+            </Tooltip>
+            
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => {
+                resetForm();
+                setOpenSaleDialog(true);
+              }}
+              sx={componentStyles.form.button}
+            >
+              {language === "fa" ? "ایجاد فروش جدید" : "Create New Sale"}
+            </Button>
+          </Box>
+        </Box>
+
+        {/* Enhanced Statistics Dashboard */}
+        <Box sx={componentStyles.dashboard.statsGrid}>
+          {/* Total Sales */}
+          <Card sx={{ 
+            ...componentStyles.dashboard.statCard,
+            background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+            color: "white"
+          }}>
+            <CardContent>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                <CampaignIcon sx={{ fontSize: 40 }} />
+                <Box>
+                  <Typography
+                    variant="h4"
                     sx={{
-                      height: "100%",
-                      display: "flex",
-                      flexDirection: "column",
-                      position: "relative",
-                      borderRadius: 3,
-                      overflow: "hidden",
-                      transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                      "&:hover": {
-                        transform: food.isAvailable
-                          ? "translateY(-8px)"
-                          : "none",
-                        boxShadow: food.isAvailable
-                          ? "0 20px 40px rgba(0,0,0,0.1)"
-                          : "none",
-                      },
-                      filter: !food.isAvailable ? "grayscale(50%)" : "none",
-                      opacity: !food.isAvailable ? 0.7 : 1,
+                      ...getTypographyStyles(language, "h4"),
+                      color: "white",
+                      fontWeight: 700,
                     }}
                   >
-                    {/* Discount Badge */}
-                    <Box
-                      sx={{
-                        position: "absolute",
-                        top: 12,
-                        right: isRTL ? "auto" : 12,
-                        left: isRTL ? 12 : "auto",
-                        zIndex: 1,
-                      }}
-                    >
-                      <Chip
-                        icon={<LocalOfferIcon />}
-                        label={`${food.discount}%`}
-                        sx={{
-                          fontWeight: 600,
-                          color: "white",
-                          bgcolor: "#ef4444",
-                          fontFamily: isRTL
-                            ? "var(--font-persian)"
-                            : "var(--font-english)",
-                        }}
-                      />
-                    </Box>
+                    {saleStats.totalSales}
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      ...getTypographyStyles(language, "body2"),
+                      color: "rgba(255,255,255,0.9)",
+                    }}
+                  >
+                    {language === "fa" ? "کل فروش‌ها" : "Total Sales"}
+                  </Typography>
+                </Box>
+              </Box>
+            </CardContent>
+          </Card>
 
-                    {/* Limited Time Badge */}
-                    {(food.isLimitedTime || food.isOnSale) && timeRemaining && (
-                      <Box
+          {/* Active Sales */}
+          <Card sx={{ ...componentStyles.dashboard.statCard, backgroundColor: "success.50" }}>
+            <CardContent>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                <PlayArrowIcon color="success" sx={{ fontSize: 40 }} />
+                <Box>
+                  <Typography
+                    variant="h4"
+                    color="success.main"
+                    sx={getTypographyStyles(language, "h4")}
+                  >
+                    {saleStats.activeSales}
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={getTypographyStyles(language, "body2")}
+                  >
+                    {language === "fa" ? "فروش‌های فعال" : "Active Sales"}
+                  </Typography>
+                </Box>
+              </Box>
+            </CardContent>
+          </Card>
+
+          {/* Total Redemptions */}
+          <Card sx={{ ...componentStyles.dashboard.statCard, backgroundColor: "primary.50" }}>
+            <CardContent>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                <ShoppingCartIcon color="primary" sx={{ fontSize: 40 }} />
+                <Box>
+                  <Typography
+                    variant="h4"
+                    color="primary.main"
+                    sx={getTypographyStyles(language, "h4")}
+                  >
+                    {saleStats.totalRedemptions}
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={getTypographyStyles(language, "body2")}
+                  >
+                    {language === "fa" ? "کل استفاده‌ها" : "Total Redemptions"}
+                  </Typography>
+                </Box>
+              </Box>
+            </CardContent>
+          </Card>
+
+          {/* Average Discount */}
+          <Card sx={{ ...componentStyles.dashboard.statCard, backgroundColor: "warning.50" }}>
+            <CardContent>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                <LocalOfferIcon color="warning" sx={{ fontSize: 40 }} />
+                <Box>
+                  <Typography
+                    variant="h4"
+                    color="warning.main"
+                    sx={getTypographyStyles(language, "h4")}
+                  >
+                    {saleStats.avgDiscountPercentage}%
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={getTypographyStyles(language, "body2")}
+                  >
+                    {language === "fa" ? "متوسط تخفیف" : "Avg Discount"}
+                  </Typography>
+                </Box>
+              </Box>
+            </CardContent>
+          </Card>
+        </Box>
+
+        {/* Sales Management Interface */}
+        <Paper elevation={3} sx={componentStyles.card}>
+          <Stack spacing={3}>
+            {/* Header with Search and Filters */}
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                flexDirection: isRTL ? "row-reverse" : "row",
+                flexWrap: "wrap",
+                gap: 2,
+              }}
+            >
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <AnalyticsIcon color="primary" />
+                <Typography variant="h5" sx={getTypographyStyles(language, "h5")}>
+                  {language === "fa" ? "مدیریت فروش‌ها" : "Sales Management"}
+                </Typography>
+                <Chip 
+                  label={filteredSales.length} 
+                  color="primary" 
+                  size="small" 
+                />
+              </Box>
+
+              <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+                <TextField
+                  placeholder={language === "fa" ? "جستجو در فروش‌ها..." : "Search sales..."}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  size="small"
+                  sx={{ minWidth: 200 }}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+                
+                <Tooltip title={language === "fa" ? "فیلترها" : "Filters"}>
+                  <IconButton 
+                    onClick={() => setShowFilters(!showFilters)}
+                    color={showFilters ? "primary" : "default"}
+                  >
+                    <FilterListIcon />
+                  </IconButton>
+                </Tooltip>
+              </Box>
+            </Box>
+
+            {/* Collapsible Filters */}
+            <Collapse in={showFilters}>
+              <Paper variant="outlined" sx={{ p: 2 }}>
+                <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", alignItems: "center" }}>
+                  <FormControl size="small" sx={{ minWidth: 150 }}>
+                    <InputLabel>{language === "fa" ? "وضعیت" : "Status"}</InputLabel>
+                    <Select
+                      value={filterStatus}
+                      onChange={(e) => setFilterStatus(e.target.value as any)}
+                      label={language === "fa" ? "وضعیت" : "Status"}
+                    >
+                      <MenuItem value="all">{language === "fa" ? "همه" : "All"}</MenuItem>
+                      <MenuItem value="active">{language === "fa" ? "فعال" : "Active"}</MenuItem>
+                      <MenuItem value="upcoming">{language === "fa" ? "آینده" : "Upcoming"}</MenuItem>
+                      <MenuItem value="expired">{language === "fa" ? "منقضی" : "Expired"}</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Box>
+              </Paper>
+            </Collapse>
+
+            <Divider />
+
+            {/* Sales List */}
+            <Stack spacing={2}>
+              {filteredSales.length === 0 ? (
+                <Alert severity="info" sx={{ textAlign: "center" }}>
+                  {language === "fa" ? "فروشی یافت نشد" : "No sales found"}
+                </Alert>
+              ) : (
+                filteredSales.map((sale, index) => {
+                  const status = getSaleStatus(sale);
+                  const timeRemaining = getTimeRemaining(sale.endDate, sale.endTime);
+                  
+                  return (
+                    <Fade in={true} timeout={300 + index * 50} key={sale.id}>
+                      <Card 
+                        variant="outlined" 
                         sx={{
-                          position: "absolute",
-                          top: 50,
-                          right: isRTL ? "auto" : 12,
-                          left: isRTL ? 12 : "auto",
-                          zIndex: 1,
+                          transition: "all 0.3s ease",
+                          "&:hover": {
+                            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                            transform: "translateY(-2px)",
+                          },
+                          opacity: status.status === 'expired' ? 0.7 : 1,
                         }}
                       >
-                        <Chip
-                          icon={<TimerIcon />}
-                          label={timeRemaining}
-                          color="warning"
-                          size="small"
-                          sx={{
-                            fontWeight: 600,
-                            color: "white",
-                            bgcolor: "#f59e0b",
-                            fontFamily: isRTL
-                              ? "var(--font-persian)"
-                              : "var(--font-english)",
-                          }}
-                        />
-                      </Box>
-                    )}
-
-                    {/* Sold Out/Reserved Badge */}
-                    <Box
-                      sx={{
-                        position: "absolute",
-                        top: 12,
-                        left: isRTL ? "auto" : 12,
-                        right: isRTL ? 12 : "auto",
-                        zIndex: 1,
-                      }}
-                    >
-                      {!food.isAvailable ? (
-                        <Chip
-                          label={t.soldOut}
-                          color="error"
-                          sx={{
-                            fontWeight: 600,
-                            color: "white",
-                            bgcolor: "#ef4444",
-                            fontFamily: isRTL
-                              ? "var(--font-persian)"
-                              : "var(--font-english)",
-                          }}
-                        />
-                      ) : isReserved ? (
-                        <Chip
-                          icon={<CheckCircleIcon />}
-                          label={language === "fa" ? "رزرو شده" : "Reserved"}
-                          color="success"
-                          sx={{
-                            fontWeight: 600,
-                            color: "white",
-                            bgcolor: "#10b981",
-                            fontFamily: isRTL
-                              ? "var(--font-persian)"
-                              : "var(--font-english)",
-                          }}
-                        />
-                      ) : null}
-                    </Box>
-
-                    <CardMedia
-                      component="img"
-                      height="200"
-                      image={
-                        food.imageUrl ||
-                        "/src/presentation/assets/images/default308785.jpg"
-                      }
-                      alt={language === "fa" ? food.name : food.nameEn}
-                      sx={{
-                        objectFit: "cover",
-                        transition: "transform 0.3s ease",
-                        "&:hover": {
-                          transform: food.isAvailable ? "scale(1.05)" : "none",
-                        },
-                      }}
-                    />
-
-                    <CardContent sx={{ flexGrow: 1, p: 3 }}>
-                      <Stack spacing={2}>
-                        {/* Title */}
-                        <Typography
-                          variant="h6"
-                          component="h3"
-                          sx={{
-                            fontWeight: 700,
-                            direction: isRTL ? "rtl" : "ltr",
-                            textAlign: isRTL ? "right" : "left",
-                            fontFamily: isRTL
-                              ? "var(--font-persian)"
-                              : "var(--font-english)",
-                            lineHeight: 1.3,
-                          }}
-                        >
-                          {language === "fa" ? food.name : food.nameEn}
-                        </Typography>
-
-                        {/* Price Section */}
-                        <Box
-                          sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 1,
-                            justifyContent: isRTL ? "flex-end" : "flex-start",
-                          }}
-                        >
-                          <Typography
-                            variant="h6"
-                            color="primary"
-                            sx={{
-                              fontWeight: 700,
-                              direction: isRTL ? "rtl" : "ltr",
-                              fontFamily: isRTL
-                                ? "var(--font-persian)"
-                                : "var(--font-english)",
-                            }}
-                          >
-                            {formatCurrency(food.price, language)}
-                          </Typography>
-                          {food.originalPrice &&
-                            food.originalPrice > food.price && (
-                              <Typography
-                                variant="body2"
-                                sx={{
-                                  textDecoration: "line-through",
-                                  color: "text.secondary",
-                                  direction: isRTL ? "rtl" : "ltr",
-                                  fontFamily: isRTL
-                                    ? "var(--font-persian)"
-                                    : "var(--font-english)",
-                                }}
-                              >
-                                {formatCurrency(food.originalPrice, language)}
-                              </Typography>
-                            )}
-                        </Box>
-
-                        {/* Emergency Fee */}
-                        {(food.emergencyFee || 0) > 0 && (
-                          <Alert severity="info">
-                            <Typography
-                              variant="caption"
-                              sx={{
-                                direction: isRTL ? "rtl" : "ltr",
-                                fontFamily: isRTL
-                                  ? "var(--font-persian)"
-                                  : "var(--font-english)",
-                              }}
-                            >
-                              {t.emergencyFee}:{" "}
-                              {formatCurrency(food.emergencyFee || 0, language)}
-                            </Typography>
-                          </Alert>
-                        )}
-
-                        {/* Description */}
-                        <Typography
-                          variant="body2"
-                          color="text.secondary"
-                          sx={{
-                            lineHeight: 1.6,
-                            direction: isRTL ? "rtl" : "ltr",
-                            textAlign: isRTL ? "right" : "left",
-                            fontFamily: isRTL
-                              ? "var(--font-persian)"
-                              : "var(--font-english)",
-                          }}
-                        >
-                          {language === "fa"
-                            ? food.description
-                            : food.descriptionEn}
-                        </Typography>
-
-                        {/* Stock Indicator */}
-                        <Box>
+                        <CardContent>
                           <Box
                             sx={{
                               display: "flex",
                               justifyContent: "space-between",
-                              alignItems: "center",
-                              mb: 1,
+                              alignItems: "flex-start",
+                              gap: 2,
                             }}
                           >
-                            <Typography
-                              variant="caption"
-                              color="text.secondary"
-                              sx={{
-                                fontFamily: isRTL
-                                  ? "var(--font-persian)"
-                                  : "var(--font-english)",
-                              }}
-                            >
-                              {t.remainingQuantity}
-                            </Typography>
-                            <Typography
-                              variant="caption"
-                              color="text.secondary"
-                              sx={{
-                                fontFamily: isRTL
-                                  ? "var(--font-persian)"
-                                  : "var(--font-english)",
-                              }}
-                            >
-                              {food.availableQuantity ?? 0}/100
-                            </Typography>
+                            <Box sx={{ flex: 1 }}>
+                              <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 1 }}>
+                                <LocalOfferIcon color={status.color} />
+                                <Typography
+                                  variant="h6"
+                                  sx={{
+                                    ...getTypographyStyles(language, "h6"),
+                                    fontWeight: 600,
+                                  }}
+                                >
+                                  {language === "fa" ? sale.name : sale.nameEn}
+                                </Typography>
+                                
+                                <Chip
+                                  label={status.label}
+                                  color={status.color}
+                                  size="small"
+                                />
+                                
+                                <Chip
+                                  label={`${sale.discountValue}${sale.discountType === 'percentage' ? '%' : ' تومان'}`}
+                                  color="secondary"
+                                  size="small"
+                                  variant="outlined"
+                                />
+                              </Box>
+                              
+                              <Typography
+                                variant="body2"
+                                color="text.secondary"
+                                sx={{ ...getTypographyStyles(language, "body2"), mb: 2 }}
+                              >
+                                {language === "fa" ? sale.description : sale.descriptionEn}
+                              </Typography>
+                              
+                              <Box sx={{ display: "flex", gap: 3, flexWrap: "wrap", alignItems: "center" }}>
+                                <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                                  <DateRangeIcon sx={{ fontSize: 16, color: "text.secondary" }} />
+                                  <Typography variant="caption" color="text.secondary">
+                                    {formatDate(new Date(sale.startDate), language)} - {formatDate(new Date(sale.endDate), language)}
+                                  </Typography>
+                                </Box>
+                                
+                                <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                                  <ScheduleIcon sx={{ fontSize: 16, color: "text.secondary" }} />
+                                  <Typography variant="caption" color="text.secondary">
+                                    {sale.startTime} - {sale.endTime}
+                                  </Typography>
+                                </Box>
+                                
+                                <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                                  <ShoppingCartIcon sx={{ fontSize: 16, color: "text.secondary" }} />
+                                  <Typography variant="caption" color="text.secondary">
+                                    {sale.currentRedemptions}{sale.maxRedemptions ? `/${sale.maxRedemptions}` : ''} {language === "fa" ? "استفاده" : "uses"}
+                                  </Typography>
+                                </Box>
+                                
+                                {timeRemaining && (
+                                  <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                                    <TimerIcon sx={{ fontSize: 16, color: "warning.main" }} />
+                                    <Typography variant="caption" color="warning.main">
+                                      {timeRemaining}
+                                    </Typography>
+                                  </Box>
+                                )}
+                              </Box>
+                              
+                              <Box sx={{ mt: 2, display: "flex", gap: 1, flexWrap: "wrap" }}>
+                                <Chip
+                                  label={`${sale.foodIds.length} ${language === "fa" ? "غذا" : "foods"}`}
+                                  size="small"
+                                  variant="outlined"
+                                />
+                                <Chip
+                                  label={sale.targetAudience === 'all' ? 
+                                    (language === "fa" ? "همه" : "All") :
+                                    sale.targetAudience === 'students' ?
+                                    (language === "fa" ? "دانشجویان" : "Students") :
+                                    sale.targetAudience
+                                  }
+                                  size="small"
+                                  variant="outlined"
+                                  color="info"
+                                />
+                              </Box>
+                            </Box>
+                            
+                            <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 1 }}>
+                              <IconButton
+                                onClick={(e) => {
+                                  setSelectedSaleId(sale.id);
+                                  setAnchorEl(e.currentTarget);
+                                }}
+                              >
+                                <MoreVertIcon />
+                              </IconButton>
+                              
+                              <Switch
+                                checked={sale.isActive}
+                                onChange={() => handleToggleSaleStatus(sale.id)}
+                                color="success"
+                                size="small"
+                              />
+                            </Box>
                           </Box>
-                          <LinearProgress
-                            variant="determinate"
-                            value={stockPercentage}
-                            color={getStockColor(stockPercentage)}
-                            sx={{ borderRadius: 2, height: 6 }}
-                          />
-                        </Box>
+                        </CardContent>
+                      </Card>
+                    </Fade>
+                  );
+                })
+              )}
+            </Stack>
+          </Stack>
+        </Paper>
 
-                        {/* Prep Time */}
-                        <Box
-                          sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 0.5,
-                            justifyContent: isRTL ? "flex-end" : "flex-start",
-                          }}
-                        >
-                          <ScheduleIcon
-                            sx={{ fontSize: 16, color: "text.secondary" }}
-                          />
-                          <Typography variant="caption" color="text.secondary">
-                            {food.prepTime || 15}{" "}
-                            {language === "fa" ? "دقیقه" : "min"}
-                          </Typography>
-                        </Box>
-
-                        {/* Action Button */}
-                        <Button
-                          fullWidth
-                          variant={isReserved ? "outlined" : "contained"}
-                          color={isReserved ? "success" : "primary"}
-                          disabled={!food.isAvailable || isReserved}
-                          startIcon={
-                            isReserved ? (
-                              <CheckCircleIcon />
-                            ) : (
-                              <ShoppingCartIcon />
-                            )
-                          }
-                          onClick={() => handleEmergencyReservation(food.id)}
-                          sx={{
-                            py: 1.5,
-                            fontWeight: 600,
-                            borderRadius: 2,
-                            fontFamily: isRTL
-                              ? "var(--font-persian)"
-                              : "var(--font-english)",
-                          }}
-                        >
-                          {!food.isAvailable
-                            ? t.soldOut
-                            : isReserved
-                            ? language === "fa"
-                              ? "رزرو شده"
-                              : "Reserved"
-                            : t.reserveNow}
-                        </Button>
-                      </Stack>
-                    </CardContent>
-                  </Card>
-                </Fade>
-              </Stack>
-            );
-          })}
-        </Stack>
-
-        {/* No Available Foods */}
-        {availableFoods.length === 0 && (
-          <Paper
-            elevation={0}
-            sx={{
-              textAlign: "center",
-              py: 8,
-              bgcolor: "grey.50",
-              borderRadius: 3,
-              direction: isRTL ? "rtl" : "ltr",
-            }}
-          >
-            <InventoryIcon
-              sx={{ fontSize: 60, color: "text.secondary", mb: 2 }}
-            />
-            <Typography
-              variant="h6"
-              color="text.secondary"
-              gutterBottom
-              sx={{
-                fontFamily: isRTL
-                  ? "var(--font-persian)"
-                  : "var(--font-english)",
-              }}
-            >
-              {t.noReservationsNeeded}
+        {/* Sales Management Dialog */}
+        <Dialog
+          open={openSaleDialog}
+          onClose={handleCloseDialog}
+          maxWidth="md"
+          fullWidth
+          sx={componentStyles.dialog}
+        >
+          <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <CampaignIcon color="primary" />
+            <Typography sx={getTypographyStyles(language, "h6")}>
+              {editingSale 
+                ? (language === "fa" ? "ویرایش فروش" : "Edit Sale")
+                : (language === "fa" ? "ایجاد فروش جدید" : "Create New Sale")
+              }
             </Typography>
-            <Typography
-              variant="body2"
-              color="text.secondary"
-              sx={{
-                fontFamily: isRTL
-                  ? "var(--font-persian)"
-                  : "var(--font-english)",
-              }}
+          </DialogTitle>
+          
+          <DialogContent>
+            <Stack spacing={3} sx={{ pt: 2 }}>
+              {/* Basic Information */}
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label={language === "fa" ? "نام فروش (فارسی)" : "Sale Name (Persian)"}
+                    value={formData.name}
+                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                    error={!!validationErrors.name}
+                    helperText={validationErrors.name}
+                    sx={componentStyles.form.field}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label={language === "fa" ? "نام فروش (انگلیسی)" : "Sale Name (English)"}
+                    value={formData.nameEn}
+                    onChange={(e) => setFormData(prev => ({ ...prev, nameEn: e.target.value }))}
+                    sx={componentStyles.form.field}
+                  />
+                </Grid>
+              </Grid>
+              
+              {/* Description */}
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    multiline
+                    rows={2}
+                    label={language === "fa" ? "توضیحات (فارسی)" : "Description (Persian)"}
+                    value={formData.description}
+                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                    sx={componentStyles.form.field}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    multiline
+                    rows={2}
+                    label={language === "fa" ? "توضیحات (انگلیسی)" : "Description (English)"}
+                    value={formData.descriptionEn}
+                    onChange={(e) => setFormData(prev => ({ ...prev, descriptionEn: e.target.value }))}
+                    sx={componentStyles.form.field}
+                  />
+                </Grid>
+              </Grid>
+              
+              {/* Discount Settings */}
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={6}>
+                  <FormControl fullWidth sx={componentStyles.form.field}>
+                    <InputLabel>{language === "fa" ? "نوع تخفیف" : "Discount Type"}</InputLabel>
+                    <Select
+                      value={formData.discountType}
+                      onChange={(e) => setFormData(prev => ({ ...prev, discountType: e.target.value as any }))}
+                      label={language === "fa" ? "نوع تخفیف" : "Discount Type"}
+                    >
+                      <MenuItem value="percentage">{language === "fa" ? "درصدی" : "Percentage"}</MenuItem>
+                      <MenuItem value="fixed">{language === "fa" ? "مقدار ثابت" : "Fixed Amount"}</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    type="number"
+                    label={formData.discountType === 'percentage' 
+                      ? (language === "fa" ? "درصد تخفیف" : "Discount Percentage")
+                      : (language === "fa" ? "مقدار تخفیف (تومان)" : "Discount Amount (Tomans)")
+                    }
+                    value={formData.discountValue}
+                    onChange={(e) => setFormData(prev => ({ ...prev, discountValue: parseFloat(e.target.value) || 0 }))}
+                    error={!!validationErrors.discountValue}
+                    helperText={validationErrors.discountValue}
+                    InputProps={{
+                      inputProps: { 
+                        min: 0, 
+                        max: formData.discountType === 'percentage' ? 100 : 1000000 
+                      },
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          {formData.discountType === 'percentage' ? '%' : language === "fa" ? 'تومان' : 'Tomans'}
+                        </InputAdornment>
+                      )
+                    }}
+                    sx={componentStyles.form.field}
+                  />
+                </Grid>
+              </Grid>
+              
+              {/* Date and Time */}
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    type="date"
+                    label={language === "fa" ? "تاریخ شروع" : "Start Date"}
+                    value={formData.startDate}
+                    onChange={(e) => setFormData(prev => ({ ...prev, startDate: e.target.value }))}
+                    error={!!validationErrors.startDate}
+                    helperText={validationErrors.startDate}
+                    InputLabelProps={{ shrink: true }}
+                    sx={componentStyles.form.field}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    type="date"
+                    label={language === "fa" ? "تاریخ پایان" : "End Date"}
+                    value={formData.endDate}
+                    onChange={(e) => setFormData(prev => ({ ...prev, endDate: e.target.value }))}
+                    error={!!validationErrors.endDate}
+                    helperText={validationErrors.endDate}
+                    InputLabelProps={{ shrink: true }}
+                    sx={componentStyles.form.field}
+                  />
+                </Grid>
+              </Grid>
+              
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    type="time"
+                    label={language === "fa" ? "زمان شروع" : "Start Time"}
+                    value={formData.startTime}
+                    onChange={(e) => setFormData(prev => ({ ...prev, startTime: e.target.value }))}
+                    InputLabelProps={{ shrink: true }}
+                    sx={componentStyles.form.field}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    type="time"
+                    label={language === "fa" ? "زمان پایان" : "End Time"}
+                    value={formData.endTime}
+                    onChange={(e) => setFormData(prev => ({ ...prev, endTime: e.target.value }))}
+                    InputLabelProps={{ shrink: true }}
+                    sx={componentStyles.form.field}
+                  />
+                </Grid>
+              </Grid>
+              
+              {/* Target Audience and Max Redemptions */}
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={6}>
+                  <FormControl fullWidth sx={componentStyles.form.field}>
+                    <InputLabel>{language === "fa" ? "مخاطب هدف" : "Target Audience"}</InputLabel>
+                    <Select
+                      value={formData.targetAudience}
+                      onChange={(e) => setFormData(prev => ({ ...prev, targetAudience: e.target.value as any }))}
+                      label={language === "fa" ? "مخاطب هدف" : "Target Audience"}
+                    >
+                      <MenuItem value="all">{language === "fa" ? "همه" : "All"}</MenuItem>
+                      <MenuItem value="students">{language === "fa" ? "دانشجویان" : "Students"}</MenuItem>
+                      <MenuItem value="faculty">{language === "fa" ? "اساتید" : "Faculty"}</MenuItem>
+                      <MenuItem value="staff">{language === "fa" ? "کارکنان" : "Staff"}</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    type="number"
+                    label={language === "fa" ? "حداکثر استفاده (اختیاری)" : "Max Redemptions (Optional)"}
+                    value={formData.maxRedemptions || ''}
+                    onChange={(e) => setFormData(prev => ({ ...prev, maxRedemptions: parseInt(e.target.value) || undefined }))}
+                    InputProps={{
+                      inputProps: { min: 1 }
+                    }}
+                    sx={componentStyles.form.field}
+                  />
+                </Grid>
+              </Grid>
+              
+              {/* Food Selection */}
+              <FormControl fullWidth error={!!validationErrors.foodIds}>
+                <InputLabel>{language === "fa" ? "انتخاب غذاها" : "Select Foods"}</InputLabel>
+                <Select
+                  multiple
+                  value={formData.foodIds}
+                  onChange={(e) => setFormData(prev => ({ ...prev, foodIds: e.target.value as string[] }))}
+                  label={language === "fa" ? "انتخاب غذاها" : "Select Foods"}
+                  renderValue={(selected) => (
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                      {selected.map((value) => {
+                        const food = foods.find(f => f.id === value);
+                        return (
+                          <Chip 
+                            key={value} 
+                            label={language === "fa" ? food?.name : food?.nameEn} 
+                            size="small" 
+                          />
+                        );
+                      })}
+                    </Box>
+                  )}
+                >
+                  {foods.map((food) => (
+                    <MenuItem key={food.id} value={food.id}>
+                      <Box>
+                        <Typography>{language === "fa" ? food.name : food.nameEn}</Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {food.category} • {formatCurrency(food.price, language)}
+                        </Typography>
+                      </Box>
+                    </MenuItem>
+                  ))}
+                </Select>
+                {validationErrors.foodIds && (
+                  <Typography variant="caption" color="error" sx={{ mt: 0.5 }}>
+                    {validationErrors.foodIds}
+                  </Typography>
+                )}
+              </FormControl>
+            </Stack>
+          </DialogContent>
+          
+          <DialogActions sx={{ p: 3 }}>
+            <Button
+              onClick={handleCloseDialog}
+              disabled={isSaving}
+              sx={componentStyles.form.button}
             >
-              {t.walkInAvailable}
-            </Typography>
-          </Paper>
-        )}
+              {language === "fa" ? "لغو" : "Cancel"}
+            </Button>
+            <Button
+              onClick={handleSaveSale}
+              variant="contained"
+              disabled={isSaving}
+              startIcon={isSaving ? <RefreshIcon /> : <AddIcon />}
+              sx={componentStyles.form.button}
+            >
+              {isSaving 
+                ? (language === "fa" ? "در حال ذخیره..." : "Saving...")
+                : (editingSale 
+                  ? (language === "fa" ? "بروزرسانی" : "Update")
+                  : (language === "fa" ? "ایجاد فروش" : "Create Sale")
+                )
+              }
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Sales Actions Menu */}
+        <Menu
+          anchorEl={anchorEl}
+          open={Boolean(anchorEl)}
+          onClose={() => setAnchorEl(null)}
+        >
+          <MenuItem onClick={() => {
+            const sale = sales.find(s => s.id === selectedSaleId);
+            if (sale) handleEditSale(sale);
+            setAnchorEl(null);
+          }}>
+            <EditIcon sx={{ mr: 1 }} />
+            {language === "fa" ? "ویرایش" : "Edit"}
+          </MenuItem>
+          <MenuItem onClick={() => {
+            if (selectedSaleId) handleDeleteSale(selectedSaleId);
+            setAnchorEl(null);
+          }}>
+            <DeleteIcon sx={{ mr: 1 }} />
+            {language === "fa" ? "حذف" : "Delete"}
+          </MenuItem>
+          <MenuItem onClick={() => setAnchorEl(null)}>
+            <VisibilityIcon sx={{ mr: 1 }} />
+            {language === "fa" ? "مشاهده گزارش" : "View Report"}
+          </MenuItem>
+        </Menu>
+
+        {/* Success Snackbar */}
+        <Snackbar
+          open={showSuccess}
+          autoHideDuration={4000}
+          onClose={() => setShowSuccess(false)}
+        >
+          <Alert onClose={() => setShowSuccess(false)} severity="success" sx={{ borderRadius: 2 }}>
+            {language === "fa" ? "عملیات با موفقیت انجام شد" : "Operation completed successfully"}
+          </Alert>
+        </Snackbar>
+
+        {/* Error Snackbar */}
+        <Snackbar
+          open={showError}
+          autoHideDuration={6000}
+          onClose={() => setShowError(false)}
+        >
+          <Alert onClose={() => setShowError(false)} severity="error" sx={{ borderRadius: 2 }}>
+            {errorMessage || (language === "fa" ? "خطا در عملیات" : "Operation failed")}
+          </Alert>
+        </Snackbar>
       </Stack>
-    </Container>
+    </Box>
   );
 };
 

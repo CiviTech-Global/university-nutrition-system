@@ -6,7 +6,8 @@
       "Bash(find:*)",
       "Bash(sed:*)",
       "Bash(npx tsc:*)",
-      "Bash(tree:*)"
+      "Bash(tree:*)",
+      "Bash(grep:*)"
     ],
     "deny": [],
     "ask": []
