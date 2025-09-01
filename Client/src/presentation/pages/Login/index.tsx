@@ -532,56 +532,26 @@ const Login = () => {
                       )}
                     </Button>
 
-                    {/* Links */}
-                    <Stack spacing={1}>
-                      <Box textAlign="center">
-                        <Typography
-                          variant="body2"
-                          color="primary"
-                          onClick={() =>
-                            (window.location.href = "/forgot-password")
-                          }
-                          sx={{
-                            cursor: "pointer",
-                            textDecoration: "underline",
-                            ...typographyStyles,
-                            "&:hover": {
-                              color: "primary.dark",
-                            },
-                          }}
-                        >
-                          {t.forgotPassword}
-                        </Typography>
-                      </Box>
-
-                      <Box textAlign="center">
-                        <Typography
-                          variant="body2"
-                          color="text.secondary"
-                          sx={{
-                            ...typographyStyles,
-                          }}
-                        >
-                          {t.dontHaveAccount}{" "}
-                          <Typography
-                            component="span"
-                            variant="body2"
-                            color="primary"
-                            onClick={() => (window.location.href = "/register")}
-                            sx={{
-                              cursor: "pointer",
-                              textDecoration: "underline",
-                              ...typographyStyles,
-                              "&:hover": {
-                                color: "primary.dark",
-                              },
-                            }}
-                          >
-                            {t.registerHere}
-                          </Typography>
-                        </Typography>
-                      </Box>
-                    </Stack>
+                    {/* Admin Credentials Info */}
+                    <Box textAlign="center">
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{
+                          ...typographyStyles,
+                          fontSize: "0.875rem",
+                          backgroundColor: "info.50",
+                          padding: 2,
+                          borderRadius: 1,
+                          border: "1px solid",
+                          borderColor: "info.200",
+                        }}
+                      >
+                        <strong>{language === "fa" ? "اطلاعات ورود:" : "Login Credentials:"}</strong><br/>
+                        {language === "fa" ? "نام کاربری: admin" : "Username: admin"}<br/>
+                        {language === "fa" ? "رمز عبور: admin" : "Password: admin"}
+                      </Typography>
+                    </Box>
                   </Stack>
                 </Box>
               </Paper>

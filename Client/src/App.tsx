@@ -1,7 +1,5 @@
 import { Routes, Route } from "react-router-dom";
-import Register from "./presentation/pages/Register";
 import Login from "./presentation/pages/Login";
-import ForgotPassword from "./presentation/pages/ForgotPassword";
 import Dashboard from "./presentation/pages/Dashboard";
 import Credit from "./presentation/pages/Credit";
 import AccountRecharge from "./presentation/pages/AccountRecharge";
@@ -22,15 +20,7 @@ function App() {
         path="/"
         element={
           <AuthLayout>
-            <Register />
-          </AuthLayout>
-        }
-      />
-      <Route
-        path="/register"
-        element={
-          <AuthLayout>
-            <Register />
+            <Login />
           </AuthLayout>
         }
       />
@@ -104,14 +94,6 @@ function App() {
           <Layout>
             <MyReservations />
           </Layout>
-        }
-      />
-      <Route
-        path="/forgot-password"
-        element={
-          <AuthLayout>
-            <ForgotPassword />
-          </AuthLayout>
         }
       />
       <Route

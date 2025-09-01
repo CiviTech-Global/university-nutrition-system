@@ -52,16 +52,25 @@ export const getUsersCount = (): number => {
   return getAllUsers().length;
 };
 
-// Authentication functions
+// Authentication functions - Hardcoded admin user
 export const authenticateUser = (
   username: string,
   password: string
 ): User | null => {
-  const users = getAllUsers();
-  const user = users.find(
-    (u) => u.username === username && u.password === password
-  );
-  return user || null;
+  // Hardcoded admin credentials
+  if (username === "admin" && password === "admin") {
+    return {
+      id: "admin_001",
+      firstName: "Admin",
+      lastName: "User",
+      email: "admin@university.edu",
+      username: "admin",
+      password: "admin",
+      createdAt: new Date().toISOString(),
+      language: "fa"
+    };
+  }
+  return null;
 };
 
 // Set current user in localStorage

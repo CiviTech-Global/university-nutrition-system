@@ -26,10 +26,8 @@ import {
   Fade,
   Collapse,
   Switch,
-  FormControlLabel,
   InputAdornment,
   Menu,
-  Grid,
 } from "@mui/material";
 import {
   LocalOffer as LocalOfferIcon,
@@ -44,11 +42,9 @@ import {
   FilterList as FilterListIcon,
   Analytics as AnalyticsIcon,
   Campaign as CampaignIcon,
-  Event as EventIcon,
   Refresh as RefreshIcon,
   MoreVert as MoreVertIcon,
   PlayArrow as PlayArrowIcon,
-  Pause as PauseIcon,
   DateRange as DateRangeIcon,
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
@@ -110,7 +106,7 @@ interface SaleFormData {
 }
 
 const SaleDay = () => {
-  const { language, t, isRTL } = useLanguage();
+  const { language, isRTL } = useLanguage();
   const componentStyles = createComponentStyles(language);
   const navigate = useNavigate();
   const dataService = DataService.getInstance();
@@ -122,11 +118,10 @@ const SaleDay = () => {
   // Data states
   const [sales, setSales] = useState<Sale[]>([]);
   const [foods, setFoods] = useState<FoodItem[]>([]);
-  const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
+  const [, setRestaurants] = useState<Restaurant[]>([]);
   const [filteredSales, setFilteredSales] = useState<Sale[]>([]);
   
   // UI states
-  const [selectedTab, setSelectedTab] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<"all" | "active" | "upcoming" | "expired">("all");
   const [showFilters, setShowFilters] = useState(false);
@@ -452,7 +447,7 @@ const SaleDay = () => {
     const currentTime = now.toTimeString().slice(0, 5);
     
     if (!sale.isActive) {
-      return { status: 'disabled', label: language === 'fa' ? 'غیرفعال' : 'Disabled', color: 'default' as const };
+      return { status: 'disabled', label: language === 'fa' ? 'غیرفعال' : 'Disabled', color: 'secondary' as const };
     }
     
     if (sale.startDate > currentDate || (sale.startDate === currentDate && sale.startTime > currentTime)) {
@@ -742,12 +737,14 @@ const SaleDay = () => {
                   onChange={(e) => setSearchTerm(e.target.value)}
                   size="small"
                   sx={{ minWidth: 200 }}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <SearchIcon />
-                      </InputAdornment>
-                    ),
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <SearchIcon />
+                        </InputAdornment>
+                      ),
+                    }
                   }}
                 />
                 
@@ -954,83 +951,73 @@ const SaleDay = () => {
           <DialogContent>
             <Stack spacing={3} sx={{ pt: 2 }}>
               {/* Basic Information */}
-              <Grid container spacing={2}>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label={language === "fa" ? "نام فروش (فارسی)" : "Sale Name (Persian)"}
-                    value={formData.name}
-                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                    error={!!validationErrors.name}
-                    helperText={validationErrors.name}
-                    sx={componentStyles.form.field}
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label={language === "fa" ? "نام فروش (انگلیسی)" : "Sale Name (English)"}
-                    value={formData.nameEn}
-                    onChange={(e) => setFormData(prev => ({ ...prev, nameEn: e.target.value }))}
-                    sx={componentStyles.form.field}
-                  />
-                </Grid>
-              </Grid>
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
+                <TextField
+                  fullWidth
+                  label={language === "fa" ? "نام فروش (فارسی)" : "Sale Name (Persian)"}
+                  value={formData.name}
+                  onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                  error={!!validationErrors.name}
+                  helperText={validationErrors.name}
+                  sx={componentStyles.form.field}
+                />
+                <TextField
+                  fullWidth
+                  label={language === "fa" ? "نام فروش (انگلیسی)" : "Sale Name (English)"}
+                  value={formData.nameEn}
+                  onChange={(e) => setFormData(prev => ({ ...prev, nameEn: e.target.value }))}
+                  sx={componentStyles.form.field}
+                />
+              </Box>
               
               {/* Description */}
-              <Grid container spacing={2}>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    multiline
-                    rows={2}
-                    label={language === "fa" ? "توضیحات (فارسی)" : "Description (Persian)"}
-                    value={formData.description}
-                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                    sx={componentStyles.form.field}
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    multiline
-                    rows={2}
-                    label={language === "fa" ? "توضیحات (انگلیسی)" : "Description (English)"}
-                    value={formData.descriptionEn}
-                    onChange={(e) => setFormData(prev => ({ ...prev, descriptionEn: e.target.value }))}
-                    sx={componentStyles.form.field}
-                  />
-                </Grid>
-              </Grid>
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={2}
+                  label={language === "fa" ? "توضیحات (فارسی)" : "Description (Persian)"}
+                  value={formData.description}
+                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                  sx={componentStyles.form.field}
+                />
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={2}
+                  label={language === "fa" ? "توضیحات (انگلیسی)" : "Description (English)"}
+                  value={formData.descriptionEn}
+                  onChange={(e) => setFormData(prev => ({ ...prev, descriptionEn: e.target.value }))}
+                  sx={componentStyles.form.field}
+                />
+              </Box>
               
               {/* Discount Settings */}
-              <Grid container spacing={2}>
-                <Grid item xs={12} md={6}>
-                  <FormControl fullWidth sx={componentStyles.form.field}>
-                    <InputLabel>{language === "fa" ? "نوع تخفیف" : "Discount Type"}</InputLabel>
-                    <Select
-                      value={formData.discountType}
-                      onChange={(e) => setFormData(prev => ({ ...prev, discountType: e.target.value as any }))}
-                      label={language === "fa" ? "نوع تخفیف" : "Discount Type"}
-                    >
-                      <MenuItem value="percentage">{language === "fa" ? "درصدی" : "Percentage"}</MenuItem>
-                      <MenuItem value="fixed">{language === "fa" ? "مقدار ثابت" : "Fixed Amount"}</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    type="number"
-                    label={formData.discountType === 'percentage' 
-                      ? (language === "fa" ? "درصد تخفیف" : "Discount Percentage")
-                      : (language === "fa" ? "مقدار تخفیف (تومان)" : "Discount Amount (Tomans)")
-                    }
-                    value={formData.discountValue}
-                    onChange={(e) => setFormData(prev => ({ ...prev, discountValue: parseFloat(e.target.value) || 0 }))}
-                    error={!!validationErrors.discountValue}
-                    helperText={validationErrors.discountValue}
-                    InputProps={{
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
+                <FormControl fullWidth sx={componentStyles.form.field}>
+                  <InputLabel>{language === "fa" ? "نوع تخفیف" : "Discount Type"}</InputLabel>
+                  <Select
+                    value={formData.discountType}
+                    onChange={(e) => setFormData(prev => ({ ...prev, discountType: e.target.value as any }))}
+                    label={language === "fa" ? "نوع تخفیف" : "Discount Type"}
+                  >
+                    <MenuItem value="percentage">{language === "fa" ? "درصدی" : "Percentage"}</MenuItem>
+                    <MenuItem value="fixed">{language === "fa" ? "مقدار ثابت" : "Fixed Amount"}</MenuItem>
+                  </Select>
+                </FormControl>
+                <TextField
+                  fullWidth
+                  type="number"
+                  label={formData.discountType === 'percentage' 
+                    ? (language === "fa" ? "درصد تخفیف" : "Discount Percentage")
+                    : (language === "fa" ? "مقدار تخفیف (تومان)" : "Discount Amount (Tomans)")
+                  }
+                  value={formData.discountValue}
+                  onChange={(e) => setFormData(prev => ({ ...prev, discountValue: parseFloat(e.target.value) || 0 }))}
+                  error={!!validationErrors.discountValue}
+                  helperText={validationErrors.discountValue}
+                  slotProps={{
+                    input: {
                       inputProps: { 
                         min: 0, 
                         max: formData.discountType === 'percentage' ? 100 : 1000000 
@@ -1040,98 +1027,88 @@ const SaleDay = () => {
                           {formData.discountType === 'percentage' ? '%' : language === "fa" ? 'تومان' : 'Tomans'}
                         </InputAdornment>
                       )
-                    }}
-                    sx={componentStyles.form.field}
-                  />
-                </Grid>
-              </Grid>
+                    }
+                  }}
+                  sx={componentStyles.form.field}
+                />
+              </Box>
               
               {/* Date and Time */}
-              <Grid container spacing={2}>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    type="date"
-                    label={language === "fa" ? "تاریخ شروع" : "Start Date"}
-                    value={formData.startDate}
-                    onChange={(e) => setFormData(prev => ({ ...prev, startDate: e.target.value }))}
-                    error={!!validationErrors.startDate}
-                    helperText={validationErrors.startDate}
-                    InputLabelProps={{ shrink: true }}
-                    sx={componentStyles.form.field}
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    type="date"
-                    label={language === "fa" ? "تاریخ پایان" : "End Date"}
-                    value={formData.endDate}
-                    onChange={(e) => setFormData(prev => ({ ...prev, endDate: e.target.value }))}
-                    error={!!validationErrors.endDate}
-                    helperText={validationErrors.endDate}
-                    InputLabelProps={{ shrink: true }}
-                    sx={componentStyles.form.field}
-                  />
-                </Grid>
-              </Grid>
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
+                <TextField
+                  fullWidth
+                  type="date"
+                  label={language === "fa" ? "تاریخ شروع" : "Start Date"}
+                  value={formData.startDate}
+                  onChange={(e) => setFormData(prev => ({ ...prev, startDate: e.target.value }))}
+                  error={!!validationErrors.startDate}
+                  helperText={validationErrors.startDate}
+                  slotProps={{ inputLabel: { shrink: true } }}
+                  sx={componentStyles.form.field}
+                />
+                <TextField
+                  fullWidth
+                  type="date"
+                  label={language === "fa" ? "تاریخ پایان" : "End Date"}
+                  value={formData.endDate}
+                  onChange={(e) => setFormData(prev => ({ ...prev, endDate: e.target.value }))}
+                  error={!!validationErrors.endDate}
+                  helperText={validationErrors.endDate}
+                  slotProps={{ inputLabel: { shrink: true } }}
+                  sx={componentStyles.form.field}
+                />
+              </Box>
               
-              <Grid container spacing={2}>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    type="time"
-                    label={language === "fa" ? "زمان شروع" : "Start Time"}
-                    value={formData.startTime}
-                    onChange={(e) => setFormData(prev => ({ ...prev, startTime: e.target.value }))}
-                    InputLabelProps={{ shrink: true }}
-                    sx={componentStyles.form.field}
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    type="time"
-                    label={language === "fa" ? "زمان پایان" : "End Time"}
-                    value={formData.endTime}
-                    onChange={(e) => setFormData(prev => ({ ...prev, endTime: e.target.value }))}
-                    InputLabelProps={{ shrink: true }}
-                    sx={componentStyles.form.field}
-                  />
-                </Grid>
-              </Grid>
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
+                <TextField
+                  fullWidth
+                  type="time"
+                  label={language === "fa" ? "زمان شروع" : "Start Time"}
+                  value={formData.startTime}
+                  onChange={(e) => setFormData(prev => ({ ...prev, startTime: e.target.value }))}
+                  slotProps={{ inputLabel: { shrink: true } }}
+                  sx={componentStyles.form.field}
+                />
+                <TextField
+                  fullWidth
+                  type="time"
+                  label={language === "fa" ? "زمان پایان" : "End Time"}
+                  value={formData.endTime}
+                  onChange={(e) => setFormData(prev => ({ ...prev, endTime: e.target.value }))}
+                  slotProps={{ inputLabel: { shrink: true } }}
+                  sx={componentStyles.form.field}
+                />
+              </Box>
               
               {/* Target Audience and Max Redemptions */}
-              <Grid container spacing={2}>
-                <Grid item xs={12} md={6}>
-                  <FormControl fullWidth sx={componentStyles.form.field}>
-                    <InputLabel>{language === "fa" ? "مخاطب هدف" : "Target Audience"}</InputLabel>
-                    <Select
-                      value={formData.targetAudience}
-                      onChange={(e) => setFormData(prev => ({ ...prev, targetAudience: e.target.value as any }))}
-                      label={language === "fa" ? "مخاطب هدف" : "Target Audience"}
-                    >
-                      <MenuItem value="all">{language === "fa" ? "همه" : "All"}</MenuItem>
-                      <MenuItem value="students">{language === "fa" ? "دانشجویان" : "Students"}</MenuItem>
-                      <MenuItem value="faculty">{language === "fa" ? "اساتید" : "Faculty"}</MenuItem>
-                      <MenuItem value="staff">{language === "fa" ? "کارکنان" : "Staff"}</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    type="number"
-                    label={language === "fa" ? "حداکثر استفاده (اختیاری)" : "Max Redemptions (Optional)"}
-                    value={formData.maxRedemptions || ''}
-                    onChange={(e) => setFormData(prev => ({ ...prev, maxRedemptions: parseInt(e.target.value) || undefined }))}
-                    InputProps={{
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
+                <FormControl fullWidth sx={componentStyles.form.field}>
+                  <InputLabel>{language === "fa" ? "مخاطب هدف" : "Target Audience"}</InputLabel>
+                  <Select
+                    value={formData.targetAudience}
+                    onChange={(e) => setFormData(prev => ({ ...prev, targetAudience: e.target.value as any }))}
+                    label={language === "fa" ? "مخاطب هدف" : "Target Audience"}
+                  >
+                    <MenuItem value="all">{language === "fa" ? "همه" : "All"}</MenuItem>
+                    <MenuItem value="students">{language === "fa" ? "دانشجویان" : "Students"}</MenuItem>
+                    <MenuItem value="faculty">{language === "fa" ? "اساتید" : "Faculty"}</MenuItem>
+                    <MenuItem value="staff">{language === "fa" ? "کارکنان" : "Staff"}</MenuItem>
+                  </Select>
+                </FormControl>
+                <TextField
+                  fullWidth
+                  type="number"
+                  label={language === "fa" ? "حداکثر استفاده (اختیاری)" : "Max Redemptions (Optional)"}
+                  value={formData.maxRedemptions || ''}
+                  onChange={(e) => setFormData(prev => ({ ...prev, maxRedemptions: parseInt(e.target.value) || undefined }))}
+                  slotProps={{
+                    input: {
                       inputProps: { min: 1 }
-                    }}
-                    sx={componentStyles.form.field}
-                  />
-                </Grid>
-              </Grid>
+                    }
+                  }}
+                  sx={componentStyles.form.field}
+                />
+              </Box>
               
               {/* Food Selection */}
               <FormControl fullWidth error={!!validationErrors.foodIds}>
