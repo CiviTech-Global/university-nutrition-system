@@ -7,6 +7,12 @@ export interface User {
   password: string;
   createdAt: string;
   language: "en" | "fa";
+  phone?: string;
+  studentId?: string;
+  faculty?: string;
+  dateOfBirth?: string;
+  address?: string;
+  bio?: string;
 }
 
 // Get all users from localStorage

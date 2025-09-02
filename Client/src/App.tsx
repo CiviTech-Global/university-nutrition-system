@@ -4,6 +4,8 @@ import Dashboard from "./presentation/pages/Dashboard";
 import Credit from "./presentation/pages/Credit";
 import AccountRecharge from "./presentation/pages/AccountRecharge";
 import Profile from "./presentation/pages/Profile";
+import Settings from "./presentation/pages/Settings";
+import Notifications from "./presentation/pages/Notifications";
 import Foods from "./presentation/pages/Foods";
 import SaleDay from "./presentation/pages/SaleDay";
 import WeeklySchedule from "./presentation/pages/WeeklySchedule";
@@ -101,6 +103,22 @@ function App() {
         element={
           <Layout>
             <TestLanguage />
+          </Layout>
+        }
+      />
+      <Route
+        path="/settings"
+        element={
+          <Layout>
+            <Settings />
+          </Layout>
+        }
+      />
+      <Route
+        path="/notifications"
+        element={
+          <Layout>
+            <Notifications />
           </Layout>
         }
       />
