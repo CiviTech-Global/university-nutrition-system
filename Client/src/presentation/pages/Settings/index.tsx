@@ -257,81 +257,135 @@ const Settings = () => {
   }
 
   return (
-    <Box sx={componentStyles.dashboard.container}>
-      <Stack spacing={3}>
-        {/* Header */}
+    <Box sx={{ 
+      py: 4, 
+      px: 3, 
+      minHeight: "100vh",
+      backgroundColor: "#f8f9fa",
+      direction: isRTL ? "rtl" : "ltr"
+    }}>
+      <Stack spacing={4}>
+        {/* Header with blue gradient background */}
         <Box
           sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            ...componentStyles.dashboard.header,
+            background: "linear-gradient(135deg, #A8C5E3 0%, #7BA7D1 100%)",
+            borderRadius: "12px",
+            p: 3,
+            color: "white",
+            textAlign: "center",
+            boxShadow: "0 4px 20px rgba(123, 167, 209, 0.3)",
           }}
         >
-          <Box>
-            <Typography
-              variant="h4"
-              component="h1"
-              color="primary"
-              sx={getTypographyStyles(language, "h4")}
-            >
-              {t.settings}
-            </Typography>
-            <Typography
-              variant="body2"
-              color="text.secondary"
-              sx={{ ...getTypographyStyles(language, "body2"), mt: 1 }}
-            >
-              {t.settingsDescription}
-            </Typography>
-          </Box>
+          <Typography
+            variant="h4"
+            component="h1"
+            sx={{
+              ...getTypographyStyles(language, "h4"),
+              color: "white",
+              fontWeight: 600,
+              mb: 1,
+            }}
+          >
+            {t.settings}
+          </Typography>
+          <Typography
+            variant="body1"
+            sx={{
+              ...getTypographyStyles(language, "body1"),
+              color: "rgba(255, 255, 255, 0.9)",
+            }}
+          >
+            {t.settingsDescription}
+          </Typography>
+        </Box>
+
+        {/* Action buttons */}
+        <Box sx={{ 
+          display: "flex", 
+          gap: 2, 
+          justifyContent: "center",
+          flexWrap: "wrap" 
+        }}>
+          <Button
+            variant="outlined"
+            startIcon={<RestoreIcon />}
+            onClick={handleResetToDefaults}
+            sx={{
+              fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+              borderColor: "#A8C5E3",
+              color: "#7BA7D1",
+              "&:hover": {
+                borderColor: "#7BA7D1",
+                backgroundColor: "rgba(123, 167, 209, 0.1)",
+              },
+              borderRadius: "25px",
+              px: 3,
+            }}
+          >
+            {t.resetToDefaults}
+          </Button>
           
-          <Box sx={{ display: "flex", gap: 2 }}>
-            <Tooltip title={t.resetToDefaults}>
-              <Button
-                variant="outlined"
-                startIcon={<RestoreIcon />}
-                onClick={handleResetToDefaults}
-                sx={{
-                  fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
-                }}
-              >
-                {t.resetToDefaults}
-              </Button>
-            </Tooltip>
-            
-            <Tooltip title={t.saveSettings}>
-              <Button
-                variant="contained"
-                startIcon={isSaving ? <RefreshIcon /> : <SaveIcon />}
-                onClick={handleSaveSettings}
-                disabled={isSaving}
-                sx={{
-                  fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
-                }}
-              >
-                {isSaving ? t.saving : t.save}
-              </Button>
-            </Tooltip>
-          </Box>
+          <Button
+            variant="contained"
+            startIcon={isSaving ? <RefreshIcon className="animate-spin" /> : <SaveIcon />}
+            onClick={handleSaveSettings}
+            disabled={isSaving}
+            sx={{
+              fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+              background: "linear-gradient(135deg, #A8C5E3 0%, #7BA7D1 100%)",
+              boxShadow: "0 4px 15px rgba(123, 167, 209, 0.4)",
+              "&:hover": {
+                background: "linear-gradient(135deg, #7BA7D1 0%, #6B95C4 100%)",
+                boxShadow: "0 6px 20px rgba(123, 167, 209, 0.6)",
+              },
+              borderRadius: "25px",
+              px: 4,
+            }}
+          >
+            {isSaving ? t.saving : t.save}
+          </Button>
         </Box>
 
         {/* Settings Grid */}
         <Box
           sx={{
             display: "grid",
-            gridTemplateColumns: { xs: "1fr", lg: "1fr 1fr" },
-            gap: 3,
+            gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
+            gap: 4,
+            maxWidth: "1200px",
+            mx: "auto",
           }}
         >
           {/* Language Settings */}
-          <Card sx={componentStyles.card}>
+          <Card sx={{
+            borderRadius: "16px",
+            boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
+            border: "1px solid #e9ecef",
+            overflow: "hidden",
+            transition: "all 0.3s ease",
+            "&:hover": {
+              boxShadow: "0 8px 30px rgba(0, 0, 0, 0.12)",
+              transform: "translateY(-2px)",
+            },
+          }}>
             <CardContent sx={{ p: 3 }}>
-              <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
-                <LanguageIcon color="primary" sx={{ fontSize: 28, mr: 2 }} />
+              {/* Card Header */}
+              <Box sx={{ 
+                background: "linear-gradient(135deg, #A8C5E3 0%, #7BA7D1 100%)",
+                p: 2,
+                borderRadius: "12px",
+                mb: 3,
+                display: "flex", 
+                alignItems: "center"
+              }}>
+                <LanguageIcon sx={{ fontSize: 28, mr: 2, color: "white" }} />
                 <Typography
                   variant="h6"
-                  sx={getTypographyStyles(language, "h6")}
+                  sx={{
+                    ...getTypographyStyles(language, "h6"),
+                    color: "white",
+                    fontWeight: 600,
+                  }}
                 >
                   {t.languageSettings}
                 </Typography>

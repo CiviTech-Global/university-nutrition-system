@@ -404,97 +404,153 @@ const Notifications = () => {
   }
 
   return (
-    <Box sx={componentStyles.dashboard.container}>
-      <Stack spacing={3}>
-        {/* Header */}
+    <Box sx={{ 
+      py: 4, 
+      px: 3, 
+      minHeight: "100vh",
+      backgroundColor: "#f8f9fa",
+      direction: isRTL ? "rtl" : "ltr"
+    }}>
+      <Stack spacing={4}>
+        {/* Header with blue gradient background */}
         <Box
           sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            ...componentStyles.dashboard.header,
+            background: "linear-gradient(135deg, #A8C5E3 0%, #7BA7D1 100%)",
+            borderRadius: "12px",
+            p: 3,
+            color: "white",
+            textAlign: "center",
+            boxShadow: "0 4px 20px rgba(123, 167, 209, 0.3)",
           }}
         >
-          <Box>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-              <Badge badgeContent={unreadCount} color="error">
-                <NotificationsIcon color="primary" sx={{ fontSize: 32 }} />
-              </Badge>
-              <Typography
-                variant="h4"
-                component="h1"
-                color="primary"
-                sx={getTypographyStyles(language, "h4")}
-              >
-                {t.notificationCenter}
-              </Typography>
-            </Box>
+          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 2, mb: 1 }}>
+            <Badge badgeContent={unreadCount} color="error">
+              <NotificationsIcon sx={{ fontSize: 32, color: "white" }} />
+            </Badge>
             <Typography
-              variant="body2"
-              color="text.secondary"
-              sx={{ ...getTypographyStyles(language, "body2"), mt: 1 }}
+              variant="h4"
+              component="h1"
+              sx={{
+                ...getTypographyStyles(language, "h4"),
+                color: "white",
+                fontWeight: 600,
+              }}
             >
-              {unreadCount > 0 
-                ? `${unreadCount} ${t.unreadNotifications}`
-                : t.noNewNotifications
-              }
+              {t.notificationCenter}
             </Typography>
           </Box>
-          
-          <Box sx={{ display: "flex", gap: 2 }}>
-            <Tooltip title={t.notificationPreferences}>
-              <Button
-                variant="outlined"
-                startIcon={<SettingsIcon />}
-                onClick={() => setShowPreferencesDialog(true)}
-                sx={{
-                  fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
-                }}
-              >
-                {t.settings}
-              </Button>
-            </Tooltip>
-            
-            <Tooltip title={t.testNotification}>
-              <Button
-                variant="outlined"
-                startIcon={<SendIcon />}
-                onClick={handleSendTestNotification}
-                sx={{
-                  fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
-                }}
-              >
-                {t.testNotification}
-              </Button>
-            </Tooltip>
+          <Typography
+            variant="body1"
+            sx={{
+              ...getTypographyStyles(language, "body1"),
+              color: "rgba(255, 255, 255, 0.9)",
+            }}
+          >
+            {unreadCount > 0 
+              ? `${unreadCount} ${t.unreadNotifications}`
+              : t.noNewNotifications
+            }
+          </Typography>
+        </Box>
 
-            {unreadCount > 0 && (
-              <Tooltip title={t.markAllAsRead}>
-                <Button
-                  variant="contained"
-                  startIcon={<MarkReadIcon />}
-                  onClick={handleMarkAllAsRead}
-                  sx={{
-                    fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
-                  }}
-                >
-                  {t.markAllAsRead}
-                </Button>
-              </Tooltip>
-            )}
-          </Box>
+        {/* Action buttons */}
+        <Box sx={{ 
+          display: "flex", 
+          gap: 2, 
+          justifyContent: "center",
+          flexWrap: "wrap" 
+        }}>
+          <Button
+            variant="outlined"
+            startIcon={<SettingsIcon />}
+            onClick={() => setShowPreferencesDialog(true)}
+            sx={{
+              fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+              borderColor: "#A8C5E3",
+              color: "#7BA7D1",
+              "&:hover": {
+                borderColor: "#7BA7D1",
+                backgroundColor: "rgba(123, 167, 209, 0.1)",
+              },
+              borderRadius: "25px",
+              px: 3,
+            }}
+          >
+            {t.settings}
+          </Button>
+          
+          <Button
+            variant="outlined"
+            startIcon={<SendIcon />}
+            onClick={handleSendTestNotification}
+            sx={{
+              fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+              borderColor: "#A8C5E3",
+              color: "#7BA7D1",
+              "&:hover": {
+                borderColor: "#7BA7D1",
+                backgroundColor: "rgba(123, 167, 209, 0.1)",
+              },
+              borderRadius: "25px",
+              px: 3,
+            }}
+          >
+            {t.testNotification}
+          </Button>
+
+          {unreadCount > 0 && (
+            <Button
+              variant="contained"
+              startIcon={<MarkReadIcon />}
+              onClick={handleMarkAllAsRead}
+              sx={{
+                fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+                background: "linear-gradient(135deg, #A8C5E3 0%, #7BA7D1 100%)",
+                boxShadow: "0 4px 15px rgba(123, 167, 209, 0.4)",
+                "&:hover": {
+                  background: "linear-gradient(135deg, #7BA7D1 0%, #6B95C4 100%)",
+                  boxShadow: "0 6px 20px rgba(123, 167, 209, 0.6)",
+                },
+                borderRadius: "25px",
+                px: 4,
+              }}
+            >
+              {t.markAllAsRead}
+            </Button>
+          )}
         </Box>
 
         {/* Tabs */}
-        <Paper elevation={1} sx={{ borderRadius: 2 }}>
+        <Paper 
+          elevation={3} 
+          sx={{ 
+            borderRadius: "12px",
+            boxShadow: "0 4px 20px rgba(123, 167, 209, 0.1)",
+            overflow: "hidden",
+          }}
+        >
           <Tabs
             value={activeTab}
             onChange={(_, newValue) => setActiveTab(newValue)}
             variant="fullWidth"
             sx={{
+              "& .MuiTabs-indicator": {
+                background: "linear-gradient(135deg, #A8C5E3 0%, #7BA7D1 100%)",
+                height: 3,
+              },
               "& .MuiTab-root": {
                 fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
                 fontSize: "1rem",
+                fontWeight: 500,
+                textTransform: "none",
+                py: 2,
+                "&.Mui-selected": {
+                  color: "#7BA7D1",
+                  fontWeight: 600,
+                },
+                "&:hover": {
+                  backgroundColor: "rgba(123, 167, 209, 0.05)",
+                },
               },
             }}
           >
@@ -542,7 +598,14 @@ const Notifications = () => {
         </Paper>
 
         {/* Notifications List */}
-        <Card sx={componentStyles.card}>
+        <Card 
+          sx={{
+            ...componentStyles.card,
+            borderRadius: "12px",
+            boxShadow: "0 4px 20px rgba(123, 167, 209, 0.1)",
+            border: "1px solid rgba(168, 197, 227, 0.2)",
+          }}
+        >
           <CardContent sx={{ p: 0 }}>
             {filteredNotifications.length === 0 ? (
               <Box sx={{ textAlign: "center", py: 6 }}>
@@ -590,12 +653,12 @@ const Notifications = () => {
                         <Avatar
                           sx={{
                             backgroundColor: notification.isRead 
-                              ? "grey.200" 
-                              : "transparent",
+                              ? "rgba(123, 167, 209, 0.1)" 
+                              : "rgba(123, 167, 209, 0.2)",
                             border: "2px solid",
                             borderColor: notification.isRead 
-                              ? "grey.400" 
-                              : "primary.main",
+                              ? "rgba(123, 167, 209, 0.4)" 
+                              : "#7BA7D1",
                           }}
                         >
                           {getNotificationIcon(notification.type, notification.category)}
@@ -694,6 +757,14 @@ const Notifications = () => {
               onClick={handleClearAllNotifications}
               sx={{
                 fontFamily: isRTL ? "var(--font-persian)" : "var(--font-english)",
+                borderColor: "#A8C5E3",
+                color: "#7BA7D1",
+                "&:hover": {
+                  borderColor: "#7BA7D1",
+                  backgroundColor: "rgba(123, 167, 209, 0.1)",
+                },
+                borderRadius: "25px",
+                px: 3,
               }}
             >
               {t.clearAllNotifications}
