@@ -20,7 +20,6 @@ import {
   Tab,
   TextField,
   Divider,
-  Grid,
   Tooltip,
   Badge,
   FormControl,
@@ -34,7 +33,6 @@ import {
   ContentCopy as CopyIcon,
   Download as DownloadIcon,
   Refresh as RefreshIcon,
-  Cancel as CancelIcon,
   CheckCircle as CheckCircleIcon,
   Schedule as ScheduleIcon,
   Restaurant as RestaurantIcon,
@@ -49,8 +47,6 @@ import { useLanguage } from "../../contexts/LanguageContext";
 import {
   formatCurrency,
   formatDate,
-  formatTime,
-  createComponentStyles,
   getTypographyStyles,
 } from "../../utils/languageUtils";
 import DataService, { type MealReservation } from "../../services/dataService";
@@ -87,7 +83,6 @@ const TabPanel = (props: TabPanelProps) => {
 
 const MyReservations = () => {
   const { language, isRTL } = useLanguage();
-  const componentStyles = createComponentStyles(language);
   const [user, setUser] = useState<any>(null);
   const [reservations, setReservations] = useState<ReservedItem[]>([]);
   const [selectedReservation, setSelectedReservation] = useState<ReservedItem | null>(null);
@@ -233,7 +228,7 @@ const MyReservations = () => {
 
   const generateQRCode = (reservation: ReservedItem) => {
     // In a real app, this would generate a proper QR code
-    const qrData = `RESERVATION:${reservation.faramushiCode}:${reservation.date}:${reservation.meal}`;
+    // QR Data would be: RESERVATION:${reservation.faramushiCode}:${reservation.date}:${reservation.meal}
     return `data:image/svg+xml,${encodeURIComponent(`
       <svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
         <rect width="200" height="200" fill="white" stroke="black"/>
@@ -291,8 +286,13 @@ const MyReservations = () => {
       }}
     >
       <CardContent sx={{ p: 3 }}>
-        <Grid container spacing={3} alignItems="center">
-          <Grid item xs={12} sm={8}>
+        <Box sx={{ 
+          display: "grid", 
+          gridTemplateColumns: { xs: "1fr", sm: "2fr 1fr" }, 
+          gap: 3, 
+          alignItems: "center" 
+        }}>
+          <Box>
             <Stack spacing={2}>
               <Box sx={{ display: "flex", alignItems: "center", gap: 2, flexWrap: "wrap" }}>
                 <Typography variant="h6" sx={getTypographyStyles(language, "h6")}>
@@ -360,9 +360,9 @@ const MyReservations = () => {
                 </Box>
               )}
             </Stack>
-          </Grid>
+          </Box>
 
-          <Grid item xs={12} sm={4}>
+          <Box>
             <Stack spacing={2} alignItems="flex-end">
               <Box sx={{ textAlign: "right" }}>
                 <Typography variant="h6" color="primary" sx={getTypographyStyles(language, "h6")}>
@@ -412,8 +412,8 @@ const MyReservations = () => {
                 </Button>
               </Box>
             </Stack>
-          </Grid>
-        </Grid>
+          </Box>
+        </Box>
       </CardContent>
     </Card>
   );
@@ -473,8 +473,12 @@ const MyReservations = () => {
               {language === "fa" ? "فیلترها" : "Filters"}
             </Typography>
             
-            <Grid container spacing={3}>
-              <Grid item xs={12} sm={6} md={3}>
+            <Box sx={{ 
+              display: "grid", 
+              gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr", md: "1fr 1fr 1fr 1fr" }, 
+              gap: 3 
+            }}>
+              <Box>
                 <TextField
                   fullWidth
                   label={language === "fa" ? "جستجو" : "Search"}
@@ -488,9 +492,9 @@ const MyReservations = () => {
                     },
                   }}
                 />
-              </Grid>
+              </Box>
               
-              <Grid item xs={12} sm={6} md={3}>
+              <Box>
                 <FormControl fullWidth size="small">
                   <InputLabel>{language === "fa" ? "وضعیت" : "Status"}</InputLabel>
                   <Select
@@ -505,9 +509,9 @@ const MyReservations = () => {
                     <MenuItem value="cancelled">{language === "fa" ? "لغو شده" : "Cancelled"}</MenuItem>
                   </Select>
                 </FormControl>
-              </Grid>
+              </Box>
               
-              <Grid item xs={12} sm={6} md={3}>
+              <Box>
                 <FormControl fullWidth size="small">
                   <InputLabel>{language === "fa" ? "بازه زمانی" : "Date Range"}</InputLabel>
                   <Select
@@ -521,9 +525,9 @@ const MyReservations = () => {
                     <MenuItem value="month">{language === "fa" ? "این ماه" : "This Month"}</MenuItem>
                   </Select>
                 </FormControl>
-              </Grid>
+              </Box>
 
-              <Grid item xs={12} sm={6} md={3}>
+              <Box>
                 <Typography variant="body1" sx={getTypographyStyles(language, "body1")}>
                   {language === "fa" ? "تعداد: " : "Total: "}{filteredReservations.length}
                 </Typography>
@@ -534,8 +538,8 @@ const MyReservations = () => {
                     language
                   )}
                 </Typography>
-              </Grid>
-            </Grid>
+              </Box>
+            </Box>
           </Stack>
         </Paper>
 
@@ -616,8 +620,12 @@ const MyReservations = () => {
           <DialogContent>
             {selectedReservation && (
               <Stack spacing={3}>
-                <Grid container spacing={3}>
-                  <Grid item xs={12} sm={6}>
+                <Box sx={{ 
+                  display: "grid", 
+                  gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, 
+                  gap: 3 
+                }}>
+                  <Box>
                     <CardMedia
                       component="img"
                       height={200}
@@ -625,9 +633,9 @@ const MyReservations = () => {
                       alt={selectedReservation.foodName}
                       sx={{ borderRadius: 2, objectFit: "cover" }}
                     />
-                  </Grid>
+                  </Box>
                   
-                  <Grid item xs={12} sm={6}>
+                  <Box>
                     <Stack spacing={2}>
                       <Typography variant="h5" sx={getTypographyStyles(language, "h5")}>
                         {selectedReservation.foodName}
@@ -653,13 +661,17 @@ const MyReservations = () => {
                         )}
                       </Typography>
                     </Stack>
-                  </Grid>
-                </Grid>
+                  </Box>
+                </Box>
 
                 <Divider />
 
-                <Grid container spacing={3}>
-                  <Grid item xs={12} sm={6}>
+                <Box sx={{ 
+                  display: "grid", 
+                  gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, 
+                  gap: 3 
+                }}>
+                  <Box>
                     <Stack spacing={2}>
                       <Typography variant="h6" sx={getTypographyStyles(language, "h6")}>
                         {language === "fa" ? "اطلاعات رزرو" : "Reservation Info"}
@@ -709,9 +721,9 @@ const MyReservations = () => {
                         </Box>
                       </Box>
                     </Stack>
-                  </Grid>
+                  </Box>
 
-                  <Grid item xs={12} sm={6}>
+                  <Box>
                     <Stack spacing={2}>
                       <Typography variant="h6" sx={getTypographyStyles(language, "h6")}>
                         {language === "fa" ? "اطلاعات تغذیه‌ای" : "Nutritional Info"}
@@ -748,8 +760,8 @@ const MyReservations = () => {
                         </Box>
                       )}
                     </Stack>
-                  </Grid>
-                </Grid>
+                  </Box>
+                </Box>
               </Stack>
             )}
           </DialogContent>

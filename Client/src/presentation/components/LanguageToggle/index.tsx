@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React from "react";
 import {
   Box,
   ToggleButton,
@@ -21,8 +21,7 @@ const LanguageToggle = ({
   size = "medium",
   showLabels = true,
 }: LanguageToggleProps) => {
-  const { language, setLanguage, isRTL } = useLanguage();
-  const [hoveredLang, setHoveredLang] = useState<string | null>(null);
+  const { language, setLanguage } = useLanguage();
 
   const handleLanguageChange = (
     _event: React.MouseEvent<HTMLElement>,
@@ -116,8 +115,6 @@ const LanguageToggle = ({
         >
           <ToggleButton
             value="en"
-            onMouseEnter={() => setHoveredLang("en")}
-            onMouseLeave={() => setHoveredLang(null)}
             sx={{
               ...buttonStyles,
               fontFamily: "var(--font-english)",
@@ -135,8 +132,6 @@ const LanguageToggle = ({
         >
           <ToggleButton
             value="fa"
-            onMouseEnter={() => setHoveredLang("fa")}
-            onMouseLeave={() => setHoveredLang(null)}
             sx={{
               ...buttonStyles,
               fontFamily: "var(--font-persian)",

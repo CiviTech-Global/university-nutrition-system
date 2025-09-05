@@ -14,43 +14,9 @@ const persianNumbers = {
   "9": "۹",
 };
 
-// Persian month names
-const persianMonths = {
-  long: [
-    "فروردین",
-    "اردیبهشت",
-    "خرداد",
-    "تیر",
-    "مرداد",
-    "شهریور",
-    "مهر",
-    "آبان",
-    "آذر",
-    "دی",
-    "بهمن",
-    "اسفند",
-  ],
-  short: [
-    "فروردین",
-    "اردیبهشت",
-    "خرداد",
-    "تیر",
-    "مرداد",
-    "شهریور",
-    "مهر",
-    "آبان",
-    "آذر",
-    "دی",
-    "بهمن",
-    "اسفند",
-  ],
-};
-
-// Persian weekday names
-const persianWeekdays = {
-  long: ["یکشنبه", "دوشنبه", "سه‌شنبه", "چهارشنبه", "پنج‌شنبه", "جمعه", "شنبه"],
-  short: ["یک", "دو", "سه", "چهار", "پنج", "جمعه", "شنبه"],
-};
+// These could be used for more sophisticated Persian date formatting if needed
+// const persianMonths = { ... };
+// const persianWeekdays = { ... };
 
 // Convert English numbers to Persian
 export const toPersianNumber = (num: number | string): string => {
@@ -481,7 +447,6 @@ export const createEnhancedLanguageStyles = (language: LanguageType) => {
 
 // Enhanced component-specific styles
 export const createComponentStyles = (language: LanguageType) => {
-  const isRTL = language === "fa";
   const baseStyles = createEnhancedLanguageStyles(language);
 
   return {
@@ -696,6 +661,7 @@ export const getTypographyStyles = (
     | "h6"
     | "body1"
     | "body2"
+    | "subtitle1"
     | "caption"
 ) => {
   const isRTL = language === "fa";
@@ -718,6 +684,11 @@ export const getTypographyStyles = (
       fontSize: "0.875rem",
       fontWeight: 400,
       lineHeight: isRTL ? 1.8 : 1.5,
+    },
+    subtitle1: {
+      fontSize: "1rem",
+      fontWeight: 500,
+      lineHeight: isRTL ? 1.8 : 1.6,
     },
     caption: {
       fontSize: "0.75rem",

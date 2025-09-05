@@ -877,9 +877,8 @@ class DataService {
     }
   }
 
-  // Get comprehensive meal data for a specific day and meal type
+  // Get comprehensive meal data for a meal type
   getMealOptions(
-    date: string,
     mealType: "breakfast" | "lunch" | "dinner"
   ): {
     foods: FoodItem[];
